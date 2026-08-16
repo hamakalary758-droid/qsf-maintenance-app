@@ -1,0 +1,449 @@
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import saveAs from 'file-saver';
+import { MaintenanceReport } from '../types';
+
+/**
+ * 1. Excel Export (xlsx)
+ * Creates a clean spreadsheet with multiple tables: Overview, 5W+1H, 5-Why, Actions, Spare Parts
+ */
+export const exportReportToExcel = (report: MaintenanceReport) => {
+  const wb = XLSX.utils.book_new();
+
+  // Overview Sheet
+  const overviewData = [
+    ['SHUTDOWN MAINTENANCE REPORT', ''],
+    ['Report Number', report.reportNumber],
+    ['Shutdown Event', report.shutdownName],
+    ['Date', report.date],
+    ['Technician Name', report.technicianName],
+    ['Technician ID', report.technicianId || 'N/A'],
+    ['Equipment Name', report.equipmentName],
+    ['Equipment Code', report.equipmentCode],
+    ['Location / Area', report.location],
+    ['Failure Classification', report.failureType],
+    ['Status', report.status],
+    ['Created Date', new Date(report.createdAt).toLocaleString()],
+    ['Last Updated', new Date(report.updatedAt).toLocaleString()],
+    ['Notes', report.notes || 'None']
+  ];
+  const wsOverview = XLSX.utils.aoa_to_sheet(overviewData);
+  XLSX.utils.book_append_sheet(wb, wsOverview, 'Overview');
+
+  // 5W+1H Sheet
+  const fiveWData = [
+    ['5W+1H ANALYSIS ASPECT', 'DETAILS'],
+    ['WHAT (Problem Description)', report.fiveWOneH.what],
+    ['WHEN (Timing / Shift)', report.fiveWOneH.when],
+    ['WHERE (Component / Location)', report.fiveWOneH.where],
+    ['WHO (Discovered / Team)', report.fiveWOneH.who],
+    ['WHICH (Operating Mode / Condition)', report.fiveWOneH.which],
+    ['HOW (Detection / Severity)', report.fiveWOneH.how]
+  ];
+  const wsFiveW = XLSX.utils.aoa_to_sheet(fiveWData);
+  XLSX.utils.book_append_sheet(wb, wsFiveW, '5W1H Analysis');
+
+  // 5-Why Root Cause Sheet
+  const fiveWhyData = [
+    ['WHY STEP', 'ANALYSIS / OBSERVATION'],
+    ['1st Why', report.fiveWhy.why1],
+    ['2nd Why', report.fiveWhy.why2],
+    ['3rd Why', report.fiveWhy.why3],
+    ['4th Why', report.fiveWhy.why4],
+    ['5th Why (Root Cause)', report.fiveWhy.why5]
+  ];
+  const wsFiveWhy = XLSX.utils.aoa_to_sheet(fiveWhyData);
+  XLSX.utils.book_append_sheet(wb, wsFiveWhy, '5-Why Analysis');
+
+  // Corrective Actions Sheet
+  const actionHeaders = ['Action Description', 'Assignee', 'Priority', 'Status', 'Target Date'];
+  const actionRows = report.correctiveActions.map((ca) => [
+    ca.action,
+    ca.assignee,
+    ca.priority,
+    ca.status,
+    ca.targetDate
+  ]);
+  const wsActions = XLSX.utils.aoa_to_sheet([actionHeaders, ...actionRows]);
+  XLSX.utils.book_append_sheet(wb, wsActions, 'Corrective Actions');
+
+  // Spare Parts Sheet
+  const partHeaders = ['Part Name', 'Part Number', 'Quantity', 'Unit Cost ($)', 'Total Cost ($)', 'Status'];
+  const partRows = report.spareParts.map((sp) => [
+    sp.partName,
+    sp.partNumber,
+    sp.quantity,
+    sp.unitCost,
+    sp.quantity * sp.unitCost,
+    sp.status
+  ]);
+  const totalCost = report.spareParts.reduce((sum, sp) => sum + sp.quantity * sp.unitCost, 0);
+  partRows.push(['TOTAL SPARE PARTS COST', '', '', '', totalCost, '']);
+
+  const wsParts = XLSX.utils.aoa_to_sheet([partHeaders, ...partRows]);
+  XLSX.utils.book_append_sheet(wb, wsParts, 'Spare Parts');
+
+  // Attached Photos Sheet
+  if (report.photos && report.photos.length > 0) {
+    const photoHeaders = ['Photo Index', 'Caption / Notes', 'Timestamp', 'Image Data / URL'];
+    const photoRows = report.photos.map((ph, idx) => [
+      `Photo #${idx + 1}`,
+      ph.caption || 'No caption',
+      ph.timestamp || 'N/A',
+      ph.url
+    ]);
+    const wsPhotos = XLSX.utils.aoa_to_sheet([photoHeaders, ...photoRows]);
+    XLSX.utils.book_append_sheet(wb, wsPhotos, 'Attached Photos');
+  }
+
+  // Trigger File Download
+  const filename = `${report.reportNumber}_${report.equipmentCode}_Report.xlsx`;
+  XLSX.writeFile(wb, filename);
+};
+
+/**
+ * 2. PDF Export (jspdf & html2canvas)
+ * Renders an HTML element or constructs a styled PDF
+ */
+export const exportReportToPDF = async (elementId: string, filename: string) => {
+  const element = document.getElementById(elementId);
+  if (!element) {
+    console.error(`Element #${elementId} not found for PDF export.`);
+    alert('Report content not found for PDF generation.');
+    return;
+  }
+
+  try {
+    const canvas = await html2canvas(element, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      logging: false,
+      backgroundColor: '#ffffff',
+      onclone: (clonedDoc, clonedElement) => {
+        // Create a 1x1 canvas context to reliably convert ANY CSS color (oklch, lab, lch, color-space) into exact rgb()/rgba() strings
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = 1;
+        tempCanvas.height = 1;
+        const ctx = tempCanvas.getContext('2d', { willReadFrequently: true });
+
+        const colorToRgb = (colorStr: string): string => {
+          if (!ctx || !colorStr) return 'rgb(0,0,0)';
+          try {
+            ctx.clearRect(0, 0, 1, 1);
+            ctx.fillStyle = '#000000';
+            ctx.fillStyle = colorStr;
+            ctx.fillRect(0, 0, 1, 1);
+            const data = ctx.getImageData(0, 0, 1, 1).data;
+            const r = data[0];
+            const g = data[1];
+            const b = data[2];
+            const a = (data[3] / 255).toFixed(2);
+            return data[3] === 255 ? `rgb(${r}, ${g}, ${b})` : `rgba(${r}, ${g}, ${b}, ${a})`;
+          } catch {
+            return 'rgb(0,0,0)';
+          }
+        };
+
+        const replaceUnsupportedColors = (text: string): string => {
+          if (!text || typeof text !== 'string') return text;
+          // Matches oklch(...), oklab(...), lab(...), lch(...), color(...), hwb(...)
+          return text.replace(/(oklch|oklab|lab|lch|color|hwb)\([^)]+\)/gi, (match) => {
+            return colorToRgb(match);
+          });
+        };
+
+        // 1. Sanitize all <style> tags in cloned document
+        const styleTags = Array.from(clonedDoc.querySelectorAll('style'));
+        styleTags.forEach((styleTag) => {
+          if (styleTag.textContent && /(oklch|oklab|lab|lch|color|hwb)\(/i.test(styleTag.textContent)) {
+            styleTag.textContent = replaceUnsupportedColors(styleTag.textContent);
+          }
+        });
+
+        // 2. Sanitize styleSheets rules directly
+        try {
+          Array.from(clonedDoc.styleSheets).forEach((sheet) => {
+            try {
+              const rules = sheet.cssRules || sheet.rules;
+              if (!rules) return;
+              for (let i = rules.length - 1; i >= 0; i--) {
+                const rule = rules[i];
+                if (rule.cssText && /(oklch|oklab|lab|lch|color|hwb)\(/i.test(rule.cssText)) {
+                  const newCssText = replaceUnsupportedColors(rule.cssText);
+                  try {
+                    sheet.deleteRule(i);
+                    sheet.insertRule(newCssText, i);
+                  } catch {
+                    // ignore rule insertion failure
+                  }
+                }
+              }
+            } catch {
+              // ignore cross-origin sheet access
+            }
+          });
+        } catch {
+          // ignore
+        }
+
+        // 3. Sanitize inline styles and computed styles on all cloned nodes
+        const allNodes = [clonedElement, ...Array.from(clonedElement.querySelectorAll('*'))];
+        const colorProps = [
+          'color',
+          'background-color',
+          'border-color',
+          'border-top-color',
+          'border-right-color',
+          'border-bottom-color',
+          'border-left-color',
+          'outline-color',
+          'fill',
+          'stroke',
+          'box-shadow',
+          'text-decoration-color'
+        ];
+
+        allNodes.forEach((node) => {
+          const el = node as HTMLElement;
+          if (!el || !el.style) return;
+
+          // Inline style attribute
+          const styleAttr = el.getAttribute('style');
+          if (styleAttr && /(oklch|oklab|lab|lch|color|hwb)\(/i.test(styleAttr)) {
+            el.setAttribute('style', replaceUnsupportedColors(styleAttr));
+          }
+
+          // Computed styles override with explicit RGB values
+          try {
+            const computed = clonedDoc.defaultView?.getComputedStyle(el) || window.getComputedStyle(el);
+            if (computed) {
+              colorProps.forEach((prop) => {
+                const val = computed.getPropertyValue(prop);
+                if (val && /(oklch|oklab|lab|lch|color|hwb)\(/i.test(val)) {
+                  const converted = replaceUnsupportedColors(val);
+                  el.style.setProperty(prop, converted, 'important');
+                }
+              });
+            }
+          } catch {
+            // Ignore detached element errors
+          }
+        });
+      }
+    });
+
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+
+    const imgWidth = pdfWidth;
+    const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+
+    let heightLeft = imgHeight;
+    let position = 0;
+
+    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+    heightLeft -= pdfHeight;
+
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pdfHeight;
+    }
+
+    pdf.save(`${filename}.pdf`);
+  } catch (err) {
+    console.error('Error generating PDF:', err);
+    alert('PDF export encountered an issue. Exporting as Word or printing to PDF is recommended.');
+  }
+};
+
+/**
+ * 3. Word Document Export (.doc formatted HTML)
+ * Produces a Word-compatible HTML file that opens directly in Microsoft Word with rich styling, tables & photos
+ */
+export const exportReportToWord = (report: MaintenanceReport) => {
+  const actionsHtml = report.correctiveActions
+    .map(
+      (a) => `
+      <tr>
+        <td style="padding: 8px; border: 1px solid #ddd;">${a.action}</td>
+        <td style="padding: 8px; border: 1px solid #ddd;">${a.assignee}</td>
+        <td style="padding: 8px; border: 1px solid #ddd;"><strong>${a.priority}</strong></td>
+        <td style="padding: 8px; border: 1px solid #ddd;">${a.status}</td>
+        <td style="padding: 8px; border: 1px solid #ddd;">${a.targetDate}</td>
+      </tr>
+    `
+    )
+    .join('');
+
+  const sparePartsHtml = report.spareParts
+    .map(
+      (p) => `
+      <tr>
+        <td style="padding: 8px; border: 1px solid #ddd;">${p.partName}</td>
+        <td style="padding: 8px; border: 1px solid #ddd; font-family: monospace;">${p.partNumber}</td>
+        <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${p.quantity}</td>
+        <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">$${p.unitCost}</td>
+        <td style="padding: 8px; border: 1px solid #ddd; text-align: right; font-weight: bold;">$${p.quantity * p.unitCost}</td>
+        <td style="padding: 8px; border: 1px solid #ddd;">${p.status}</td>
+      </tr>
+    `
+    )
+    .join('');
+
+  const photosHtml = report.photos
+    .map(
+      (ph) => `
+      <div style="margin-bottom: 20px; text-align: center;">
+        <img src="${ph.url}" style="max-width: 500px; height: auto; border: 1px solid #cccccc; border-radius: 4px;" alt="${ph.caption}" />
+        <p style="font-size: 11px; color: #555555; margin-top: 4px;"><em>${ph.caption} (${ph.timestamp})</em></p>
+      </div>
+    `
+    )
+    .join('');
+
+  const totalSparePartsCost = report.spareParts.reduce((acc, p) => acc + p.quantity * p.unitCost, 0);
+
+  const wordHtml = `
+    <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+    <head>
+      <meta charset='utf-8'>
+      <title>Shutdown Maintenance Report - ${report.reportNumber}</title>
+      <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.5; color: #1e293b; padding: 20px; }
+        h1 { color: #0f172a; font-size: 24px; border-bottom: 3px solid #0284c7; padding-bottom: 8px; margin-bottom: 16px; }
+        h2 { color: #0369a1; font-size: 16px; margin-top: 24px; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
+        .meta-table, .data-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+        .meta-table td { padding: 6px 10px; border: 1px solid #cbd5e1; }
+        .meta-label { background-color: #f1f5f9; font-weight: bold; width: 25%; color: #334155; }
+        .data-table th { background-color: #0284c7; color: #ffffff; padding: 10px; text-align: left; border: 1px solid #0284c7; font-size: 13px; }
+        .data-table td { font-size: 13px; }
+        .why-box { background-color: #f8fafc; border-left: 4px solid #0ea5e9; padding: 10px 14px; margin-bottom: 8px; border-radius: 2px; }
+        .why-title { font-weight: bold; color: #0369a1; font-size: 12px; }
+        .why-desc { font-size: 13px; color: #1e293b; margin-top: 2px; }
+        .root-cause { background-color: #fef2f2; border-left: 4px solid #ef4444; }
+        .root-cause .why-title { color: #991b1b; }
+      </style>
+    </head>
+    <body>
+      <h1>PLANT SHUTDOWN MAINTENANCE REPORT</h1>
+      
+      <table class="meta-table">
+        <tr>
+          <td class="meta-label">Report Number</td>
+          <td>${report.reportNumber}</td>
+          <td class="meta-label">Date</td>
+          <td>${report.date}</td>
+        </tr>
+        <tr>
+          <td class="meta-label">Shutdown Event</td>
+          <td colspan="3">${report.shutdownName}</td>
+        </tr>
+        <tr>
+          <td class="meta-label">Technician Name</td>
+          <td>${report.technicianName} (${report.technicianId || 'N/A'})</td>
+          <td class="meta-label">Failure Type</td>
+          <td><strong>${report.failureType}</strong></td>
+        </tr>
+        <tr>
+          <td class="meta-label">Equipment Name</td>
+          <td>${report.equipmentName}</td>
+          <td class="meta-label">Equipment Code</td>
+          <td><code>${report.equipmentCode}</code></td>
+        </tr>
+        <tr>
+          <td class="meta-label">Location / Area</td>
+          <td colspan="3">${report.location}</td>
+        </tr>
+      </table>
+
+      <h2>1. 5W + 1H PROBLEM ANALYSIS</h2>
+      <table class="meta-table">
+        <tr><td class="meta-label">WHAT Happened</td><td>${report.fiveWOneH.what}</td></tr>
+        <tr><td class="meta-label">WHEN Discovered</td><td>${report.fiveWOneH.when}</td></tr>
+        <tr><td class="meta-label">WHERE Located</td><td>${report.fiveWOneH.where}</td></tr>
+        <tr><td class="meta-label">WHO Discovered</td><td>${report.fiveWOneH.who}</td></tr>
+        <tr><td class="meta-label">WHICH Operating Mode</td><td>${report.fiveWOneH.which}</td></tr>
+        <tr><td class="meta-label">HOW Detected / Severity</td><td>${report.fiveWOneH.how}</td></tr>
+      </table>
+
+      <h2>2. 5-WHY ROOT CAUSE ANALYSIS</h2>
+      <div class="why-box"><div class="why-title">WHY 1</div><div class="why-desc">${report.fiveWhy.why1}</div></div>
+      <div class="why-box"><div class="why-title">WHY 2</div><div class="why-desc">${report.fiveWhy.why2}</div></div>
+      <div class="why-box"><div class="why-title">WHY 3</div><div class="why-desc">${report.fiveWhy.why3}</div></div>
+      <div class="why-box"><div class="why-title">WHY 4</div><div class="why-desc">${report.fiveWhy.why4}</div></div>
+      <div class="why-box root-cause"><div class="why-title">WHY 5 (ROOT CAUSE)</div><div class="why-desc">${report.fiveWhy.why5}</div></div>
+
+      <h2>3. CORRECTIVE ACTIONS TAKEN / PLANNED</h2>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Action Item</th>
+            <th>Assignee</th>
+            <th>Priority</th>
+            <th>Status</th>
+            <th>Target Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${actionsHtml || '<tr><td colspan="5">No actions recorded.</td></tr>'}
+        </tbody>
+      </table>
+
+      <h2>4. SPARE PARTS & MATERIAL UTILIZATION</h2>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Part Description</th>
+            <th>Part Number</th>
+            <th>Qty</th>
+            <th>Unit Cost</th>
+            <th>Total Cost</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${sparePartsHtml || '<tr><td colspan="6">No spare parts recorded.</td></tr>'}
+          <tr style="background-color: #f8fafc; font-weight: bold;">
+            <td colspan="4" style="text-align: right; padding: 8px;">Total Spare Parts Cost:</td>
+            <td style="text-align: right; padding: 8px;">$${totalSparePartsCost.toFixed(2)}</td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+
+      ${
+        report.photos.length > 0
+          ? `<h2>5. MAINTENANCE INSPECTION PHOTOS & ANNOTATIONS</h2>${photosHtml}`
+          : ''
+      }
+
+      <h2>6. SIGN-OFF & APPROVAL</h2>
+      <table class="meta-table" style="margin-top: 30px;">
+        <tr>
+          <td style="height: 60px; vertical-align: bottom; width: 50%;">
+            ____________________________________<br/>
+            <strong>Maintenance Technician</strong><br/>
+            ${report.technicianName}
+          </td>
+          <td style="height: 60px; vertical-align: bottom; width: 50%;">
+            ____________________________________<br/>
+            <strong>Plant Reliability Engineer</strong><br/>
+            Signature & Date
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+
+  const blob = new Blob(['\ufeff', wordHtml], {
+    type: 'application/msword'
+  });
+  saveAs(blob, `${report.reportNumber}_${report.equipmentCode}_Report.doc`);
+};

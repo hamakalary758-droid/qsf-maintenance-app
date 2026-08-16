@@ -1,0 +1,10 @@
+{
+  "name": "Shutdown Maintenance Reporter",
+  "description": "Mobile-first shutdown maintenance reporting tool with 5W+1H, 5-Why root cause analysis, photo annotation, offline persistence, and PDF/Excel/Word export.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
