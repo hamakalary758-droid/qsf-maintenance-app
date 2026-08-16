@@ -50,7 +50,7 @@ export const PhotoCaptureStep: React.FC<PhotoCaptureStepProps> = ({ reportData, 
         <div className="flex items-start space-x-2">
           <Camera className="w-4 h-4 text-purple-600 flex-shrink-0 mt-0.5" />
           <div>
-            <strong className="font-bold">Step 4: Inspection Photos & Crop/Highlight Markup</strong>
+            <strong className="font-bold">Inspection Photos & Crop/Highlight Markup</strong>
             <p className="text-[11px] text-purple-700 mt-0.5">
               Take photos directly on your phone camera or upload from gallery. Crop and highlight cracks, wear, or damage before saving.
             </p>
@@ -89,17 +89,17 @@ export const PhotoCaptureStep: React.FC<PhotoCaptureStepProps> = ({ reportData, 
 
       {/* Photos Grid Display */}
       {photos.length === 0 ? (
-        <div className="p-8 border-2 border-dashed border-slate-300 bg-slate-50/50 rounded-2xl text-center space-y-2">
-          <Camera className="w-8 h-8 text-slate-400 mx-auto" />
-          <p className="text-xs font-semibold text-slate-600">No photos attached yet</p>
-          <p className="text-[11px] text-slate-400">
+        <div className="p-8 border-2 border-dashed border-slate-300 dark:border-slate-600 bg-slate-50/50 dark:bg-slate-800/50 rounded-2xl text-center space-y-2">
+          <Camera className="w-8 h-8 text-slate-400 dark:text-slate-500 mx-auto" />
+          <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">No photos attached yet</p>
+          <p className="text-[11px] text-slate-400 dark:text-slate-500">
             Use your camera or file uploader above to attach inspection photos.
           </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
           {photos.map((ph, idx) => (
-            <div key={ph.id} className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col justify-between">
+            <div key={ph.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm flex flex-col justify-between">
               <div className="relative aspect-video bg-slate-900 group">
                 <img
                   src={ph.url}
@@ -142,14 +142,14 @@ export const PhotoCaptureStep: React.FC<PhotoCaptureStepProps> = ({ reportData, 
                     });
                   }}
                   placeholder="Caption / defect note..."
-                  className="w-full text-xs font-medium text-slate-800 bg-slate-50 border border-slate-200 rounded px-2 py-1 focus:bg-white focus:outline-none"
+                  className="w-full text-xs font-medium text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-2 py-1 focus:bg-white dark:focus:bg-slate-900 focus:outline-none"
                 />
 
-                <div className="flex items-center justify-between text-[10px] text-slate-400">
+                <div className="flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-500">
                   <span>Logged: {ph.timestamp}</span>
                   <button
                     onClick={() => setEditingPhoto(ph)}
-                    className="text-sky-600 font-bold hover:underline flex items-center space-x-0.5"
+                    className="text-sky-600 dark:text-sky-400 font-bold hover:underline flex items-center space-x-0.5"
                   >
                     <Edit3 className="w-3 h-3 mr-0.5" />
                     <span>Edit / Crop</span>

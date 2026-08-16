@@ -18,7 +18,7 @@ export const SetupGuide: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Guardrail 1: Spending Cap & Zero Cost */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 shadow-sm space-y-3">
           <div className="flex items-center space-x-2 text-emerald-600 font-bold text-sm">
             <div className="p-2 bg-emerald-50 rounded-lg border border-emerald-200">
               <DollarSign className="w-5 h-5" />
@@ -26,39 +26,39 @@ export const SetupGuide: React.FC = () => {
             <h3>Step 8: Hard Spending Cap & Kill-Switch</h3>
           </div>
 
-          <p className="text-xs text-slate-600 leading-relaxed">
+          <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
             Your application runs entirely within Firebase&apos;s generous Spark Plan free allowances:
           </p>
 
           <ul className="space-y-2 text-xs">
-            <li className="flex items-start space-x-2 p-2 bg-slate-50 rounded-lg border border-slate-200">
+            <li className="flex items-start space-x-2 p-2 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
               <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
               <div>
-                <strong className="text-slate-800">50,000 Free Reads / Day</strong>
-                <p className="text-[11px] text-slate-500">More than enough for thousands of maintenance reports per month.</p>
+                <strong className="text-slate-800 dark:text-slate-200">50,000 Free Reads / Day</strong>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">More than enough for thousands of maintenance reports per month.</p>
               </div>
             </li>
 
-            <li className="flex items-start space-x-2 p-2 bg-slate-50 rounded-lg border border-slate-200">
+            <li className="flex items-start space-x-2 p-2 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
               <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
               <div>
-                <strong className="text-slate-800">20,000 Free Writes / Day</strong>
-                <p className="text-[11px] text-slate-500">Writing field reports and uploading 5-Why analysis costs $0.00.</p>
+                <strong className="text-slate-800 dark:text-slate-200">20,000 Free Writes / Day</strong>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">Writing field reports and uploading 5-Why analysis costs $0.00.</p>
               </div>
             </li>
 
-            <li className="flex items-start space-x-2 p-2 bg-slate-50 rounded-lg border border-slate-200">
+            <li className="flex items-start space-x-2 p-2 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
               <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
               <div>
-                <strong className="text-slate-800">Budget Limit & Spending Alerts ($0 Cap)</strong>
-                <p className="text-[11px] text-slate-500">Set up Google Cloud Budget Alert at $0.01 threshold with automatic kill-switch disabling billing.</p>
+                <strong className="text-slate-800 dark:text-slate-200">Budget Limit & Spending Alerts ($0 Cap)</strong>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">Set up Google Cloud Budget Alert at $0.01 threshold with automatic kill-switch disabling billing.</p>
               </div>
             </li>
           </ul>
         </div>
 
         {/* Guardrail 2: Plant Offline Reliability */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 shadow-sm space-y-3">
           <div className="flex items-center space-x-2 text-sky-600 font-bold text-sm">
             <div className="p-2 bg-sky-50 rounded-lg border border-sky-200">
               <Smartphone className="w-5 h-5" />
@@ -66,32 +66,32 @@ export const SetupGuide: React.FC = () => {
             <h3>Plant Floor Offline Reliability</h3>
           </div>
 
-          <p className="text-xs text-slate-600 leading-relaxed">
+          <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
             Subtle concrete structures and metal tanks block cell signals. The app is engineered for zero-latency offline work:
           </p>
 
           <ul className="space-y-2 text-xs">
-            <li className="flex items-start space-x-2 p-2 bg-slate-50 rounded-lg border border-slate-200">
+            <li className="flex items-start space-x-2 p-2 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
               <Zap className="w-4 h-4 text-sky-500 flex-shrink-0 mt-0.5" />
               <div>
-                <strong className="text-slate-800">IndexedDB & Local Storage Cache</strong>
-                <p className="text-[11px] text-slate-500">Reports, photos, and drafts save instantly to your phone memory without waiting for network connection.</p>
+                <strong className="text-slate-800 dark:text-slate-200">IndexedDB & Local Storage Cache</strong>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">Reports, photos, and drafts save instantly to your phone memory without waiting for network connection.</p>
               </div>
             </li>
 
-            <li className="flex items-start space-x-2 p-2 bg-slate-50 rounded-lg border border-slate-200">
+            <li className="flex items-start space-x-2 p-2 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
               <Database className="w-4 h-4 text-sky-500 flex-shrink-0 mt-0.5" />
               <div>
-                <strong className="text-slate-800">Automatic Sync on Reconnect</strong>
-                <p className="text-[11px] text-slate-500">When you exit the basement/unit back into Wi-Fi or LTE range, stored reports automatically synchronize.</p>
+                <strong className="text-slate-800 dark:text-slate-200">Automatic Sync on Reconnect</strong>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">When you exit the basement/unit back into Wi-Fi or LTE range, stored reports automatically synchronize.</p>
               </div>
             </li>
 
-            <li className="flex items-start space-x-2 p-2 bg-slate-50 rounded-lg border border-slate-200">
+            <li className="flex items-start space-x-2 p-2 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
               <Lock className="w-4 h-4 text-sky-500 flex-shrink-0 mt-0.5" />
               <div>
-                <strong className="text-slate-800">Standalone Single-User Mode</strong>
-                <p className="text-[11px] text-slate-500">No complex login barriers or multi-user access bottlenecks required for your personal use.</p>
+                <strong className="text-slate-800 dark:text-slate-200">Standalone Single-User Mode</strong>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">No complex login barriers or multi-user access bottlenecks required for your personal use.</p>
               </div>
             </li>
           </ul>

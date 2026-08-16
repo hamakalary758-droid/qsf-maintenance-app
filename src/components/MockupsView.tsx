@@ -55,7 +55,7 @@ export const MockupsView: React.FC = () => {
         </div>
 
         {/* Phone Screen Container */}
-        <div className="bg-slate-50 text-slate-900 min-h-[580px] rounded-[24px] p-4 font-sans text-xs flex flex-col justify-between border border-slate-200">
+        <div className="bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 min-h-[580px] rounded-[24px] p-4 font-sans text-xs flex flex-col justify-between border border-slate-200 dark:border-slate-700">
           
           {/* Header */}
           <div className="bg-slate-900 text-white p-3 -mx-4 -mt-4 rounded-t-[24px] mb-3 flex items-center justify-between border-b border-slate-800">
@@ -78,43 +78,43 @@ export const MockupsView: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="font-bold text-slate-700 text-[11px]">Technician Name *</label>
-                  <div className="p-2 bg-white border border-slate-300 rounded text-slate-500 font-mono text-[11px]">
+                  <label className="font-bold text-slate-700 dark:text-slate-300 text-[11px]">Technician Name *</label>
+                  <div className="p-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-slate-500 dark:text-slate-400 font-mono text-[11px]">
                     e.g. Marcus Vance (Tech #4092)
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="font-bold text-slate-700 text-[11px]">Date *</label>
-                    <div className="p-2 bg-white border border-slate-300 rounded text-slate-500 text-[11px]">
+                    <label className="font-bold text-slate-700 dark:text-slate-300 text-[11px]">Date *</label>
+                    <div className="p-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-slate-500 dark:text-slate-400 text-[11px]">
                       2026-08-15
                     </div>
                   </div>
                   <div>
-                    <label className="font-bold text-slate-700 text-[11px]">Shutdown Event</label>
-                    <div className="p-2 bg-white border border-slate-300 rounded text-slate-500 text-[11px] truncate">
+                    <label className="font-bold text-slate-700 dark:text-slate-300 text-[11px]">Shutdown Event</label>
+                    <div className="p-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-slate-500 dark:text-slate-400 text-[11px] truncate">
                       Q3 Major Shutdown
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 text-[11px]">Equipment Name & Code *</label>
-                  <div className="p-2 bg-white border border-slate-300 rounded text-slate-500 text-[11px]">
+                  <label className="font-bold text-slate-700 dark:text-slate-300 text-[11px]">Equipment Name & Code *</label>
+                  <div className="p-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-slate-500 dark:text-slate-400 text-[11px]">
                     Slurry Pump P-102A (EQ-PMP-102A)
                   </div>
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 text-[11px]">Plant Location / Area *</label>
-                  <div className="p-2 bg-white border border-slate-300 rounded text-slate-500 text-[11px]">
+                  <label className="font-bold text-slate-700 dark:text-slate-300 text-[11px]">Plant Location / Area *</label>
+                  <div className="p-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-slate-500 dark:text-slate-400 text-[11px]">
                     Area 3 - Heavy Processing Unit
                   </div>
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 text-[11px]">Failure Type *</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300 text-[11px]">Failure Type *</label>
                   <div className="p-2 bg-sky-50 border border-sky-300 rounded text-sky-800 font-bold text-[11px] flex justify-between items-center">
                     <span>Mechanical Failure</span>
                     <span>&#9660;</span>
@@ -131,29 +131,29 @@ export const MockupsView: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-1 gap-1.5 text-[11px]">
-                  <div className="p-2 bg-white border border-slate-300 rounded">
+                  <div className="p-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded">
                     <span className="font-bold text-indigo-600 uppercase text-[10px]">WHAT Happened?</span>
-                    <p className="text-slate-600 mt-0.5">Impeller vanes pitted severely & high shaft vibration...</p>
+                    <p className="text-slate-600 dark:text-slate-400 mt-0.5">Impeller vanes pitted severely & high shaft vibration...</p>
                   </div>
-                  <div className="p-2 bg-white border border-slate-300 rounded">
+                  <div className="p-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded">
                     <span className="font-bold text-indigo-600 uppercase text-[10px]">WHEN Discovered?</span>
-                    <p className="text-slate-600 mt-0.5">During Day Shift startup pre-shutdown flush at 10:30 AM...</p>
+                    <p className="text-slate-600 dark:text-slate-400 mt-0.5">During Day Shift startup pre-shutdown flush at 10:30 AM...</p>
                   </div>
-                  <div className="p-2 bg-white border border-slate-300 rounded">
+                  <div className="p-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded">
                     <span className="font-bold text-indigo-600 uppercase text-[10px]">WHERE Located?</span>
-                    <p className="text-slate-600 mt-0.5">Suction housing & shaft bearing assembly #2...</p>
+                    <p className="text-slate-600 dark:text-slate-400 mt-0.5">Suction housing & shaft bearing assembly #2...</p>
                   </div>
-                  <div className="p-2 bg-white border border-slate-300 rounded">
+                  <div className="p-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded">
                     <span className="font-bold text-indigo-600 uppercase text-[10px]">WHO Discovered?</span>
-                    <p className="text-slate-600 mt-0.5">Marcus Vance & David K. (Shift Techs)...</p>
+                    <p className="text-slate-600 dark:text-slate-400 mt-0.5">Marcus Vance & David K. (Shift Techs)...</p>
                   </div>
-                  <div className="p-2 bg-white border border-slate-300 rounded">
+                  <div className="p-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded">
                     <span className="font-bold text-indigo-600 uppercase text-[10px]">WHICH Mode/Condition?</span>
-                    <p className="text-slate-600 mt-0.5">Under 85% high viscosity slurry recirculation...</p>
+                    <p className="text-slate-600 dark:text-slate-400 mt-0.5">Under 85% high viscosity slurry recirculation...</p>
                   </div>
-                  <div className="p-2 bg-white border border-slate-300 rounded">
+                  <div className="p-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded">
                     <span className="font-bold text-indigo-600 uppercase text-[10px]">HOW Detected?</span>
-                    <p className="text-slate-600 mt-0.5">Inline vibration alarm + cavitation acoustic rumble...</p>
+                    <p className="text-slate-600 dark:text-slate-400 mt-0.5">Inline vibration alarm + cavitation acoustic rumble...</p>
                   </div>
                 </div>
               </div>
@@ -172,8 +172,8 @@ export const MockupsView: React.FC = () => {
                       key={num}
                       className={`p-2 rounded border ${
                         num === 5
-                          ? 'bg-rose-50 border-rose-300 text-rose-900 font-medium'
-                          : 'bg-white border-slate-300 text-slate-700'
+                          ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 text-rose-900 dark:text-rose-200 font-medium'
+                          : 'bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300'
                       }`}
                     >
                       <div className="flex items-center justify-between">
@@ -202,37 +202,37 @@ export const MockupsView: React.FC = () => {
                   <p className="text-[11px] text-emerald-700">Track task assignments and warehouse spare part costs.</p>
                 </div>
 
-                <div className="bg-white border border-slate-300 rounded p-2">
-                  <span className="font-bold text-slate-800 text-[11px]">Corrective Action Items</span>
+                <div className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded p-2">
+                  <span className="font-bold text-slate-800 dark:text-slate-200 text-[11px]">Corrective Action Items</span>
                   <div className="mt-1 space-y-1">
-                    <div className="p-1.5 bg-slate-50 rounded border border-slate-200 flex justify-between items-center text-[10px]">
+                    <div className="p-1.5 bg-slate-50 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 flex justify-between items-center text-[10px]">
                       <span>Replace Chrome Impeller</span>
                       <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold">Completed</span>
                     </div>
-                    <div className="p-1.5 bg-slate-50 rounded border border-slate-200 flex justify-between items-center text-[10px]">
+                    <div className="p-1.5 bg-slate-50 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 flex justify-between items-center text-[10px]">
                       <span>Laser Shaft Alignment</span>
                       <span className="px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded font-bold">In Progress</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-white border border-slate-300 rounded p-2">
-                  <span className="font-bold text-slate-800 text-[11px]">Spare Parts Used</span>
+                <div className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded p-2">
+                  <span className="font-bold text-slate-800 dark:text-slate-200 text-[11px]">Spare Parts Used</span>
                   <table className="w-full text-[10px] mt-1 border-collapse">
                     <thead>
-                      <tr className="bg-slate-100 text-slate-600 font-bold">
+                      <tr className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold">
                         <th className="p-1 text-left">Part Name</th>
                         <th className="p-1 text-center">Qty</th>
                         <th className="p-1 text-right">Cost</th>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr className="border-t border-slate-200">
+                      <tr className="border-t border-slate-200 dark:border-slate-700">
                         <td className="p-1">Chrome Impeller #IMP-8802</td>
                         <td className="p-1 text-center">1</td>
                         <td className="p-1 text-right">$1,450</td>
                       </tr>
-                      <tr className="border-t border-slate-200">
+                      <tr className="border-t border-slate-200 dark:border-slate-700">
                         <td className="p-1">Mechanical Shaft Seal</td>
                         <td className="p-1 text-center">2</td>
                         <td className="p-1 text-right">$560</td>
@@ -250,22 +250,22 @@ export const MockupsView: React.FC = () => {
                   <p className="text-[11px] text-amber-700">Audit all inputs, photos, and analysis before saving.</p>
                 </div>
 
-                <div className="p-2 bg-white border border-slate-300 rounded space-y-1.5 text-[11px]">
-                  <div className="flex justify-between items-center border-b pb-1">
-                    <span className="font-bold text-slate-800">Report Summary: SDR-2026-0801</span>
+                <div className="p-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded space-y-1.5 text-[11px]">
+                  <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-1">
+                    <span className="font-bold text-slate-800 dark:text-slate-200">Report Summary: SDR-2026-0801</span>
                     <span className="text-[10px] text-amber-600 font-bold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">DRAFT</span>
                   </div>
                   <div>
-                    <span className="text-slate-500">Equipment:</span> Slurry Pump P-102A
+                    <span className="text-slate-500 dark:text-slate-400">Equipment:</span> Slurry Pump P-102A
                   </div>
                   <div>
-                    <span className="text-slate-500">Photos:</span> 2 Annotated Plant Images
+                    <span className="text-slate-500 dark:text-slate-400">Photos:</span> 2 Annotated Plant Images
                   </div>
                   <div>
-                    <span className="text-slate-500">5-Why Root Cause:</span> Bypass valve stuck
+                    <span className="text-slate-500 dark:text-slate-400">5-Why Root Cause:</span> Bypass valve stuck
                   </div>
                   <div>
-                    <span className="text-slate-500">Spare Parts Cost:</span> $2,010.00
+                    <span className="text-slate-500 dark:text-slate-400">Spare Parts Cost:</span> $2,010.00
                   </div>
                 </div>
 
@@ -307,7 +307,7 @@ export const MockupsView: React.FC = () => {
           </div>
 
           {/* Footer Bar */}
-          <div className="border-t border-slate-200 pt-2 flex items-center justify-between text-[11px] text-slate-500">
+          <div className="border-t border-slate-200 dark:border-slate-700 pt-2 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
             <span>Offline Local Cache Active</span>
             <span className="font-bold text-emerald-600">&bull; Phone Ready</span>
           </div>

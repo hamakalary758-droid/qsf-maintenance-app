@@ -91,15 +91,15 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
 
       {/* Reports List */}
       {isLoading ? (
-        <div className="bg-white border border-slate-200 rounded-2xl p-10 text-center space-y-3">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-10 text-center space-y-3">
           <div className="w-8 h-8 border-4 border-sky-600 border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-xs text-slate-500 font-medium">Loading reports from database...</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Loading reports from database...</p>
         </div>
       ) : filteredReports.length === 0 ? (
-        <div className="bg-white border border-slate-200 rounded-2xl p-10 text-center space-y-3">
-          <Wrench className="w-10 h-10 text-slate-300 mx-auto" />
-          <h3 className="text-sm font-bold text-slate-800">No Matching Reports Found</h3>
-          <p className="text-xs text-slate-500 max-w-sm mx-auto">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-10 text-center space-y-3">
+          <Wrench className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto" />
+          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">No Matching Reports Found</h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
             No reports match your current search criteria. Clear filters or create a new shutdown maintenance report.
           </p>
           <button
@@ -107,7 +107,7 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
               setSearchTerm('');
               setSelectedFailureType('ALL');
             }}
-            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-lg"
+            className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-xs rounded-lg"
           >
             Clear Search Filter
           </button>
@@ -117,37 +117,37 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
           {filteredReports.map((r) => (
             <div
               key={r.id}
-              className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
             >
               {/* Left Column: Report Meta */}
               <div className="space-y-1.5 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-mono font-bold text-xs bg-slate-100 text-slate-800 px-2 py-0.5 rounded border border-slate-200">
+                  <span className="font-mono font-bold text-xs bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
                     {r.reportNumber}
                   </span>
                   <span className="px-2 py-0.5 bg-amber-100 text-amber-900 text-[10px] font-extrabold rounded-full border border-amber-200">
                     {r.failureType}
                   </span>
-                  <span className="text-[10px] text-slate-400 font-mono">
-                    <Calendar className="w-3 h-3 inline mr-0.5 text-slate-400" />
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">
+                    <Calendar className="w-3 h-3 inline mr-0.5 text-slate-400 dark:text-slate-500" />
                     {r.date}
                   </span>
                 </div>
 
-                <h3 className="font-bold text-sm text-slate-900 group-hover:text-sky-600 transition-colors">
+                <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100 group-hover:text-sky-600 transition-colors">
                   {r.title || r.equipmentName}
                 </h3>
 
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
                   <span className="flex items-center">
-                    <Wrench className="w-3.5 h-3.5 mr-1 text-slate-400" />
+                    <Wrench className="w-3.5 h-3.5 mr-1 text-slate-400 dark:text-slate-500" />
                     {r.equipmentName} ({r.equipmentCode})
                   </span>
                   <span className="flex items-center">
-                    <MapPin className="w-3.5 h-3.5 mr-1 text-slate-400" />
+                    <MapPin className="w-3.5 h-3.5 mr-1 text-slate-400 dark:text-slate-500" />
                     {r.location}
                   </span>
-                  <span className="text-slate-400">Tech: <strong>{r.technicianName}</strong></span>
+                  <span className="text-slate-400 dark:text-slate-500">Tech: <strong className="text-slate-700 dark:text-slate-300">{r.technicianName}</strong></span>
                 </div>
 
                 {r.fiveWhy?.why5 && (
@@ -158,7 +158,7 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
               </div>
 
               {/* Right Column: Actions & Exports */}
-              <div className="flex sm:flex-col items-end justify-between sm:justify-center w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100 gap-2">
+              <div className="flex sm:flex-col items-end justify-between sm:justify-center w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800 gap-2">
                 <div className="flex items-center space-x-1.5">
                   <button
                     onClick={() => onSelectReport(r)}
@@ -170,7 +170,7 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
 
                   <button
                     onClick={() => onDeleteReport(r.id)}
-                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                    className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-lg transition-colors"
                     title="Delete report"
                   >
                     <Trash2 className="w-4 h-4" />
