@@ -104,7 +104,7 @@ export const exportReportToExcel = (report: MaintenanceReport) => {
 
 /**
  * 2. PDF Export (jspdf & html2canvas)
- * Renders an HTML element or constructs a styled PDF
+ * Renders report with section-aware pagination, proper page breaks, and photo scaling
  */
 export const exportReportToPDF = async (elementId: string, filename: string) => {
   const element = document.getElementById(elementId);
@@ -115,144 +115,235 @@ export const exportReportToPDF = async (elementId: string, filename: string) => 
   }
 
   try {
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = pdf.internal.pageSize.getWidth(); // 210mm
+    const pageHeight = pdf.internal.pageSize.getHeight(); // 297mm
+    const margin = 10;
+    const contentWidth = pageWidth - margin * 2; // 190mm
+    const maxContentHeight = pageHeight - margin * 2; // 277mm
+
+    // Color sanitizer for Tailwind OKLCH/P3 values
+    const sanitizeColorsInClone = (clonedDoc: Document, clonedElement: HTMLElement) => {
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = 1;
+      tempCanvas.height = 1;
+      const ctx = tempCanvas.getContext('2d', { willReadFrequently: true });
+
+      const colorToRgb = (colorStr: string): string => {
+        if (!ctx || !colorStr) return 'rgb(0,0,0)';
+        try {
+          ctx.clearRect(0, 0, 1, 1);
+          ctx.fillStyle = '#000000';
+          ctx.fillStyle = colorStr;
+          ctx.fillRect(0, 0, 1, 1);
+          const data = ctx.getImageData(0, 0, 1, 1).data;
+          const r = data[0];
+          const g = data[1];
+          const b = data[2];
+          const a = (data[3] / 255).toFixed(2);
+          return data[3] === 255 ? `rgb(${r}, ${g}, ${b})` : `rgba(${r}, ${g}, ${b}, ${a})`;
+        } catch {
+          return 'rgb(0,0,0)';
+        }
+      };
+
+      const replaceUnsupportedColors = (text: string): string => {
+        if (!text || typeof text !== 'string') return text;
+        return text.replace(/(oklch|oklab|lab|lch|color|hwb)\([^)]+\)/gi, (match) => {
+          return colorToRgb(match);
+        });
+      };
+
+      // 1. Style tags
+      Array.from(clonedDoc.querySelectorAll('style')).forEach((styleTag) => {
+        if (styleTag.textContent && /(oklch|oklab|lab|lch|color|hwb)\(/i.test(styleTag.textContent)) {
+          styleTag.textContent = replaceUnsupportedColors(styleTag.textContent);
+        }
+      });
+
+      // 2. Stylesheets
+      try {
+        Array.from(clonedDoc.styleSheets).forEach((sheet) => {
+          try {
+            const rules = sheet.cssRules || sheet.rules;
+            if (!rules) return;
+            for (let i = rules.length - 1; i >= 0; i--) {
+              const rule = rules[i];
+              if (rule.cssText && /(oklch|oklab|lab|lch|color|hwb)\(/i.test(rule.cssText)) {
+                const newCssText = replaceUnsupportedColors(rule.cssText);
+                try {
+                  sheet.deleteRule(i);
+                  sheet.insertRule(newCssText, i);
+                } catch {
+                  // ignore rule insertion error
+                }
+              }
+            }
+          } catch {
+            // ignore cross-origin sheet
+          }
+        });
+      } catch {
+        // ignore
+      }
+
+      // 3. Computed styles on elements
+      const allNodes = [clonedElement, ...Array.from(clonedElement.querySelectorAll('*'))];
+      const colorProps = [
+        'color', 'background-color', 'border-color', 'border-top-color',
+        'border-right-color', 'border-bottom-color', 'border-left-color',
+        'outline-color', 'fill', 'stroke', 'box-shadow', 'text-decoration-color'
+      ];
+
+      allNodes.forEach((node) => {
+        const el = node as HTMLElement;
+        if (!el || !el.style) return;
+        const styleAttr = el.getAttribute('style');
+        if (styleAttr && /(oklch|oklab|lab|lch|color|hwb)\(/i.test(styleAttr)) {
+          el.setAttribute('style', replaceUnsupportedColors(styleAttr));
+        }
+        try {
+          const computed = clonedDoc.defaultView?.getComputedStyle(el) || window.getComputedStyle(el);
+          if (computed) {
+            colorProps.forEach((prop) => {
+              const val = computed.getPropertyValue(prop);
+              if (val && /(oklch|oklab|lab|lch|color|hwb)\(/i.test(val)) {
+                el.style.setProperty(prop, replaceUnsupportedColors(val), 'important');
+              }
+            });
+          }
+        } catch {
+          // ignore
+        }
+      });
+    };
+
+    // Grab child section blocks from the printable container
+    const sectionNodes = Array.from(element.children) as HTMLElement[];
+
+    // If there are distinct sections, render each section and budget page Y-coordinates
+    if (sectionNodes.length > 0) {
+      let currentY = margin;
+      let isFirstPage = true;
+
+      for (let i = 0; i < sectionNodes.length; i++) {
+        const sectionEl = sectionNodes[i];
+        if (!sectionEl || sectionEl.offsetHeight === 0) continue;
+
+        const sectionCanvas = await html2canvas(sectionEl, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          logging: false,
+          backgroundColor: '#ffffff',
+          onclone: (doc, el) => sanitizeColorsInClone(doc, el)
+        });
+
+        const imgData = sectionCanvas.toDataURL('image/jpeg', 0.95);
+        const sectionHeightMm = (sectionCanvas.height * contentWidth) / sectionCanvas.width;
+
+        // If section doesn't fit on current page and we've already written content
+        if (currentY + sectionHeightMm > pageHeight - margin && currentY > margin) {
+          pdf.addPage();
+          currentY = margin;
+          isFirstPage = false;
+        }
+
+        // If a single massive section exceeds a full page height (e.g. 20+ photos in 1 grid)
+        if (sectionHeightMm > maxContentHeight) {
+          let sliceRemaining = sectionHeightMm;
+          let sliceOffsetMm = 0;
+
+          while (sliceRemaining > 0) {
+            if (currentY > margin && sliceRemaining > pageHeight - currentY - margin) {
+              pdf.addPage();
+              currentY = margin;
+            }
+
+            const availableHeight = pageHeight - currentY - margin;
+            const currentSliceHeight = Math.min(sliceRemaining, availableHeight);
+
+            // Add the image portion
+            pdf.addImage(
+              imgData,
+              'JPEG',
+              margin,
+              currentY - sliceOffsetMm,
+              contentWidth,
+              sectionHeightMm
+            );
+
+            sliceRemaining -= currentSliceHeight;
+            sliceOffsetMm += currentSliceHeight;
+            currentY += currentSliceHeight + 2;
+
+            if (sliceRemaining > 0) {
+              pdf.addPage();
+              currentY = margin;
+            }
+          }
+        } else {
+          // Standard section fits
+          pdf.addImage(imgData, 'JPEG', margin, currentY, contentWidth, sectionHeightMm);
+          currentY += sectionHeightMm + 4; // 4mm spacing between sections
+        }
+      }
+
+      // Add page numbering footers
+      const totalPages = pdf.getNumberOfPages();
+      for (let p = 1; p <= totalPages; p++) {
+        pdf.setPage(p);
+        pdf.setFontSize(8);
+        pdf.setTextColor(140, 150, 160);
+        pdf.text(
+          `QSF Maintenance Report — ${filename} — Page ${p} of ${totalPages}`,
+          pageWidth / 2,
+          pageHeight - 5,
+          { align: 'center' }
+        );
+      }
+
+      pdf.save(`${filename}.pdf`);
+      return;
+    }
+
+    // Fallback: render full element
     const canvas = await html2canvas(element, {
       scale: 2,
       useCORS: true,
       allowTaint: true,
       logging: false,
       backgroundColor: '#ffffff',
-      onclone: (clonedDoc, clonedElement) => {
-        // Create a 1x1 canvas context to reliably convert ANY CSS color (oklch, lab, lch, color-space) into exact rgb()/rgba() strings
-        const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = 1;
-        tempCanvas.height = 1;
-        const ctx = tempCanvas.getContext('2d', { willReadFrequently: true });
-
-        const colorToRgb = (colorStr: string): string => {
-          if (!ctx || !colorStr) return 'rgb(0,0,0)';
-          try {
-            ctx.clearRect(0, 0, 1, 1);
-            ctx.fillStyle = '#000000';
-            ctx.fillStyle = colorStr;
-            ctx.fillRect(0, 0, 1, 1);
-            const data = ctx.getImageData(0, 0, 1, 1).data;
-            const r = data[0];
-            const g = data[1];
-            const b = data[2];
-            const a = (data[3] / 255).toFixed(2);
-            return data[3] === 255 ? `rgb(${r}, ${g}, ${b})` : `rgba(${r}, ${g}, ${b}, ${a})`;
-          } catch {
-            return 'rgb(0,0,0)';
-          }
-        };
-
-        const replaceUnsupportedColors = (text: string): string => {
-          if (!text || typeof text !== 'string') return text;
-          // Matches oklch(...), oklab(...), lab(...), lch(...), color(...), hwb(...)
-          return text.replace(/(oklch|oklab|lab|lch|color|hwb)\([^)]+\)/gi, (match) => {
-            return colorToRgb(match);
-          });
-        };
-
-        // 1. Sanitize all <style> tags in cloned document
-        const styleTags = Array.from(clonedDoc.querySelectorAll('style'));
-        styleTags.forEach((styleTag) => {
-          if (styleTag.textContent && /(oklch|oklab|lab|lch|color|hwb)\(/i.test(styleTag.textContent)) {
-            styleTag.textContent = replaceUnsupportedColors(styleTag.textContent);
-          }
-        });
-
-        // 2. Sanitize styleSheets rules directly
-        try {
-          Array.from(clonedDoc.styleSheets).forEach((sheet) => {
-            try {
-              const rules = sheet.cssRules || sheet.rules;
-              if (!rules) return;
-              for (let i = rules.length - 1; i >= 0; i--) {
-                const rule = rules[i];
-                if (rule.cssText && /(oklch|oklab|lab|lch|color|hwb)\(/i.test(rule.cssText)) {
-                  const newCssText = replaceUnsupportedColors(rule.cssText);
-                  try {
-                    sheet.deleteRule(i);
-                    sheet.insertRule(newCssText, i);
-                  } catch {
-                    // ignore rule insertion failure
-                  }
-                }
-              }
-            } catch {
-              // ignore cross-origin sheet access
-            }
-          });
-        } catch {
-          // ignore
-        }
-
-        // 3. Sanitize inline styles and computed styles on all cloned nodes
-        const allNodes = [clonedElement, ...Array.from(clonedElement.querySelectorAll('*'))];
-        const colorProps = [
-          'color',
-          'background-color',
-          'border-color',
-          'border-top-color',
-          'border-right-color',
-          'border-bottom-color',
-          'border-left-color',
-          'outline-color',
-          'fill',
-          'stroke',
-          'box-shadow',
-          'text-decoration-color'
-        ];
-
-        allNodes.forEach((node) => {
-          const el = node as HTMLElement;
-          if (!el || !el.style) return;
-
-          // Inline style attribute
-          const styleAttr = el.getAttribute('style');
-          if (styleAttr && /(oklch|oklab|lab|lch|color|hwb)\(/i.test(styleAttr)) {
-            el.setAttribute('style', replaceUnsupportedColors(styleAttr));
-          }
-
-          // Computed styles override with explicit RGB values
-          try {
-            const computed = clonedDoc.defaultView?.getComputedStyle(el) || window.getComputedStyle(el);
-            if (computed) {
-              colorProps.forEach((prop) => {
-                const val = computed.getPropertyValue(prop);
-                if (val && /(oklch|oklab|lab|lch|color|hwb)\(/i.test(val)) {
-                  const converted = replaceUnsupportedColors(val);
-                  el.style.setProperty(prop, converted, 'important');
-                }
-              });
-            }
-          } catch {
-            // Ignore detached element errors
-          }
-        });
-      }
+      onclone: (clonedDoc, clonedElement) => sanitizeColorsInClone(clonedDoc, clonedElement)
     });
 
     const imgData = canvas.toDataURL('image/jpeg', 0.95);
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = pdf.internal.pageSize.getHeight();
-
-    const imgWidth = pdfWidth;
-    const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+    const imgHeight = (canvas.height * contentWidth) / canvas.width;
 
     let heightLeft = imgHeight;
-    let position = 0;
+    let position = margin;
 
-    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-    heightLeft -= pdfHeight;
+    pdf.addImage(imgData, 'JPEG', margin, position, contentWidth, imgHeight);
+    heightLeft -= maxContentHeight;
 
     while (heightLeft > 0) {
       position = heightLeft - imgHeight;
       pdf.addPage();
-      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pdfHeight;
+      pdf.addImage(imgData, 'JPEG', margin, position, contentWidth, imgHeight);
+      heightLeft -= maxContentHeight;
+    }
+
+    const totalPages = pdf.getNumberOfPages();
+    for (let p = 1; p <= totalPages; p++) {
+      pdf.setPage(p);
+      pdf.setFontSize(8);
+      pdf.setTextColor(140, 150, 160);
+      pdf.text(
+        `QSF Maintenance Report — ${filename} — Page ${p} of ${totalPages}`,
+        pageWidth / 2,
+        pageHeight - 5,
+        { align: 'center' }
+      );
     }
 
     pdf.save(`${filename}.pdf`);

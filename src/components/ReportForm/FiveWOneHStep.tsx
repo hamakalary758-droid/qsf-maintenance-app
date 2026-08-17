@@ -82,7 +82,7 @@ export const FiveWOneHStep: React.FC<FiveWOneHStepProps> = ({ reportData, onChan
       <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-3.5 text-xs text-indigo-900 flex items-start space-x-2">
         <HelpCircle className="w-4 h-4 text-indigo-600 flex-shrink-0 mt-0.5" />
         <div>
-          <strong className="font-bold">Step 2: 5W + 1H Methodical Analysis</strong>
+          <strong className="font-bold">5W + 1H Methodical Analysis</strong>
           <p className="text-[11px] text-indigo-700 mt-0.5">
             Fill in the 6 structured boxes to establish complete factual clarity before root cause analysis.
           </p>
@@ -95,21 +95,21 @@ export const FiveWOneHStep: React.FC<FiveWOneHStepProps> = ({ reportData, onChan
           return (
             <div
               key={f.key}
-              className={`bg-white border border-slate-200 rounded-xl p-3 shadow-sm border-l-4 ${f.color} flex flex-col justify-between`}
+              className={`bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-3 shadow-sm border-l-4 ${f.color} flex flex-col justify-between`}
             >
               <div>
                 <div className="flex items-center space-x-1.5 mb-1">
-                  <IconComp className="w-3.5 h-3.5 text-slate-600" />
-                  <span className="font-bold text-xs text-slate-800">{f.title}</span>
+                  <IconComp className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400" />
+                  <span className="font-bold text-xs text-slate-800 dark:text-slate-200">{f.title}</span>
                 </div>
-                <p className="text-[10px] text-slate-500 mb-2">{f.subtitle}</p>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 mb-2">{f.subtitle}</p>
 
                 <textarea
                   rows={2}
                   value={fiveWOneH[f.key]}
                   onChange={(e) => updateField(f.key, e.target.value)}
                   placeholder={f.placeholder}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs text-slate-800 focus:outline-none focus:bg-white focus:ring-2 focus:ring-sky-500 focus:border-transparent resize-none"
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-sky-500 focus:border-transparent resize-none"
                 />
               </div>
             </div>

@@ -8,6 +8,8 @@ import {
   getDraftFromStorage,
   clearDraftFromStorage
 } from './utils/storage';
+import { subscribeToSyncStatus } from './offline/syncQueue';
+import { useTheme } from './hooks/useTheme';
 import { Navbar } from './components/Navbar';
 import { PhaseTracker } from './components/PhaseTracker';
 import { MockupsView } from './components/MockupsView';
@@ -19,9 +21,10 @@ import { FiveWhyStep } from './components/ReportForm/FiveWhyStep';
 import { ActionsAndPartsStep } from './components/ReportForm/ActionsAndPartsStep';
 import { PhotoCaptureStep } from './components/ReportForm/PhotoCaptureStep';
 import { ReviewScreen } from './components/ReviewScreen';
-import { ChevronLeft, ChevronRight, CheckCircle2, Save, FileText, Sparkles, AlertCircle, X, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CheckCircle2, AlertCircle, X, Loader2 } from 'lucide-react';
 
 export default function App() {
+  const { theme, toggleTheme } = useTheme();
   const [activeTab, setActiveTab] = useState<AppTab>('new-report');
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
   const [reports, setReports] = useState<MaintenanceReport[]>([]);
@@ -32,7 +35,7 @@ export default function App() {
   // Current active form report draft
   const [reportData, setReportData] = useState<Partial<MaintenanceReport>>({
     id: 'rep-' + Date.now(),
-    reportNumber: 'SDR-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000),
+    reportNumber: '',
     title: '',
     technicianName: '',
     technicianId: '',
@@ -77,7 +80,7 @@ export default function App() {
       } catch (err) {
         console.error('Failed to load reports on mount:', err);
         if (isMounted) {
-          setErrorMsg("Couldn't load reports from database. Please check your connection.");
+          setErrorMsg("Couldn't load reports from storage. Operating in local mode.");
         }
       } finally {
         if (isMounted) {
@@ -93,8 +96,21 @@ export default function App() {
     };
 
     loadInitialReports();
+
+    // Listen to sync updates (when a pending item completes sync and receives its report_number)
+    const unsubscribe = subscribeToSyncStatus((status) => {
+      if (status.state === 'online') {
+        getReportsFromStorage().then((updated) => {
+          if (isMounted) {
+            setReports(updated);
+          }
+        }).catch(() => {});
+      }
+    });
+
     return () => {
       isMounted = false;
+      unsubscribe();
     };
   }, []);
 
@@ -110,8 +126,10 @@ export default function App() {
 
     const finalReport: MaintenanceReport = {
       id: reportData.id || 'rep-' + Date.now(),
-      reportNumber: reportData.reportNumber || 'SDR-' + Math.floor(1000 + Math.random() * 9000),
-      title: reportData.equipmentName ? `${reportData.equipmentName} Shutdown Report` : 'Shutdown Maintenance Report',
+      reportNumber: reportData.reportNumber || '',
+      title: reportData.title?.trim()
+        ? reportData.title
+        : (reportData.equipmentName ? `${reportData.equipmentName} Shutdown Report` : 'Shutdown Maintenance Report'),
       technicianName: reportData.technicianName || '',
       technicianId: reportData.technicianId || '',
       date: reportData.date || new Date().toISOString().split('T')[0],
@@ -138,7 +156,7 @@ export default function App() {
       // Reset draft form for next entry
       setReportData({
         id: 'rep-' + Date.now(),
-        reportNumber: 'SDR-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000),
+        reportNumber: '',
         title: '',
         technicianName: '',
         technicianId: '',
@@ -186,12 +204,12 @@ export default function App() {
   };
 
   const formSteps = [
-    { title: '1. Basic Info', component: <BasicInfoStep reportData={reportData} onChange={handleUpdateReportData} /> },
-    { title: '2. 5W + 1H', component: <FiveWOneHStep reportData={reportData} onChange={handleUpdateReportData} /> },
-    { title: '3. 5-Why Analysis', component: <FiveWhyStep reportData={reportData} onChange={handleUpdateReportData} /> },
-    { title: '4. Actions & Parts', component: <ActionsAndPartsStep reportData={reportData} onChange={handleUpdateReportData} /> },
-    { title: '5. Photos & Markup', component: <PhotoCaptureStep reportData={reportData} onChange={handleUpdateReportData} /> },
-    { title: '6. Review & Finalize', component: <ReviewScreen reportData={reportData} onEditSection={(idx) => setCurrentStepIndex(idx)} onFinalize={handleFinalizeReport} /> }
+    { title: 'Basic Info', component: <BasicInfoStep reportData={reportData} onChange={handleUpdateReportData} /> },
+    { title: '5W + 1H', component: <FiveWOneHStep reportData={reportData} onChange={handleUpdateReportData} /> },
+    { title: '5-Why Analysis', component: <FiveWhyStep reportData={reportData} onChange={handleUpdateReportData} /> },
+    { title: 'Actions & Parts', component: <ActionsAndPartsStep reportData={reportData} onChange={handleUpdateReportData} /> },
+    { title: 'Photos & Markup', component: <PhotoCaptureStep reportData={reportData} onChange={handleUpdateReportData} /> },
+    { title: 'Review & Finalize', component: <ReviewScreen reportData={reportData} onEditSection={(idx) => setCurrentStepIndex(idx)} onFinalize={handleFinalizeReport} /> }
   ];
 
   // Quick Demo Auto-Fill for instant field testing
@@ -254,12 +272,15 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 flex flex-col font-sans">
       {/* Navbar Header */}
       <Navbar
         activeTab={activeTab}
         onSelectTab={setActiveTab}
         reportCount={reports.length}
+        theme={theme}
+        onToggleTheme={toggleTheme}
+        onAutoFill={prefillSampleData}
       />
 
       {/* Main Content Area */}
@@ -287,27 +308,18 @@ export default function App() {
           <div className="space-y-4">
             
             {/* Form Wizard Step Bar */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-3 shadow-sm">
               <div className="flex items-center justify-between mb-3 px-1">
                 <div className="flex items-center space-x-2">
-                  <span className="font-extrabold text-xs text-sky-600 uppercase tracking-wider">
+                  <span className="font-extrabold text-xs text-sky-600 dark:text-sky-400 uppercase tracking-wider">
                     {formSteps[currentStepIndex].title}
                   </span>
-                  <span className="text-xs text-slate-400">({currentStepIndex + 1} of {formSteps.length})</span>
+                  <span className="text-xs text-slate-400 dark:text-slate-500">({currentStepIndex + 1} of {formSteps.length})</span>
                 </div>
-
-                <button
-                  onClick={prefillSampleData}
-                  className="px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-800 text-[11px] font-bold rounded-lg border border-amber-300 transition-colors flex items-center space-x-1"
-                  title="Auto-fill sample plant shutdown data for quick testing"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                  <span>Auto-Fill Test Sample</span>
-                </button>
               </div>
 
               {/* Progress Steps Pills */}
-              <div className="grid grid-cols-6 gap-1 bg-slate-100 p-1 rounded-xl">
+              <div className="grid grid-cols-6 gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
                 {formSteps.map((step, idx) => {
                   const isActive = currentStepIndex === idx;
                   const isDone = currentStepIndex > idx;
@@ -319,8 +331,8 @@ export default function App() {
                         isActive
                           ? 'bg-sky-600 text-white shadow-sm'
                           : isDone
-                          ? 'bg-slate-200 text-slate-700 hover:bg-slate-300'
-                          : 'text-slate-400 hover:text-slate-600'
+                          ? 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'
+                          : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'
                       }`}
                     >
                       <span className="hidden sm:inline">{step.title}</span>
@@ -332,22 +344,22 @@ export default function App() {
             </div>
 
             {/* Active Step Form Component */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-sm">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 sm:p-6 shadow-sm">
               {formSteps[currentStepIndex].component}
             </div>
 
             {/* Wizard Navigation Footer Buttons */}
-            <div className="flex items-center justify-between bg-white border border-slate-200 rounded-2xl p-3.5 shadow-sm">
+            <div className="flex items-center justify-between bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-3.5 shadow-sm">
               <button
                 onClick={() => setCurrentStepIndex((prev) => Math.max(0, prev - 1))}
                 disabled={currentStepIndex === 0}
-                className="py-2 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl disabled:opacity-40 transition-colors flex items-center space-x-1"
+                className="py-2 px-4 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs rounded-xl disabled:opacity-40 transition-colors flex items-center space-x-1"
               >
                 <ChevronLeft className="w-4 h-4" />
                 <span>Previous Step</span>
               </button>
 
-              <div className="text-[11px] text-slate-400 font-medium hidden sm:block">
+              <div className="text-[11px] text-slate-400 dark:text-slate-500 font-medium hidden sm:block">
                 Auto-Saved to Local Storage Cache
               </div>
 

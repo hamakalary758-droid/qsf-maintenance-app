@@ -1,8 +1,33 @@
-import { MaintenanceReport } from '../types';
+import { MaintenanceReport, PlantPhoto } from '../types';
+import { db, OfflineReport, OfflinePhoto } from '../offline/db';
+import { processSyncQueue, notifySyncListeners } from '../offline/syncQueue';
 import { supabase, isSupabaseConfigured } from '../supabase/config';
 
 const DRAFT_KEY = 'shutdown_maintenance_draft_v1';
 const LOCAL_REPORTS_KEY = 'shutdown_maintenance_reports_local_v1';
+
+// Helper: Convert Data URL or remote URL to Blob
+export async function urlToBlob(url: string): Promise<Blob> {
+  if (url.startsWith('data:')) {
+    const arr = url.split(',');
+    const mimeMatch = arr[0].match(/:(.*?);/);
+    const mime = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new Blob([u8arr], { type: mime });
+  }
+
+  try {
+    const res = await fetch(url);
+    return await res.blob();
+  } catch {
+    return new Blob([], { type: 'image/jpeg' });
+  }
+}
 
 // Convert DB snake_case row to MaintenanceReport object
 function mapRowToReport(row: any): MaintenanceReport {
@@ -22,7 +47,7 @@ function mapRowToReport(row: any): MaintenanceReport {
     fiveWhy: row.five_why || { why1: '', why2: '', why3: '', why4: '', why5: '' },
     correctiveActions: Array.isArray(row.corrective_actions) ? row.corrective_actions : [],
     spareParts: Array.isArray(row.spare_parts) ? row.spare_parts : [],
-    photos: [], // Photos are never stored in Supabase (client-side active session only)
+    photos: [],
     status: row.status || 'Draft',
     createdAt: row.created_at || new Date().toISOString(),
     updatedAt: row.updated_at || new Date().toISOString(),
@@ -30,134 +55,212 @@ function mapRowToReport(row: any): MaintenanceReport {
   };
 }
 
-// Convert MaintenanceReport object to DB snake_case row
-function mapReportToRow(report: Partial<MaintenanceReport>) {
-  const now = new Date().toISOString();
-  return {
-    id: report.id,
-    report_number: report.reportNumber || '',
-    title: report.title || '',
-    technician_name: report.technicianName || '',
-    technician_id: report.technicianId || '',
-    date: report.date || '',
-    shutdown_name: report.shutdownName || '',
-    equipment_name: report.equipmentName || '',
-    equipment_code: report.equipmentCode || '',
-    location: report.location || '',
-    failure_type: report.failureType || 'Mechanical Failure',
-    five_w_one_h: report.fiveWOneH || { what: '', when: '', where: '', who: '', which: '', how: '' },
-    five_why: report.fiveWhy || { why1: '', why2: '', why3: '', why4: '', why5: '' },
-    corrective_actions: report.correctiveActions || [],
-    spare_parts: report.spareParts || [],
-    status: report.status || 'Draft',
-    notes: report.notes || '',
-    created_at: report.createdAt || now,
-    updated_at: now
-  };
-}
-
-// Helper for local fallback storage if Supabase is unconfigured
-const getLocalReports = (): MaintenanceReport[] => {
+// Rehydrate photos from IndexedDB for a given report
+async function getPhotosForReport(reportLocalId: string): Promise<PlantPhoto[]> {
   try {
-    const raw = localStorage.getItem(LOCAL_REPORTS_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
+    const photos = await db.photos.where('reportLocalId').equals(reportLocalId).toArray();
+    return photos.map((p) => ({
+      id: p.id,
+      url: URL.createObjectURL(p.blob),
+      caption: p.caption,
+      timestamp: p.createdAt
+    }));
+  } catch (err) {
+    console.warn(`Failed to rehydrate photos for ${reportLocalId}:`, err);
     return [];
   }
-};
+}
 
-const saveLocalReports = (reports: MaintenanceReport[]): MaintenanceReport[] => {
+// One-time migration from localStorage into IndexedDB
+async function migrateFromLocalStorageIfNeeded() {
   try {
-    localStorage.setItem(LOCAL_REPORTS_KEY, JSON.stringify(reports));
+    const count = await db.reports.count();
+    if (count > 0) return;
+
+    const raw = localStorage.getItem(LOCAL_REPORTS_KEY);
+    if (!raw) return;
+
+    const localList: MaintenanceReport[] = JSON.parse(raw);
+    for (const rep of localList) {
+      await db.reports.put({
+        localId: rep.id,
+        reportNumber: rep.reportNumber || '',
+        data: rep,
+        syncStatus: 'pending_sync',
+        createdAt: rep.createdAt || new Date().toISOString(),
+        updatedAt: rep.updatedAt || new Date().toISOString()
+      });
+    }
   } catch (err) {
-    console.error('Failed to save to local reports:', err);
+    console.error('Migration error from localStorage:', err);
   }
+}
+
+/**
+ * Reads reports from IndexedDB as the immediate source of truth (offline-ready).
+ * In the background, triggers a sync and fetches any remote additions from Supabase.
+ */
+export const getReportsFromStorage = async (): Promise<MaintenanceReport[]> => {
+  await migrateFromLocalStorageIfNeeded();
+
+  // 1. Read from IndexedDB immediately
+  const offlineRecords = await db.reports.toArray();
+
+  const reports: MaintenanceReport[] = await Promise.all(
+    offlineRecords.map(async (record) => {
+      const photos = await getPhotosForReport(record.localId);
+      return {
+        ...record.data,
+        reportNumber: record.reportNumber || record.data.reportNumber || '',
+        photos: photos.length > 0 ? photos : record.data.photos || []
+      };
+    })
+  );
+
+  // Sort by updatedAt descending
+  reports.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+
+  // 2. If online and Supabase is configured, trigger background sync and fetch
+  if (typeof navigator !== 'undefined' && navigator.onLine && isSupabaseConfigured) {
+    // Non-blocking background fetch & sync
+    (async () => {
+      try {
+        await processSyncQueue(false);
+
+        const { data, error } = await supabase
+          .from('reports')
+          .select('*')
+          .order('updated_at', { ascending: false });
+
+        if (!error && data) {
+          for (const row of data) {
+            const existing = await db.reports.get(row.id);
+            // If report doesn't exist locally or is already marked synced, update local copy
+            if (!existing || existing.syncStatus === 'synced') {
+              const mapped = mapRowToReport(row);
+              await db.reports.put({
+                localId: row.id,
+                reportNumber: row.report_number || '',
+                data: mapped,
+                syncStatus: 'synced',
+                createdAt: row.created_at || new Date().toISOString(),
+                updatedAt: row.updated_at || new Date().toISOString()
+              });
+            }
+          }
+          await notifySyncListeners();
+        }
+      } catch (err) {
+        console.warn('Background Supabase refresh failed:', err);
+      }
+    })();
+  }
+
   return reports;
 };
 
-export const getReportsFromStorage = async (): Promise<MaintenanceReport[]> => {
-  if (!isSupabaseConfigured) {
-    console.warn('Supabase is not configured (VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY missing). Falling back to local storage.');
-    return getLocalReports();
-  }
-
-  try {
-    const { data, error } = await supabase
-      .from('reports')
-      .select('*')
-      .order('updated_at', { ascending: false });
-
-    if (error) {
-      console.error('Failed to load reports from Supabase:', error);
-      throw error;
-    }
-
-    return (data || []).map(mapRowToReport);
-  } catch (err) {
-    console.error('Error fetching reports:', err);
-    throw err;
-  }
-};
-
+/**
+ * Writes report immediately to IndexedDB (and saves photo Blobs), then queues background sync.
+ * Never blocks the UI waiting for network response.
+ */
 export const saveReportToStorage = async (report: MaintenanceReport): Promise<MaintenanceReport[]> => {
-  if (!isSupabaseConfigured) {
-    console.warn('Supabase is not configured. Saving report to local storage.');
-    const current = getLocalReports();
-    const cleanReport = { ...report, photos: [] };
-    const filtered = current.filter(r => r.id !== report.id);
-    return saveLocalReports([cleanReport, ...filtered]);
-  }
+  const localId = report.id || 'rep-' + Date.now();
+  const now = new Date().toISOString();
 
-  try {
-    const row = mapReportToRow(report);
-    const { error } = await supabase
-      .from('reports')
-      .upsert(row, { onConflict: 'id' });
+  const cleanReport: MaintenanceReport = {
+    ...report,
+    id: localId,
+    updatedAt: now
+  };
 
-    if (error) {
-      console.error('Failed to save report to Supabase:', error);
-      throw error;
+  // 1. Store photos in IndexedDB as Blobs
+  if (report.photos && report.photos.length > 0) {
+    for (const photo of report.photos) {
+      if (photo.url) {
+        try {
+          const blob = await urlToBlob(photo.url);
+          await db.photos.put({
+            id: photo.id || 'ph-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+            reportLocalId: localId,
+            blob,
+            caption: photo.caption || '',
+            createdAt: photo.timestamp || now
+          });
+        } catch (err) {
+          console.warn('Failed to store photo blob in IndexedDB:', err);
+        }
+      }
     }
-
-    return await getReportsFromStorage();
-  } catch (err) {
-    console.error('Error saving report:', err);
-    throw err;
   }
+
+  // 2. Save report record in IndexedDB
+  const offlineRecord: OfflineReport = {
+    localId,
+    reportNumber: cleanReport.reportNumber || '',
+    data: cleanReport,
+    syncStatus: 'pending_sync',
+    createdAt: cleanReport.createdAt || now,
+    updatedAt: now
+  };
+
+  await db.reports.put(offlineRecord);
+
+  // 3. Add to sync queue for background processing
+  await db.syncQueue.put({
+    id: 'sq-' + localId,
+    reportLocalId: localId,
+    operation: 'create',
+    attempts: 0,
+    lastAttemptAt: undefined,
+    lastError: undefined
+  });
+
+  await notifySyncListeners();
+
+  // 4. Trigger background sync immediately without awaiting
+  setTimeout(() => {
+    processSyncQueue(true);
+  }, 100);
+
+  // 5. Return updated list from local IndexedDB
+  return await getReportsFromStorage();
 };
 
+/**
+ * Deletes report locally from IndexedDB immediately, marks for background deletion on Supabase.
+ */
 export const deleteReportFromStorage = async (id: string): Promise<MaintenanceReport[]> => {
-  if (!isSupabaseConfigured) {
-    console.warn('Supabase is not configured. Deleting report from local storage.');
-    const current = getLocalReports();
-    const filtered = current.filter(r => r.id !== id);
-    return saveLocalReports(filtered);
-  }
+  // 1. Delete locally from IndexedDB
+  await db.reports.delete(id);
+  await db.photos.where('reportLocalId').equals(id).delete();
 
-  try {
-    const { error } = await supabase
-      .from('reports')
-      .delete()
-      .eq('id', id);
+  // 2. Queue deletion in sync queue
+  await db.syncQueue.put({
+    id: 'sq-del-' + id,
+    reportLocalId: id,
+    operation: 'delete',
+    attempts: 0,
+    lastAttemptAt: undefined,
+    lastError: undefined
+  });
 
-    if (error) {
-      console.error('Failed to delete report from Supabase:', error);
-      throw error;
-    }
+  await notifySyncListeners();
 
-    return await getReportsFromStorage();
-  } catch (err) {
-    console.error('Error deleting report:', err);
-    throw err;
-  }
+  // 3. Trigger background sync
+  setTimeout(() => {
+    processSyncQueue(true);
+  }, 100);
+
+  // 4. Return updated local list
+  return await getReportsFromStorage();
 };
 
-// Local storage draft functions (Unchanged - for active draft persistence)
+// Draft storage functions for active in-progress form wizard
 export const saveDraftToStorage = (draft: Partial<MaintenanceReport>) => {
   try {
     localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
   } catch (err) {
-    console.error('Failed to save draft:', err);
+    console.warn('Failed to save draft to localStorage (quota may be full):', err);
   }
 };
 
@@ -173,8 +276,7 @@ export const getDraftFromStorage = (): Partial<MaintenanceReport> | null => {
 export const clearDraftFromStorage = () => {
   try {
     localStorage.removeItem(DRAFT_KEY);
-  } catch (err) {
-    console.error('Failed to clear draft:', err);
+  } catch {
+    // ignore
   }
 };
-

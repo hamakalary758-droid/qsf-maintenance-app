@@ -1,13 +1,6 @@
-export type FailureType =
-  | 'Mechanical Failure'
-  | 'Electrical Fault'
-  | 'Hydraulic Leak / Pressure'
-  | 'Pneumatic Issue'
-  | 'Instrumentation / Sensor'
-  | 'Wear & Tear'
-  | 'Operational Error'
-  | 'Thermal / Overheating'
-  | 'Corrosion / Chemical';
+import { FAILURE_TYPES } from './constants/failureTypes';
+
+export type FailureType = (typeof FAILURE_TYPES)[number];
 
 export interface FiveWOneH {
   what: string;   // What happened?

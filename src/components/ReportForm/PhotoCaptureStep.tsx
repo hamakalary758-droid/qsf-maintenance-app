@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { MaintenanceReport, PlantPhoto } from '../../types';
-import { Camera, Image as ImageIcon, Edit3, Trash2, Plus, Sparkles } from 'lucide-react';
+import { Camera, Image as ImageIcon, Edit3, Trash2, Plus, Sparkles, AlertCircle, X } from 'lucide-react';
 import { PhotoEditorModal } from '../PhotoEditor/PhotoEditorModal';
 
 interface PhotoCaptureStepProps {
@@ -11,28 +11,68 @@ interface PhotoCaptureStepProps {
 export const PhotoCaptureStep: React.FC<PhotoCaptureStepProps> = ({ reportData, onChange }) => {
   const photos: PlantPhoto[] = reportData.photos || [];
   const [editingPhoto, setEditingPhoto] = useState<PlantPhoto | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // File Upload / Camera Capture
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const fileList = e.target.files;
+    if (!fileList || fileList.length === 0) return;
 
-    Array.from(files).forEach((file: File) => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const result = event.target?.result as string;
-        if (result) {
-          const newPhoto: PlantPhoto = {
-            id: 'ph-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
-            url: result,
-            caption: file.name.replace(/\.[^/.]+$/, ''),
-            timestamp: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-          };
-          onChange({ photos: [...(reportData.photos || []), newPhoto] });
+    const files = Array.from(fileList);
+    setErrorMessage(null);
+    let failedCount = 0;
+
+    const promises = files.map((file: File) => {
+      return new Promise<PlantPhoto | null>((resolve) => {
+        if (!file.type.startsWith('image/')) {
+          failedCount++;
+          resolve(null);
+          return;
         }
-      };
-      reader.readAsDataURL(file);
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const result = event.target?.result as string;
+          if (result) {
+            const newPhoto: PlantPhoto = {
+              id: 'ph-' + Date.now() + '-' + Math.random().toString(36).substring(2, 8),
+              url: result,
+              caption: file.name.replace(/\.[^/.]+$/, ''),
+              timestamp: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+            resolve(newPhoto);
+          } else {
+            failedCount++;
+            resolve(null);
+          }
+        };
+
+        reader.onerror = () => {
+          failedCount++;
+          resolve(null);
+        };
+
+        reader.readAsDataURL(file);
+      });
     });
+
+    const readPhotos = await Promise.all(promises);
+    const validPhotos = readPhotos.filter((p): p is PlantPhoto => p !== null);
+
+    if (validPhotos.length > 0) {
+      onChange({ photos: [...(reportData.photos || []), ...validPhotos] });
+    }
+
+    if (failedCount > 0) {
+      setErrorMessage(
+        failedCount === 1
+          ? "1 photo couldn't be added: unsupported or corrupted file."
+          : `${failedCount} photos couldn't be added: unsupported or corrupted files.`
+      );
+    }
+
+    // Reset input value so selecting the same file again triggers change event
+    e.target.value = '';
   };
 
   const removePhoto = (id: string) => {
@@ -50,13 +90,28 @@ export const PhotoCaptureStep: React.FC<PhotoCaptureStepProps> = ({ reportData, 
         <div className="flex items-start space-x-2">
           <Camera className="w-4 h-4 text-purple-600 flex-shrink-0 mt-0.5" />
           <div>
-            <strong className="font-bold">Step 4: Inspection Photos & Crop/Highlight Markup</strong>
+            <strong className="font-bold">Inspection Photos & Crop/Highlight Markup</strong>
             <p className="text-[11px] text-purple-700 mt-0.5">
               Take photos directly on your phone camera or upload from gallery. Crop and highlight cracks, wear, or damage before saving.
             </p>
           </div>
         </div>
       </div>
+
+      {errorMessage && (
+        <div className="p-3 bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-200 border border-rose-200 dark:border-rose-800 rounded-xl text-xs flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+          <button
+            onClick={() => setErrorMessage(null)}
+            className="text-rose-500 hover:text-rose-700 dark:hover:text-rose-300 p-1"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* Camera / Upload Input Buttons */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -89,17 +144,17 @@ export const PhotoCaptureStep: React.FC<PhotoCaptureStepProps> = ({ reportData, 
 
       {/* Photos Grid Display */}
       {photos.length === 0 ? (
-        <div className="p-8 border-2 border-dashed border-slate-300 bg-slate-50/50 rounded-2xl text-center space-y-2">
-          <Camera className="w-8 h-8 text-slate-400 mx-auto" />
-          <p className="text-xs font-semibold text-slate-600">No photos attached yet</p>
-          <p className="text-[11px] text-slate-400">
+        <div className="p-8 border-2 border-dashed border-slate-300 dark:border-slate-600 bg-slate-50/50 dark:bg-slate-800/50 rounded-2xl text-center space-y-2">
+          <Camera className="w-8 h-8 text-slate-400 dark:text-slate-500 mx-auto" />
+          <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">No photos attached yet</p>
+          <p className="text-[11px] text-slate-400 dark:text-slate-500">
             Use your camera or file uploader above to attach inspection photos.
           </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
           {photos.map((ph, idx) => (
-            <div key={ph.id} className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col justify-between">
+            <div key={ph.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm flex flex-col justify-between">
               <div className="relative aspect-video bg-slate-900 group">
                 <img
                   src={ph.url}
@@ -142,14 +197,14 @@ export const PhotoCaptureStep: React.FC<PhotoCaptureStepProps> = ({ reportData, 
                     });
                   }}
                   placeholder="Caption / defect note..."
-                  className="w-full text-xs font-medium text-slate-800 bg-slate-50 border border-slate-200 rounded px-2 py-1 focus:bg-white focus:outline-none"
+                  className="w-full text-xs font-medium text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-2 py-1 focus:bg-white dark:focus:bg-slate-900 focus:outline-none"
                 />
 
-                <div className="flex items-center justify-between text-[10px] text-slate-400">
+                <div className="flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-500">
                   <span>Logged: {ph.timestamp}</span>
                   <button
                     onClick={() => setEditingPhoto(ph)}
-                    className="text-sky-600 font-bold hover:underline flex items-center space-x-0.5"
+                    className="text-sky-600 dark:text-sky-400 font-bold hover:underline flex items-center space-x-0.5"
                   >
                     <Edit3 className="w-3 h-3 mr-0.5" />
                     <span>Edit / Crop</span>

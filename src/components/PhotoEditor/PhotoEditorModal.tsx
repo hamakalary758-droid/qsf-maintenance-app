@@ -83,13 +83,29 @@ export const PhotoEditorModal: React.FC<PhotoEditorModalProps> = ({ photo, onSav
     setHistory(newHistory);
   };
 
-  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const getCanvasCoords = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = rect.width ? canvas.width / rect.width : 1;
+    const scaleY = rect.height ? canvas.height / rect.height : 1;
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
+    return { x, y };
+  };
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (currentTool === 'crop') return;
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      // Ignore if not supported
+    }
+
+    const { x, y } = getCanvasCoords(e);
 
     setIsDrawing(true);
     setStartPos({ x, y });
@@ -124,16 +140,14 @@ export const PhotoEditorModal: React.FC<PhotoEditorModalProps> = ({ photo, onSav
     }
   };
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const handlePointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (!isDrawing || currentTool === 'crop' || currentTool === 'text') return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const { x, y } = getCanvasCoords(e);
 
     if (currentTool === 'pen' || currentTool === 'highlighter') {
       ctx.lineTo(x, y);
@@ -141,16 +155,22 @@ export const PhotoEditorModal: React.FC<PhotoEditorModalProps> = ({ photo, onSav
     }
   };
 
-  const handleMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const handlePointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (!isDrawing || currentTool === 'crop' || currentTool === 'text') return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const rect = canvas.getBoundingClientRect();
-    const endX = e.clientX - rect.left;
-    const endY = e.clientY - rect.top;
+    try {
+      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      }
+    } catch {
+      // Ignore
+    }
+
+    const { x: endX, y: endY } = getCanvasCoords(e);
 
     ctx.globalAlpha = 1.0;
 
@@ -192,20 +212,29 @@ export const PhotoEditorModal: React.FC<PhotoEditorModalProps> = ({ photo, onSav
     saveCanvasState();
   };
 
+  const handlePointerCancel = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    handlePointerUp(e);
+  };
+
   const applyCrop = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    if (cropBox.w <= 10 || cropBox.h <= 10) {
+    const clampedX = Math.max(0, Math.min(cropBox.x, canvas.width));
+    const clampedY = Math.max(0, Math.min(cropBox.y, canvas.height));
+    const clampedW = Math.max(0, Math.min(cropBox.w, canvas.width - clampedX));
+    const clampedH = Math.max(0, Math.min(cropBox.h, canvas.height - clampedY));
+
+    if (clampedW <= 10 || clampedH <= 10) {
       alert('Crop area is too small.');
       return;
     }
 
-    const croppedData = ctx.getImageData(cropBox.x, cropBox.y, cropBox.w, cropBox.h);
-    canvas.width = cropBox.w;
-    canvas.height = cropBox.h;
+    const croppedData = ctx.getImageData(clampedX, clampedY, clampedW, clampedH);
+    canvas.width = clampedW;
+    canvas.height = clampedH;
     ctx.putImageData(croppedData, 0, 0);
 
     setCurrentTool('pen');
@@ -335,9 +364,11 @@ export const PhotoEditorModal: React.FC<PhotoEditorModalProps> = ({ photo, onSav
         <div className="relative bg-slate-950 rounded-xl overflow-hidden flex items-center justify-center p-2 min-h-[300px] border border-slate-800">
           <canvas
             ref={canvasRef}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerCancel}
+            style={{ touchAction: 'none' }}
             className="max-w-full h-auto cursor-crosshair rounded shadow-lg"
           />
 
