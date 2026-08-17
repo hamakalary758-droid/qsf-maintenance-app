@@ -771,3 +771,57 @@ export const exportBatchToWord = async (reports: MaintenanceReport[], shutdownNa
   const filename = `Shutdown_${cleanName}_Batch.docx`;
   saveAs(blob, filename);
 };
+
+/**
+ * 4. CSV Export of Report History (Part Q)
+ * Exports a flat CSV file for all provided reports with properly quoted/escaped values
+ */
+export const exportReportsToCSV = (reports: MaintenanceReport[]): void => {
+  const escapeCSV = (val: string | number | undefined | null): string => {
+    if (val === undefined || val === null) return '';
+    const str = String(val);
+    if (str.includes('"') || str.includes(',') || str.includes('\n') || str.includes('\r')) {
+      return `"${str.replace(/"/g, '""')}"`;
+    }
+    return str;
+  };
+
+  const headers = [
+    'Report Number',
+    'Date',
+    'Shutdown',
+    'Equipment Name',
+    'Equipment Code',
+    'Location',
+    'Failure Type',
+    'Technician',
+    'Status',
+    'Root Cause (5-Why #5)',
+    'Total Spare Parts Cost',
+    'Notes'
+  ];
+
+  const rows = reports.map((r) => {
+    const totalCost = r.spareParts.reduce((sum, sp) => sum + sp.quantity * sp.unitCost, 0);
+    return [
+      escapeCSV(getReportIdentifier(r)),
+      escapeCSV(r.date),
+      escapeCSV(r.shutdownName || ''),
+      escapeCSV(r.equipmentName || ''),
+      escapeCSV(r.equipmentCode || ''),
+      escapeCSV(r.location || ''),
+      escapeCSV(r.failureType || ''),
+      escapeCSV(r.technicianName || ''),
+      escapeCSV(r.status || ''),
+      escapeCSV(r.fiveWhy?.why5 || ''),
+      escapeCSV(totalCost.toFixed(2)),
+      escapeCSV(r.notes || '')
+    ].join(',');
+  });
+
+  const csvContent = [headers.join(','), ...rows].join('\r\n');
+  const blob = new Blob(['\ufeff', csvContent], { type: 'text/csv;charset=utf-8;' });
+  const filename = `QSF_Report_History_${new Date().toISOString().split('T')[0]}.csv`;
+  saveAs(blob, filename);
+};
+

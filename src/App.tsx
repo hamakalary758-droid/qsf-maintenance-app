@@ -22,6 +22,7 @@ import { ActionsAndPartsStep } from './components/ReportForm/ActionsAndPartsStep
 import { PhotoCaptureStep } from './components/ReportForm/PhotoCaptureStep';
 import { ReviewScreen } from './components/ReviewScreen';
 import { Dashboard } from './components/Dashboard';
+import { EquipmentTemplate } from './constants/equipmentTemplates';
 import { ChevronLeft, ChevronRight, CheckCircle2, AlertCircle, X, Loader2 } from 'lucide-react';
 
 export default function App() {
@@ -196,6 +197,31 @@ export default function App() {
     setActiveTab('new-report');
   };
 
+  const handleNewReport = () => {
+    setReportData({
+      id: generateReportId(),
+      reportNumber: '',
+      title: '',
+      technicianName: '',
+      technicianId: '',
+      date: new Date().toISOString().split('T')[0],
+      shutdownName: '',
+      equipmentName: '',
+      equipmentCode: '',
+      location: '',
+      failureType: 'Mechanical Failure',
+      fiveWOneH: { what: '', when: '', where: '', who: '', which: '', how: '' },
+      fiveWhy: { why1: '', why2: '', why3: '', why4: '', why5: '' },
+      correctiveActions: [],
+      spareParts: [],
+      photos: [],
+      status: 'Draft',
+      notes: ''
+    });
+    setCurrentStepIndex(0);
+    setActiveTab('new-report');
+  };
+
   const handleDuplicateReport = (source: MaintenanceReport) => {
     const originLine = `[Duplicated from ${source.reportNumber || 'PENDING report'} — ${source.equipmentName} (${source.equipmentCode}) — on ${new Date().toISOString().split('T')[0]}]`;
     const carriedNotes = source.notes ? `${originLine}\n${source.notes}` : originLine;
@@ -219,6 +245,31 @@ export default function App() {
       photos: [],
       status: 'Draft',
       notes: carriedNotes
+    });
+    setCurrentStepIndex(0);
+    setActiveTab('new-report');
+  };
+
+  const handleNewReportFromTemplate = (template: EquipmentTemplate) => {
+    setReportData({
+      id: generateReportId(),
+      reportNumber: '',
+      title: '',
+      technicianName: '',
+      technicianId: '',
+      date: new Date().toISOString().split('T')[0],
+      shutdownName: template.shutdownName || '',
+      equipmentName: template.equipmentName,
+      equipmentCode: template.equipmentCode,
+      location: template.location,
+      failureType: template.failureType,
+      fiveWOneH: { what: '', when: '', where: '', who: '', which: '', how: '' },
+      fiveWhy: { why1: '', why2: '', why3: '', why4: '', why5: '' },
+      correctiveActions: [],
+      spareParts: [],
+      photos: [],
+      status: 'Draft',
+      notes: ''
     });
     setCurrentStepIndex(0);
     setActiveTab('new-report');
@@ -312,6 +363,7 @@ export default function App() {
         activeTab={activeTab}
         onSelectTab={setActiveTab}
         reportCount={reports.length}
+        reports={reports}
         theme={theme}
         onToggleTheme={toggleTheme}
         onAutoFill={prefillSampleData}
@@ -435,11 +487,9 @@ export default function App() {
             isLoading={isLoadingReports}
             onSelectReport={handleSelectReportToEdit}
             onDeleteReport={handleDeleteReport}
-            onNewReport={() => {
-              setCurrentStepIndex(0);
-              setActiveTab('new-report');
-            }}
+            onNewReport={handleNewReport}
             onDuplicateReport={handleDuplicateReport}
+            onNewReportFromTemplate={handleNewReportFromTemplate}
           />
         )}
 

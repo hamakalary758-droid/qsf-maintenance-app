@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { MaintenanceReport } from '../types';
 import { FAILURE_TYPES } from '../constants/failureTypes';
-import { Search, Filter, Calendar, MapPin, Wrench, FileSpreadsheet, FileText, FileBox, Trash2, Eye, Plus, RotateCcw, AlertTriangle, Copy } from 'lucide-react';
-import { exportReportToExcel, exportReportToPDF, exportReportToWord, exportBatchToExcel, exportBatchToWord } from '../utils/exports';
+import { EQUIPMENT_TEMPLATES, EquipmentTemplate } from '../constants/equipmentTemplates';
+import { Search, Filter, Calendar, MapPin, Wrench, FileSpreadsheet, FileText, FileBox, Trash2, Eye, Plus, RotateCcw, AlertTriangle, Copy, Download } from 'lucide-react';
+import { exportReportToExcel, exportReportToPDF, exportReportToWord, exportBatchToExcel, exportBatchToWord, exportReportsToCSV } from '../utils/exports';
 
 interface ReportHistoryProps {
   reports: MaintenanceReport[];
@@ -11,6 +12,7 @@ interface ReportHistoryProps {
   onDeleteReport: (id: string) => void;
   onNewReport: () => void;
   onDuplicateReport: (report: MaintenanceReport) => void;
+  onNewReportFromTemplate: (template: EquipmentTemplate) => void;
 }
 
 export const ReportHistory: React.FC<ReportHistoryProps> = ({
@@ -19,7 +21,8 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
   onSelectReport,
   onDeleteReport,
   onNewReport,
-  onDuplicateReport
+  onDuplicateReport,
+  onNewReportFromTemplate
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFailureType, setSelectedFailureType] = useState('ALL');
@@ -29,12 +32,28 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
   const [isBatchExporting, setIsBatchExporting] = useState<boolean>(false);
 
   const filteredReports = reports.filter((r) => {
+    const term = searchTerm.toLowerCase().trim();
+
+    const fiveWhyText = r.fiveWhy
+      ? [r.fiveWhy.why1, r.fiveWhy.why2, r.fiveWhy.why3, r.fiveWhy.why4, r.fiveWhy.why5].filter(Boolean).join(' ')
+      : '';
+
+    const fiveWOneHText = r.fiveWOneH
+      ? [r.fiveWOneH.what, r.fiveWOneH.when, r.fiveWOneH.where, r.fiveWOneH.who, r.fiveWOneH.which, r.fiveWOneH.how].filter(Boolean).join(' ')
+      : '';
+
+    const combinedAnalysisText = `${fiveWhyText} ${fiveWOneHText}`.toLowerCase();
+
     const matchesSearch =
-      r.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      r.equipmentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      r.reportNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      r.technicianName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      r.location.toLowerCase().includes(searchTerm.toLowerCase());
+      !term ||
+      r.title.toLowerCase().includes(term) ||
+      r.equipmentName.toLowerCase().includes(term) ||
+      r.equipmentCode.toLowerCase().includes(term) ||
+      r.reportNumber.toLowerCase().includes(term) ||
+      r.technicianName.toLowerCase().includes(term) ||
+      r.location.toLowerCase().includes(term) ||
+      (r.notes ? r.notes.toLowerCase().includes(term) : false) ||
+      combinedAnalysisText.includes(term);
 
     const matchesType = selectedFailureType === 'ALL' || r.failureType === selectedFailureType;
 
@@ -69,10 +88,52 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
             </p>
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Part Q: CSV Export of Filtered Reports */}
+            <button
+              onClick={() => exportReportsToCSV(filteredReports)}
+              disabled={filteredReports.length === 0}
+              className="p-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-300 hover:text-white border border-slate-700 rounded-lg transition-colors cursor-pointer flex items-center space-x-1.5 text-xs font-semibold"
+              title={`Export ${filteredReports.length} filtered report(s) to CSV`}
+            >
+              <Download className="w-4 h-4 text-sky-400" />
+              <span className="hidden sm:inline">CSV Export</span>
+            </button>
+
+            {/* Part O: Quick Start Template Dropdown */}
+            <div className="flex items-center">
+              <select
+                defaultValue=""
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (!val || val === '__blank__') {
+                    onNewReport();
+                  } else {
+                    const template = EQUIPMENT_TEMPLATES.find((t) => t.id === val);
+                    if (template) {
+                      onNewReportFromTemplate(template);
+                    } else {
+                      onNewReport();
+                    }
+                  }
+                  e.target.value = '';
+                }}
+                className="bg-slate-800 hover:bg-slate-750 border border-slate-700 rounded-lg px-2.5 py-2 text-xs text-slate-200 focus:outline-none focus:border-sky-500 font-medium cursor-pointer"
+                title="Start a new report from a template or blank draft"
+              >
+                <option value="" disabled hidden>Quick Start...</option>
+                <option value="__blank__">Blank Report</option>
+                {EQUIPMENT_TEMPLATES.map((tmpl) => (
+                  <option key={tmpl.id} value={tmpl.id}>
+                    {tmpl.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <button
               onClick={onNewReport}
-              className="px-4 py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs rounded-lg shadow-md transition-transform active:scale-95 flex items-center space-x-1.5"
+              className="px-4 py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs rounded-lg shadow-md transition-transform active:scale-95 flex items-center space-x-1.5 shrink-0 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>New Report</span>
@@ -88,7 +149,7 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search equipment, tag, technician, location, or report #..."
+              placeholder="Search equipment, tag, technician, location, notes, or report #..."
               className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-sky-500"
             />
           </div>

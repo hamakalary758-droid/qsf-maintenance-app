@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { AppTab } from '../types';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { AppTab, MaintenanceReport } from '../types';
 import { Wrench, Smartphone, History, Shield, CheckSquare, Plus, Wifi, WifiOff, Settings, Sparkles, RefreshCw, AlertTriangle, CheckCircle2, RotateCcw, X, Key, Eye, EyeOff, BarChart3 } from 'lucide-react';
 import { subscribeToSyncStatus, processSyncQueue, SyncStatusInfo } from '../offline/syncQueue';
 
@@ -7,6 +7,7 @@ interface NavbarProps {
   activeTab: AppTab;
   onSelectTab: (tab: AppTab) => void;
   reportCount: number;
+  reports?: MaintenanceReport[];
   theme: 'light' | 'dark';
   onToggleTheme: () => void;
   onAutoFill: () => void;
@@ -16,6 +17,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   activeTab,
   onSelectTab,
   reportCount,
+  reports = [],
   theme,
   onToggleTheme,
   onAutoFill
@@ -32,6 +34,21 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [geminiApiKey, setGeminiApiKey] = useState<string>('');
   const [showApiKey, setShowApiKey] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
+  const overdueActionsCount = useMemo(() => {
+    if (!reports || reports.length === 0) return 0;
+    let count = 0;
+    for (const r of reports) {
+      for (const ca of r.correctiveActions || []) {
+        if ((ca.status === 'Pending' || ca.status === 'In Progress') && ca.targetDate && ca.targetDate < todayStr) {
+          count++;
+        }
+      }
+    }
+    return count;
+  }, [reports, todayStr]);
+
 
   useEffect(() => {
     try {
@@ -164,6 +181,20 @@ export const Navbar: React.FC<NavbarProps> = ({
     );
   };
 
+  const renderOverdueBadge = () => {
+    if (overdueActionsCount === 0) return null;
+    return (
+      <button
+        onClick={() => onSelectTab('history')}
+        className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border bg-rose-500/15 text-rose-400 border-rose-500/40 hover:bg-rose-500/25 transition-colors cursor-pointer"
+        title={`${overdueActionsCount} overdue corrective action(s) — tap to view reports`}
+      >
+        <AlertTriangle className="w-3 h-3 text-rose-400 shrink-0" />
+        <span>{overdueActionsCount} Overdue</span>
+      </button>
+    );
+  };
+
   return (
     <header className="bg-slate-900 border-b border-slate-800 text-white sticky top-0 z-40 shadow-lg">
       <div className="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
@@ -188,6 +219,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Network Indicator & Settings */}
         <div className="flex items-center space-x-2">
+          {renderOverdueBadge()}
           {renderSyncBadge()}
 
           {/* Settings Menu */}
