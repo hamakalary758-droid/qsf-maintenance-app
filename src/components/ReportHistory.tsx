@@ -184,8 +184,8 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
                 {/* Direct File Export Pills */}
                 <div className="flex items-center space-x-1 pt-1">
                   <button
-                    onClick={() => exportReportToExcel(r)}
-                    className="p-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded border border-emerald-200 transition-colors"
+                    onClick={() => { void exportReportToExcel(r); }}
+                    className="p-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded border border-emerald-200 transition-colors cursor-pointer"
                     title="Export to Excel spreadsheet"
                   >
                     <FileSpreadsheet className="w-3.5 h-3.5" />
@@ -193,7 +193,7 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
 
                   <button
                     onClick={() => exportReportToWord(r)}
-                    className="p-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-[10px] font-bold rounded border border-blue-200 transition-colors"
+                    className="p-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-[10px] font-bold rounded border border-blue-200 transition-colors cursor-pointer"
                     title="Export to Word document"
                   >
                     <FileBox className="w-3.5 h-3.5" />
@@ -201,7 +201,7 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
 
                   <button
                     onClick={() => onSelectReport(r)}
-                    className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] font-bold rounded border border-rose-200 transition-colors flex items-center space-x-0.5"
+                    className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] font-bold rounded border border-rose-200 transition-colors flex items-center space-x-0.5 cursor-pointer"
                     title="Open PDF Review & Export"
                   >
                     <FileText className="w-3.5 h-3.5" />

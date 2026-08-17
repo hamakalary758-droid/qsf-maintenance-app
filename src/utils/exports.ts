@@ -5,16 +5,31 @@ import saveAs from 'file-saver';
 import { MaintenanceReport } from '../types';
 
 /**
+ * Returns a safe, human-readable identifier for a report to use in exported
+ * document fields and filenames, even if the DB-assigned report number
+ * hasn't synced back yet.
+ */
+export const getReportIdentifier = (report: MaintenanceReport): string => {
+  if (report.reportNumber && report.reportNumber.trim()) {
+    return report.reportNumber.trim();
+  }
+  // Fall back to a short, stable slice of the local report id so exports
+  // taken before sync still get a distinct, non-generic identifier.
+  const shortId = report.id ? report.id.slice(-8) : 'UNSYNCED';
+  return `PENDING-${shortId}`;
+};
+
+/**
  * 1. Excel Export (xlsx)
  * Creates a clean spreadsheet with multiple tables: Overview, 5W+1H, 5-Why, Actions, Spare Parts
  */
-export const exportReportToExcel = (report: MaintenanceReport) => {
+export const exportReportToExcel = async (report: MaintenanceReport): Promise<void> => {
   const wb = XLSX.utils.book_new();
 
   // Overview Sheet
   const overviewData = [
     ['SHUTDOWN MAINTENANCE REPORT', ''],
-    ['Report Number', report.reportNumber],
+    ['Report Number', getReportIdentifier(report)],
     ['Shutdown Event', report.shutdownName],
     ['Date', report.date],
     ['Technician Name', report.technicianName],
@@ -26,7 +41,7 @@ export const exportReportToExcel = (report: MaintenanceReport) => {
     ['Status', report.status],
     ['Created Date', new Date(report.createdAt).toLocaleString()],
     ['Last Updated', new Date(report.updatedAt).toLocaleString()],
-    ['Notes', report.notes || 'None']
+    ['Notes', report.notes || '']
   ];
   const wsOverview = XLSX.utils.aoa_to_sheet(overviewData);
   XLSX.utils.book_append_sheet(wb, wsOverview, 'Overview');
@@ -86,19 +101,36 @@ export const exportReportToExcel = (report: MaintenanceReport) => {
 
   // Attached Photos Sheet
   if (report.photos && report.photos.length > 0) {
-    const photoHeaders = ['Photo Index', 'Caption / Notes', 'Timestamp', 'Image Data / URL'];
+    const photoHeaders = ['Photo Index', 'Caption / Notes', 'Timestamp', 'Note'];
     const photoRows = report.photos.map((ph, idx) => [
       `Photo #${idx + 1}`,
       ph.caption || 'No caption',
       ph.timestamp || 'N/A',
-      ph.url
+      'See attached photo files exported alongside this report'
     ]);
     const wsPhotos = XLSX.utils.aoa_to_sheet([photoHeaders, ...photoRows]);
     XLSX.utils.book_append_sheet(wb, wsPhotos, 'Attached Photos');
   }
 
+  // Trigger separate download for attached photo files
+  if (report.photos && report.photos.length > 0) {
+    for (let idx = 0; idx < report.photos.length; idx++) {
+      const ph = report.photos[idx];
+      if (ph.url) {
+        try {
+          const res = await fetch(ph.url);
+          const photoBlob = await res.blob();
+          saveAs(photoBlob, `${getReportIdentifier(report)}_photo${idx + 1}.jpg`);
+          await new Promise((r) => setTimeout(r, 300));
+        } catch (err) {
+          console.warn(`Failed to export photo #${idx + 1}:`, err);
+        }
+      }
+    }
+  }
+
   // Trigger File Download
-  const filename = `${report.reportNumber}_${report.equipmentCode}_Report.xlsx`;
+  const filename = `${getReportIdentifier(report)}_${report.equipmentCode}_Report.xlsx`;
   XLSX.writeFile(wb, filename);
 };
 
@@ -113,6 +145,13 @@ export const exportReportToPDF = async (elementId: string, filename: string) => 
     alert('Report content not found for PDF generation.');
     return;
   }
+
+  const hiddenElements = element.querySelectorAll<HTMLElement>('.print-hide');
+  const previousDisplayValues: string[] = [];
+  hiddenElements.forEach((el) => {
+    previousDisplayValues.push(el.style.display);
+    el.style.display = 'none';
+  });
 
   try {
     const pdf = new jsPDF('p', 'mm', 'a4');
@@ -350,6 +389,10 @@ export const exportReportToPDF = async (elementId: string, filename: string) => 
   } catch (err) {
     console.error('Error generating PDF:', err);
     alert('PDF export encountered an issue. Exporting as Word or printing to PDF is recommended.');
+  } finally {
+    hiddenElements.forEach((el, idx) => {
+      el.style.display = previousDisplayValues[idx] || '';
+    });
   }
 };
 
@@ -404,7 +447,7 @@ export const exportReportToWord = (report: MaintenanceReport) => {
     <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
     <head>
       <meta charset='utf-8'>
-      <title>Shutdown Maintenance Report - ${report.reportNumber}</title>
+      <title>Shutdown Maintenance Report - ${getReportIdentifier(report)}</title>
       <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.5; color: #1e293b; padding: 20px; }
         h1 { color: #0f172a; font-size: 24px; border-bottom: 3px solid #0284c7; padding-bottom: 8px; margin-bottom: 16px; }
@@ -427,7 +470,7 @@ export const exportReportToWord = (report: MaintenanceReport) => {
       <table class="meta-table">
         <tr>
           <td class="meta-label">Report Number</td>
-          <td>${report.reportNumber}</td>
+          <td>${getReportIdentifier(report)}</td>
           <td class="meta-label">Date</td>
           <td>${report.date}</td>
         </tr>
@@ -536,5 +579,5 @@ export const exportReportToWord = (report: MaintenanceReport) => {
   const blob = new Blob(['\ufeff', wordHtml], {
     type: 'application/msword'
   });
-  saveAs(blob, `${report.reportNumber}_${report.equipmentCode}_Report.doc`);
+  saveAs(blob, `${getReportIdentifier(report)}_${report.equipmentCode}_Report.doc`);
 };

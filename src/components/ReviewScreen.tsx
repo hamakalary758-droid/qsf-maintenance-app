@@ -1,7 +1,7 @@
 import React from 'react';
 import { MaintenanceReport } from '../types';
 import { FileCheck, Edit2, AlertTriangle, CheckCircle2, DollarSign, Camera, FileText, FileSpreadsheet, FileBox } from 'lucide-react';
-import { exportReportToExcel, exportReportToPDF, exportReportToWord } from '../utils/exports';
+import { exportReportToExcel, exportReportToPDF, exportReportToWord, getReportIdentifier } from '../utils/exports';
 
 interface ReviewScreenProps {
   reportData: Partial<MaintenanceReport>;
@@ -74,7 +74,7 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({ reportData, onEditSe
             <h3 className="font-bold text-xs text-slate-800 dark:text-slate-200">1. Basic Equipment & Location Info</h3>
             <button
               onClick={() => onEditSection(0)}
-              className="text-sky-600 dark:text-sky-400 font-bold text-xs hover:underline flex items-center space-x-1"
+              className="text-sky-600 dark:text-sky-400 font-bold text-xs hover:underline flex items-center space-x-1 print-hide"
             >
               <Edit2 className="w-3.5 h-3.5" />
               <span>Edit Section</span>
@@ -94,7 +94,7 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({ reportData, onEditSe
             <h3 className="font-bold text-xs text-indigo-900">2. 5W + 1H Methodical Breakdown</h3>
             <button
               onClick={() => onEditSection(1)}
-              className="text-indigo-600 font-bold text-xs hover:underline flex items-center space-x-1"
+              className="text-indigo-600 font-bold text-xs hover:underline flex items-center space-x-1 print-hide"
             >
               <Edit2 className="w-3.5 h-3.5" />
               <span>Edit Section</span>
@@ -135,7 +135,7 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({ reportData, onEditSe
             <h3 className="font-bold text-xs text-purple-900">3. 5-Why Root Cause Flow</h3>
             <button
               onClick={() => onEditSection(2)}
-              className="text-purple-600 font-bold text-xs hover:underline flex items-center space-x-1"
+              className="text-purple-600 font-bold text-xs hover:underline flex items-center space-x-1 print-hide"
             >
               <Edit2 className="w-3.5 h-3.5" />
               <span>Edit Section</span>
@@ -160,7 +160,7 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({ reportData, onEditSe
             <h3 className="font-bold text-xs text-emerald-900">4. Actions & Spare Parts</h3>
             <button
               onClick={() => onEditSection(3)}
-              className="text-emerald-600 font-bold text-xs hover:underline flex items-center space-x-1"
+              className="text-emerald-600 font-bold text-xs hover:underline flex items-center space-x-1 print-hide"
             >
               <Edit2 className="w-3.5 h-3.5" />
               <span>Edit Section</span>
@@ -222,7 +222,7 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({ reportData, onEditSe
               <h3 className="font-bold text-xs text-purple-900">5. Attached Inspection Photos & Annotations ({photos.length})</h3>
               <button
                 onClick={() => onEditSection(4)}
-                className="text-purple-600 font-bold text-xs hover:underline flex items-center space-x-1"
+                className="text-purple-600 font-bold text-xs hover:underline flex items-center space-x-1 print-hide"
               >
                 <Edit2 className="w-3.5 h-3.5" />
                 <span>Edit Section</span>
@@ -250,6 +250,25 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({ reportData, onEditSe
             </div>
           </div>
         )}
+
+        {/* Section 6: Sign-off & Approval */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-800 p-2.5 rounded-lg border border-slate-200 dark:border-slate-700">
+            <h3 className="font-bold text-xs text-slate-800 dark:text-slate-200">6. Sign-off & Approval</h3>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 p-4 bg-slate-50/50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-800">
+            <div>
+              <div className="border-b border-slate-400 dark:border-slate-600 h-10 mb-1" />
+              <p className="text-xs text-slate-500 dark:text-slate-400">Maintenance Technician</p>
+              <p className="text-xs font-semibold text-slate-800 dark:text-slate-200">{r.technicianName || 'Technician'}</p>
+            </div>
+            <div>
+              <div className="border-b border-slate-400 dark:border-slate-600 h-10 mb-1" />
+              <p className="text-xs text-slate-500 dark:text-slate-400">Plant Reliability Engineer</p>
+              <p className="text-xs font-semibold text-slate-800 dark:text-slate-200">Signature & Date</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Export Bar & Finalize Action */}
@@ -261,16 +280,16 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({ reportData, onEditSe
 
         <div className="flex flex-wrap items-center gap-2">
           <button
-            onClick={() => exportReportToExcel(r as MaintenanceReport)}
-            className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs rounded-lg flex items-center space-x-1"
+            onClick={() => { void exportReportToExcel(r as MaintenanceReport); }}
+            className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs rounded-lg flex items-center space-x-1 cursor-pointer"
           >
             <FileSpreadsheet className="w-3.5 h-3.5" />
             <span>Excel</span>
           </button>
 
           <button
-            onClick={() => exportReportToPDF('review-report-printable', r.reportNumber || 'Report')}
-            className="px-3 py-1.5 bg-rose-700 hover:bg-rose-600 text-white font-bold text-xs rounded-lg flex items-center space-x-1"
+            onClick={() => exportReportToPDF('review-report-printable', getReportIdentifier(r as MaintenanceReport))}
+            className="px-3 py-1.5 bg-rose-700 hover:bg-rose-600 text-white font-bold text-xs rounded-lg flex items-center space-x-1 cursor-pointer"
           >
             <FileText className="w-3.5 h-3.5" />
             <span>PDF</span>
@@ -278,7 +297,7 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({ reportData, onEditSe
 
           <button
             onClick={() => exportReportToWord(r as MaintenanceReport)}
-            className="px-3 py-1.5 bg-blue-700 hover:bg-blue-600 text-white font-bold text-xs rounded-lg flex items-center space-x-1"
+            className="px-3 py-1.5 bg-blue-700 hover:bg-blue-600 text-white font-bold text-xs rounded-lg flex items-center space-x-1 cursor-pointer"
           >
             <FileBox className="w-3.5 h-3.5" />
             <span>Word</span>
@@ -286,7 +305,7 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({ reportData, onEditSe
 
           <button
             onClick={onFinalize}
-            className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs rounded-lg shadow-md transition-all active:scale-95"
+            className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs rounded-lg shadow-md transition-all active:scale-95 cursor-pointer"
           >
             Finalize Report &rarr;
           </button>

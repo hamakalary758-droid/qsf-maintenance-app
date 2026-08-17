@@ -91,38 +91,52 @@ WHY3: <Component wear, operational stress, or physical mechanism>
 WHY4: <Operating condition, preventive maintenance, or operational practice>
 WHY5: <Systemic, design, quality, or management root cause>`;
 
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey.trim())}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            contents: [
-              {
-                parts: [
-                  {
-                    text: promptText
-                  }
-                ]
-              }
-            ]
-          })
-        }
-      );
+      const MODELS = [
+        'gemini-3.1-pro',
+        'gemini-3.7-flash',
+        'gemini-3.6-flash',
+        'gemini-3.5-flash',
+        'gemini-2.5-pro',
+        'gemini-2.5-flash',
+      ];
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const message = errorData?.error?.message || `API error (${response.status}: ${response.statusText})`;
-        throw new Error(message);
+      let lastError: Error | null = null;
+      let text: string | null = null;
+
+      for (const model of MODELS) {
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey.trim())}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          const msg: string = errorData?.error?.message || `API error (${response.status})`;
+          const isFallbackable =
+            response.status === 429 ||
+            response.status === 503 ||
+            msg.toLowerCase().includes('no longer available') ||
+            msg.toLowerCase().includes('not found') ||
+            msg.toLowerCase().includes('quota');
+          if (isFallbackable) {
+            lastError = new Error(`${model}: ${msg}`);
+            continue; // try next model
+          }
+          throw new Error(msg); // hard error (e.g. bad key) — stop immediately, do not fall back
+        }
+
+        const data = await response.json();
+        text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? null;
+        if (text) break; // success — stop trying further models
+        lastError = new Error(`${model}: empty response`);
       }
 
-      const data = await response.json();
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-
       if (!text) {
-        throw new Error('Received an empty response from Gemini API.');
+        throw lastError ?? new Error('All models failed to return a response.');
       }
 
       // Parse 5 distinct lines
