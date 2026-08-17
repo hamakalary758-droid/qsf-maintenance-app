@@ -68,4 +68,4 @@ export interface MaintenanceReport {
   notes?: string;
 }
 
-export type AppTab = 'new-report' | 'history' | 'mockups' | 'setup-guide' | 'phase-checklist';
+export type AppTab = 'new-report' | 'history' | 'dashboard' | 'mockups' | 'setup-guide' | 'phase-checklist';

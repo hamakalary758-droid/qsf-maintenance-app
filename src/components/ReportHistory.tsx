@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { MaintenanceReport } from '../types';
 import { FAILURE_TYPES } from '../constants/failureTypes';
-import { Search, Filter, Calendar, MapPin, Wrench, FileSpreadsheet, FileText, FileBox, Trash2, Eye, Plus, RotateCcw, AlertTriangle } from 'lucide-react';
-import { exportReportToExcel, exportReportToPDF, exportReportToWord } from '../utils/exports';
+import { Search, Filter, Calendar, MapPin, Wrench, FileSpreadsheet, FileText, FileBox, Trash2, Eye, Plus, RotateCcw, AlertTriangle, Copy } from 'lucide-react';
+import { exportReportToExcel, exportReportToPDF, exportReportToWord, exportBatchToExcel, exportBatchToWord } from '../utils/exports';
 
 interface ReportHistoryProps {
   reports: MaintenanceReport[];
@@ -10,6 +10,7 @@ interface ReportHistoryProps {
   onSelectReport: (report: MaintenanceReport) => void;
   onDeleteReport: (id: string) => void;
   onNewReport: () => void;
+  onDuplicateReport: (report: MaintenanceReport) => void;
 }
 
 export const ReportHistory: React.FC<ReportHistoryProps> = ({
@@ -17,10 +18,15 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
   isLoading = false,
   onSelectReport,
   onDeleteReport,
-  onNewReport
+  onNewReport,
+  onDuplicateReport
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFailureType, setSelectedFailureType] = useState('ALL');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [selectedShutdown, setSelectedShutdown] = useState<string>('');
+  const [isBatchExporting, setIsBatchExporting] = useState<boolean>(false);
 
   const filteredReports = reports.filter((r) => {
     const matchesSearch =
@@ -32,8 +38,23 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
 
     const matchesType = selectedFailureType === 'ALL' || r.failureType === selectedFailureType;
 
-    return matchesSearch && matchesType;
+    const matchesDate =
+      (!dateFrom || r.date >= dateFrom) &&
+      (!dateTo || r.date <= dateTo);
+
+    return matchesSearch && matchesType && matchesDate;
   });
+
+  const distinctShutdowns = useMemo(() => {
+    const names = Array.from(new Set(reports.map((r) => r.shutdownName?.trim()).filter(Boolean) as string[]));
+    return names;
+  }, [reports]);
+
+  const activeShutdown = selectedShutdown && distinctShutdowns.includes(selectedShutdown)
+    ? selectedShutdown
+    : distinctShutdowns[0] || '';
+
+  const shutdownReports = reports.filter((r) => (r.shutdownName?.trim() || '') === activeShutdown);
 
   return (
     <div className="space-y-6 animate-fadeIn pb-12">
@@ -44,7 +65,7 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
             <span className="text-[10px] text-sky-400 font-bold uppercase tracking-wider">Step 18: Historical Archive</span>
             <h2 className="text-xl font-bold text-white">Past Shutdown Maintenance Reports</h2>
             <p className="text-xs text-slate-300 mt-0.5">
-              Access, inspect, edit, or re-export any past plant shutdown report.
+              Access, inspect, edit, duplicate, or re-export any past plant shutdown report.
             </p>
           </div>
 
@@ -60,8 +81,8 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
         </div>
 
         {/* Search & Filter Inputs */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-3 border-t border-slate-800">
-          <div className="relative sm:col-span-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 pt-3 border-t border-slate-800">
+          <div className="relative sm:col-span-2 lg:col-span-2">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
             <input
               type="text"
@@ -72,7 +93,7 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
             />
           </div>
 
-          <div>
+          <div className="sm:col-span-1 lg:col-span-1">
             <select
               value={selectedFailureType}
               onChange={(e) => setSelectedFailureType(e.target.value)}
@@ -86,8 +107,99 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
               ))}
             </select>
           </div>
+
+          <div className="sm:col-span-1 lg:col-span-1">
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500"
+              title="From date (inclusive)"
+              placeholder="From Date"
+            />
+          </div>
+
+          <div className="sm:col-span-1 lg:col-span-1">
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500"
+              title="To date (inclusive)"
+              placeholder="To Date"
+            />
+          </div>
         </div>
       </div>
+
+      {/* Batch Export by Shutdown Section */}
+      {distinctShutdowns.length > 0 && (
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center space-x-2.5">
+            <div className="p-2 bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 rounded-xl border border-sky-200 dark:border-sky-800">
+              <FileBox className="w-4 h-4 shrink-0" />
+            </div>
+            <div>
+              <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                Export Batch by Shutdown Event
+              </h3>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                Bundle all {shutdownReports.length} report(s) from this shutdown into a single consolidated file
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            <select
+              value={activeShutdown}
+              onChange={(e) => setSelectedShutdown(e.target.value)}
+              className="bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-900 dark:text-white font-medium focus:outline-none focus:border-sky-500 max-w-[200px] truncate"
+            >
+              {distinctShutdowns.map((name) => (
+                <option key={name} value={name}>
+                  {name} ({reports.filter((r) => (r.shutdownName?.trim() || '') === name).length} reports)
+                </option>
+              ))}
+            </select>
+
+            <button
+              onClick={async () => {
+                if (!activeShutdown || shutdownReports.length === 0) return;
+                setIsBatchExporting(true);
+                try {
+                  await exportBatchToExcel(shutdownReports, activeShutdown);
+                } finally {
+                  setIsBatchExporting(false);
+                }
+              }}
+              disabled={isBatchExporting || shutdownReports.length === 0}
+              className="py-1.5 px-3 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-xs rounded-lg flex items-center space-x-1.5 shadow-sm transition-colors cursor-pointer"
+              title="Export all reports for this shutdown to a single multi-sheet Excel file"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5" />
+              <span>Export Batch (Excel)</span>
+            </button>
+
+            <button
+              onClick={async () => {
+                if (!activeShutdown || shutdownReports.length === 0) return;
+                setIsBatchExporting(true);
+                try {
+                  await exportBatchToWord(shutdownReports, activeShutdown);
+                } finally {
+                  setIsBatchExporting(false);
+                }
+              }}
+              disabled={isBatchExporting || shutdownReports.length === 0}
+              className="py-1.5 px-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold text-xs rounded-lg flex items-center space-x-1.5 shadow-sm transition-colors cursor-pointer"
+              title="Export all reports for this shutdown to a single concatenated Word document"
+            >
+              <FileBox className="w-3.5 h-3.5" />
+              <span>Export Batch (Word)</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Reports List */}
       {isLoading ? (
@@ -106,6 +218,8 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
             onClick={() => {
               setSearchTerm('');
               setSelectedFailureType('ALL');
+              setDateFrom('');
+              setDateTo('');
             }}
             className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-xs rounded-lg"
           >
@@ -173,6 +287,14 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
                   </button>
 
                   <button
+                    onClick={() => onDuplicateReport(r)}
+                    className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-950/30 rounded-lg transition-colors"
+                    title="Duplicate report (prefills equipment, location, and shutdown into new draft)"
+                  >
+                    <Copy className="w-4 h-4" />
+                  </button>
+
+                  <button
                     onClick={() => onDeleteReport(r.id)}
                     className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-lg transition-colors"
                     title="Delete report"
@@ -216,3 +338,4 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
     </div>
   );
 };
+

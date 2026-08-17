@@ -135,6 +135,130 @@ export const exportReportToExcel = async (report: MaintenanceReport): Promise<vo
 };
 
 /**
+ * Builds a single-sheet 2D array representation for a report in batch Excel export
+ */
+export const buildReportExcelSheet = (report: MaintenanceReport): XLSX.WorkSheet => {
+  const totalCost = report.spareParts.reduce((sum, sp) => sum + sp.quantity * sp.unitCost, 0);
+
+  const rows: (string | number)[][] = [
+    ['SHUTDOWN MAINTENANCE REPORT', ''],
+    ['Report Number', getReportIdentifier(report)],
+    ['Shutdown Event', report.shutdownName],
+    ['Date', report.date],
+    ['Technician Name', report.technicianName],
+    ['Technician ID', report.technicianId || 'N/A'],
+    ['Equipment Name', report.equipmentName],
+    ['Equipment Code', report.equipmentCode],
+    ['Location / Area', report.location],
+    ['Failure Classification', report.failureType],
+    ['Status', report.status],
+    ['Created Date', new Date(report.createdAt).toLocaleString()],
+    ['Last Updated', new Date(report.updatedAt).toLocaleString()],
+    ['Notes', report.notes || ''],
+    [],
+    ['5W+1H ANALYSIS ASPECT', 'DETAILS'],
+    ['WHAT (Problem Description)', report.fiveWOneH.what],
+    ['WHEN (Timing / Shift)', report.fiveWOneH.when],
+    ['WHERE (Component / Location)', report.fiveWOneH.where],
+    ['WHO (Discovered / Team)', report.fiveWOneH.who],
+    ['WHICH (Operating Mode / Condition)', report.fiveWOneH.which],
+    ['HOW (Detection / Severity)', report.fiveWOneH.how],
+    [],
+    ['WHY STEP', 'ANALYSIS / OBSERVATION'],
+    ['1st Why', report.fiveWhy.why1],
+    ['2nd Why', report.fiveWhy.why2],
+    ['3rd Why', report.fiveWhy.why3],
+    ['4th Why', report.fiveWhy.why4],
+    ['5th Why (Root Cause)', report.fiveWhy.why5],
+    [],
+    ['CORRECTIVE ACTIONS', '', '', '', ''],
+    ['Action Description', 'Assignee', 'Priority', 'Status', 'Target Date'],
+    ...report.correctiveActions.map((ca) => [
+      ca.action,
+      ca.assignee,
+      ca.priority,
+      ca.status,
+      ca.targetDate
+    ]),
+    [],
+    ['SPARE PARTS & MATERIALS', '', '', '', '', ''],
+    ['Part Name', 'Part Number', 'Quantity', 'Unit Cost ($)', 'Total Cost ($)', 'Status'],
+    ...report.spareParts.map((sp) => [
+      sp.partName,
+      sp.partNumber,
+      sp.quantity,
+      sp.unitCost,
+      sp.quantity * sp.unitCost,
+      sp.status
+    ]),
+    ['TOTAL SPARE PARTS COST', '', '', '', totalCost, '']
+  ];
+
+  if (report.photos && report.photos.length > 0) {
+    rows.push([]);
+    rows.push(['ATTACHED PHOTOS', '', '', '']);
+    rows.push(['Photo Index', 'Caption / Notes', 'Timestamp', 'Note']);
+    report.photos.forEach((ph, idx) => {
+      rows.push([
+        `Photo #${idx + 1}`,
+        ph.caption || 'No caption',
+        ph.timestamp || 'N/A',
+        'See attached photo files exported alongside this report'
+      ]);
+    });
+  }
+
+  return XLSX.utils.aoa_to_sheet(rows);
+};
+
+/**
+ * Batch Excel Export
+ * Combines all reports for a shutdown into a single workbook (one sheet per report)
+ */
+export const exportBatchToExcel = async (reports: MaintenanceReport[], shutdownName: string): Promise<void> => {
+  if (!reports || reports.length === 0) return;
+  const wb = XLSX.utils.book_new();
+  const existingSheetNames = new Set<string>();
+
+  for (let i = 0; i < reports.length; i++) {
+    const r = reports[i];
+    let sheetName = getReportIdentifier(r).replace(/[\\/?*:[\]]/g, '_').trim().slice(0, 31);
+    if (!sheetName) sheetName = `Report_${i + 1}`;
+    if (existingSheetNames.has(sheetName)) {
+      const suffix = `_${i + 1}`;
+      sheetName = sheetName.slice(0, 31 - suffix.length) + suffix;
+    }
+    existingSheetNames.add(sheetName);
+
+    const ws = buildReportExcelSheet(r);
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  }
+
+  // Trigger photo downloads for all reports in batch
+  for (const r of reports) {
+    if (r.photos && r.photos.length > 0) {
+      for (let idx = 0; idx < r.photos.length; idx++) {
+        const ph = r.photos[idx];
+        if (ph.url) {
+          try {
+            const res = await fetch(ph.url);
+            const photoBlob = await res.blob();
+            saveAs(photoBlob, `${getReportIdentifier(r)}_photo${idx + 1}.jpg`);
+            await new Promise((resolve) => setTimeout(resolve, 300));
+          } catch (err) {
+            console.warn(`Failed to export photo #${idx + 1}:`, err);
+          }
+        }
+      }
+    }
+  }
+
+  const cleanName = (shutdownName || 'General').replace(/\s+/g, '_');
+  const filename = `Shutdown_${cleanName}_Batch.xlsx`;
+  XLSX.writeFile(wb, filename);
+};
+
+/**
  * 2. PDF Export (jspdf & html2canvas)
  * Renders report with section-aware pagination, proper page breaks, and photo scaling
  */
@@ -397,10 +521,9 @@ export const exportReportToPDF = async (elementId: string, filename: string) => 
 };
 
 /**
- * 3. Word Document Export (.doc formatted HTML)
- * Produces a Word-compatible HTML file that opens directly in Microsoft Word with rich styling, tables & photos
+ * Builds the inner HTML body for a single maintenance report in Word format
  */
-export const exportReportToWord = (report: MaintenanceReport) => {
+export const buildReportWordSectionHtml = (report: MaintenanceReport): string => {
   const actionsHtml = report.correctiveActions
     .map(
       (a) => `
@@ -443,28 +566,8 @@ export const exportReportToWord = (report: MaintenanceReport) => {
 
   const totalSparePartsCost = report.spareParts.reduce((acc, p) => acc + p.quantity * p.unitCost, 0);
 
-  const wordHtml = `
-    <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-    <head>
-      <meta charset='utf-8'>
-      <title>Shutdown Maintenance Report - ${getReportIdentifier(report)}</title>
-      <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.5; color: #1e293b; padding: 20px; }
-        h1 { color: #0f172a; font-size: 24px; border-bottom: 3px solid #0284c7; padding-bottom: 8px; margin-bottom: 16px; }
-        h2 { color: #0369a1; font-size: 16px; margin-top: 24px; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
-        .meta-table, .data-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
-        .meta-table td { padding: 6px 10px; border: 1px solid #cbd5e1; }
-        .meta-label { background-color: #f1f5f9; font-weight: bold; width: 25%; color: #334155; }
-        .data-table th { background-color: #0284c7; color: #ffffff; padding: 10px; text-align: left; border: 1px solid #0284c7; font-size: 13px; }
-        .data-table td { font-size: 13px; }
-        .why-box { background-color: #f8fafc; border-left: 4px solid #0ea5e9; padding: 10px 14px; margin-bottom: 8px; border-radius: 2px; }
-        .why-title { font-weight: bold; color: #0369a1; font-size: 12px; }
-        .why-desc { font-size: 13px; color: #1e293b; margin-top: 2px; }
-        .root-cause { background-color: #fef2f2; border-left: 4px solid #ef4444; }
-        .root-cause .why-title { color: #991b1b; }
-      </style>
-    </head>
-    <body>
+  return `
+    <div style="margin-bottom: 24px;">
       <h1>PLANT SHUTDOWN MAINTENANCE REPORT</h1>
       
       <table class="meta-table">
@@ -494,6 +597,7 @@ export const exportReportToWord = (report: MaintenanceReport) => {
           <td class="meta-label">Location / Area</td>
           <td colspan="3">${report.location}</td>
         </tr>
+        ${report.notes ? `<tr><td class="meta-label">Notes</td><td colspan="3">${report.notes}</td></tr>` : ''}
       </table>
 
       <h2>1. 5W + 1H PROBLEM ANALYSIS</h2>
@@ -572,6 +676,38 @@ export const exportReportToWord = (report: MaintenanceReport) => {
           </td>
         </tr>
       </table>
+    </div>
+  `;
+};
+
+/**
+ * 3. Word Document Export (.doc formatted HTML)
+ * Produces a Word-compatible HTML file that opens directly in Microsoft Word with rich styling, tables & photos
+ */
+export const exportReportToWord = (report: MaintenanceReport) => {
+  const wordHtml = `
+    <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+    <head>
+      <meta charset='utf-8'>
+      <title>Shutdown Maintenance Report - ${getReportIdentifier(report)}</title>
+      <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.5; color: #1e293b; padding: 20px; }
+        h1 { color: #0f172a; font-size: 24px; border-bottom: 3px solid #0284c7; padding-bottom: 8px; margin-bottom: 16px; }
+        h2 { color: #0369a1; font-size: 16px; margin-top: 24px; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
+        .meta-table, .data-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+        .meta-table td { padding: 6px 10px; border: 1px solid #cbd5e1; }
+        .meta-label { background-color: #f1f5f9; font-weight: bold; width: 25%; color: #334155; }
+        .data-table th { background-color: #0284c7; color: #ffffff; padding: 10px; text-align: left; border: 1px solid #0284c7; font-size: 13px; }
+        .data-table td { font-size: 13px; }
+        .why-box { background-color: #f8fafc; border-left: 4px solid #0ea5e9; padding: 10px 14px; margin-bottom: 8px; border-radius: 2px; }
+        .why-title { font-weight: bold; color: #0369a1; font-size: 12px; }
+        .why-desc { font-size: 13px; color: #1e293b; margin-top: 2px; }
+        .root-cause { background-color: #fef2f2; border-left: 4px solid #ef4444; }
+        .root-cause .why-title { color: #991b1b; }
+      </style>
+    </head>
+    <body>
+      ${buildReportWordSectionHtml(report)}
     </body>
     </html>
   `;
@@ -580,4 +716,58 @@ export const exportReportToWord = (report: MaintenanceReport) => {
     type: 'application/msword'
   });
   saveAs(blob, `${getReportIdentifier(report)}_${report.equipmentCode}_Report.doc`);
+};
+
+/**
+ * Batch Word Document Export
+ * Concatenates all reports for a shutdown with page breaks and header bars
+ */
+export const exportBatchToWord = async (reports: MaintenanceReport[], shutdownName: string): Promise<void> => {
+  if (!reports || reports.length === 0) return;
+
+  const wordHeader = `
+    <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+    <head>
+      <meta charset='utf-8'>
+      <title>Shutdown Maintenance Batch - ${shutdownName}</title>
+      <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.5; color: #1e293b; padding: 20px; }
+        h1 { color: #0f172a; font-size: 22px; border-bottom: 3px solid #0284c7; padding-bottom: 8px; margin-bottom: 16px; }
+        h2 { color: #0369a1; font-size: 15px; margin-top: 20px; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
+        .meta-table, .data-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+        .meta-table td { padding: 6px 10px; border: 1px solid #cbd5e1; }
+        .meta-label { background-color: #f1f5f9; font-weight: bold; width: 25%; color: #334155; }
+        .data-table th { background-color: #0284c7; color: #ffffff; padding: 8px; text-align: left; border: 1px solid #0284c7; font-size: 12px; }
+        .data-table td { font-size: 12px; }
+        .why-box { background-color: #f8fafc; border-left: 4px solid #0ea5e9; padding: 8px 12px; margin-bottom: 6px; border-radius: 2px; }
+        .why-title { font-weight: bold; color: #0369a1; font-size: 12px; }
+        .why-desc { font-size: 12px; color: #1e293b; margin-top: 2px; }
+        .root-cause { background-color: #fef2f2; border-left: 4px solid #ef4444; }
+        .root-cause .why-title { color: #991b1b; }
+        .batch-report-divider { page-break-before: always; margin-top: 30px; border-top: 2px dashed #94a3b8; padding-top: 20px; }
+        .report-header-banner { background-color: #0284c7; color: white; padding: 8px 12px; font-weight: bold; font-size: 14px; margin-bottom: 12px; border-radius: 4px; }
+      </style>
+    </head>
+    <body>
+  `;
+
+  const sectionsHtml = reports
+    .map((report, idx) => {
+      const headerBanner = `<div class="report-header-banner">REPORT ${idx + 1} OF ${reports.length}: ${getReportIdentifier(report)} — ${report.equipmentName} (${report.equipmentCode})</div>`;
+      const reportContent = buildReportWordSectionHtml(report);
+      if (idx === 0) {
+        return `${headerBanner}${reportContent}`;
+      }
+      return `<div class="batch-report-divider">${headerBanner}${reportContent}</div>`;
+    })
+    .join('');
+
+  const fullWordHtml = `${wordHeader}${sectionsHtml}</body></html>`;
+
+  const blob = new Blob(['\ufeff', fullWordHtml], {
+    type: 'application/msword'
+  });
+  const cleanName = (shutdownName || 'General').replace(/\s+/g, '_');
+  const filename = `Shutdown_${cleanName}_Batch.docx`;
+  saveAs(blob, filename);
 };

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AppTab } from '../types';
-import { Wrench, Smartphone, History, Shield, CheckSquare, Plus, Wifi, WifiOff, Settings, Sparkles, RefreshCw, AlertTriangle, CheckCircle2, RotateCcw, X, Key, Eye, EyeOff } from 'lucide-react';
+import { Wrench, Smartphone, History, Shield, CheckSquare, Plus, Wifi, WifiOff, Settings, Sparkles, RefreshCw, AlertTriangle, CheckCircle2, RotateCcw, X, Key, Eye, EyeOff, BarChart3 } from 'lucide-react';
 import { subscribeToSyncStatus, processSyncQueue, SyncStatusInfo } from '../offline/syncQueue';
 
 interface NavbarProps {
@@ -347,7 +347,8 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="max-w-7xl mx-auto flex items-center space-x-1 overflow-x-auto py-1 scrollbar-none">
           {[
             { id: 'new-report' as const, label: 'New Field Report', icon: Plus },
-            { id: 'history' as const, label: `Report History (${reportCount})`, icon: History }
+            { id: 'history' as const, label: `Report History (${reportCount})`, icon: History },
+            { id: 'dashboard' as const, label: 'Dashboard', icon: BarChart3 }
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;

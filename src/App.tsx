@@ -21,6 +21,7 @@ import { FiveWhyStep } from './components/ReportForm/FiveWhyStep';
 import { ActionsAndPartsStep } from './components/ReportForm/ActionsAndPartsStep';
 import { PhotoCaptureStep } from './components/ReportForm/PhotoCaptureStep';
 import { ReviewScreen } from './components/ReviewScreen';
+import { Dashboard } from './components/Dashboard';
 import { ChevronLeft, ChevronRight, CheckCircle2, AlertCircle, X, Loader2 } from 'lucide-react';
 
 export default function App() {
@@ -192,6 +193,34 @@ export default function App() {
   const handleSelectReportToEdit = (report: MaintenanceReport) => {
     setReportData(report);
     setCurrentStepIndex(5); // Go straight to Review Screen for full view
+    setActiveTab('new-report');
+  };
+
+  const handleDuplicateReport = (source: MaintenanceReport) => {
+    const originLine = `[Duplicated from ${source.reportNumber || 'PENDING report'} — ${source.equipmentName} (${source.equipmentCode}) — on ${new Date().toISOString().split('T')[0]}]`;
+    const carriedNotes = source.notes ? `${originLine}\n${source.notes}` : originLine;
+
+    setReportData({
+      id: generateReportId(),
+      reportNumber: '',
+      title: '',
+      technicianName: '',
+      technicianId: '',
+      date: new Date().toISOString().split('T')[0],
+      shutdownName: source.shutdownName,
+      equipmentName: source.equipmentName,
+      equipmentCode: source.equipmentCode,
+      location: source.location,
+      failureType: source.failureType,
+      fiveWOneH: { what: '', when: '', where: '', who: '', which: '', how: '' },
+      fiveWhy: { why1: '', why2: '', why3: '', why4: '', why5: '' },
+      correctiveActions: [],
+      spareParts: [],
+      photos: [],
+      status: 'Draft',
+      notes: carriedNotes
+    });
+    setCurrentStepIndex(0);
     setActiveTab('new-report');
   };
 
@@ -410,8 +439,12 @@ export default function App() {
               setCurrentStepIndex(0);
               setActiveTab('new-report');
             }}
+            onDuplicateReport={handleDuplicateReport}
           />
         )}
+
+        {/* TAB 3: DASHBOARD */}
+        {activeTab === 'dashboard' && <Dashboard reports={reports} />}
 
         {/* TAB 3: PHASE 1 MOCKUPS */}
         {activeTab === 'mockups' && <MockupsView />}
