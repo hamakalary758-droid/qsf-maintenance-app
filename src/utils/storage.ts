@@ -6,6 +6,17 @@ import { supabase, isSupabaseConfigured } from '../supabase/config';
 const DRAFT_KEY = 'shutdown_maintenance_draft_v1';
 const LOCAL_REPORTS_KEY = 'shutdown_maintenance_reports_local_v1';
 
+// Generate collision-safe report ID using crypto.randomUUID()
+export function generateReportId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return 'rep-' + crypto.randomUUID();
+  }
+  return 'rep-' + Date.now() + '-' + Math.random().toString(36).substring(2, 9);
+}
+
+// Track active Object URLs per report to prevent memory leaks on repeated loads
+const activeObjectURLsByReport = new Map<string, string[]>();
+
 // Helper: Convert Data URL or remote URL to Blob
 export async function urlToBlob(url: string): Promise<Blob> {
   if (url.startsWith('data:')) {
@@ -59,12 +70,32 @@ function mapRowToReport(row: any): MaintenanceReport {
 async function getPhotosForReport(reportLocalId: string): Promise<PlantPhoto[]> {
   try {
     const photos = await db.photos.where('reportLocalId').equals(reportLocalId).toArray();
-    return photos.map((p) => ({
+    
+    // Create new Object URLs
+    const newPhotos = photos.map((p) => ({
       id: p.id,
       url: URL.createObjectURL(p.blob),
       caption: p.caption,
       timestamp: p.createdAt
     }));
+
+    const newUrls = newPhotos.map((p) => p.url);
+
+    // Revoke previous URLs for this report after new ones are created
+    const oldUrls = activeObjectURLsByReport.get(reportLocalId);
+    if (oldUrls) {
+      oldUrls.forEach((url) => {
+        try {
+          URL.revokeObjectURL(url);
+        } catch {
+          // ignore
+        }
+      });
+    }
+
+    activeObjectURLsByReport.set(reportLocalId, newUrls);
+
+    return newPhotos;
   } catch (err) {
     console.warn(`Failed to rehydrate photos for ${reportLocalId}:`, err);
     return [];
@@ -164,7 +195,7 @@ export const getReportsFromStorage = async (): Promise<MaintenanceReport[]> => {
  * Never blocks the UI waiting for network response.
  */
 export const saveReportToStorage = async (report: MaintenanceReport): Promise<MaintenanceReport[]> => {
-  const localId = report.id || 'rep-' + Date.now();
+  const localId = report.id || generateReportId();
   const now = new Date().toISOString();
 
   const cleanReport: MaintenanceReport = {
@@ -179,8 +210,9 @@ export const saveReportToStorage = async (report: MaintenanceReport): Promise<Ma
       if (photo.url) {
         try {
           const blob = await urlToBlob(photo.url);
+          const photoId = photo.id || (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function' ? 'ph-' + crypto.randomUUID() : 'ph-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6));
           await db.photos.put({
-            id: photo.id || 'ph-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+            id: photoId,
             reportLocalId: localId,
             blob,
             caption: photo.caption || '',
@@ -230,6 +262,19 @@ export const saveReportToStorage = async (report: MaintenanceReport): Promise<Ma
  * Deletes report locally from IndexedDB immediately, marks for background deletion on Supabase.
  */
 export const deleteReportFromStorage = async (id: string): Promise<MaintenanceReport[]> => {
+  // Revoke any active Object URLs for this report
+  const oldUrls = activeObjectURLsByReport.get(id);
+  if (oldUrls) {
+    oldUrls.forEach((url) => {
+      try {
+        URL.revokeObjectURL(url);
+      } catch {
+        // ignore
+      }
+    });
+    activeObjectURLsByReport.delete(id);
+  }
+
   // 1. Delete locally from IndexedDB
   await db.reports.delete(id);
   await db.photos.where('reportLocalId').equals(id).delete();

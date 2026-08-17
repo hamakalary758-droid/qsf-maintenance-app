@@ -275,7 +275,7 @@ export const exportReportToPDF = async (elementId: string, filename: string) => 
 
             sliceRemaining -= currentSliceHeight;
             sliceOffsetMm += currentSliceHeight;
-            currentY += currentSliceHeight + 2;
+            currentY += currentSliceHeight;
 
             if (sliceRemaining > 0) {
               pdf.addPage();

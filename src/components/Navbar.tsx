@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AppTab } from '../types';
-import { Wrench, Smartphone, History, Shield, CheckSquare, Plus, Wifi, WifiOff, Settings, Sparkles, RefreshCw, AlertTriangle, CheckCircle2, RotateCcw, X } from 'lucide-react';
+import { Wrench, Smartphone, History, Shield, CheckSquare, Plus, Wifi, WifiOff, Settings, Sparkles, RefreshCw, AlertTriangle, CheckCircle2, RotateCcw, X, Key, Eye, EyeOff } from 'lucide-react';
 import { subscribeToSyncStatus, processSyncQueue, SyncStatusInfo } from '../offline/syncQueue';
 
 interface NavbarProps {
@@ -29,7 +29,33 @@ export const Navbar: React.FC<NavbarProps> = ({
   });
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [isSyncModalOpen, setIsSyncModalOpen] = useState<boolean>(false);
+  const [geminiApiKey, setGeminiApiKey] = useState<string>('');
+  const [showApiKey, setShowApiKey] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    try {
+      const savedKey = localStorage.getItem('qsf_gemini_api_key');
+      if (savedKey) {
+        setGeminiApiKey(savedKey);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const handleApiKeyChange = (newVal: string) => {
+    setGeminiApiKey(newVal);
+    try {
+      if (newVal.trim()) {
+        localStorage.setItem('qsf_gemini_api_key', newVal.trim());
+      } else {
+        localStorage.removeItem('qsf_gemini_api_key');
+      }
+    } catch {
+      // ignore
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = subscribeToSyncStatus((info) => {
@@ -180,9 +206,9 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
 
             {isSettingsOpen && (
-              <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl p-2.5 z-50 text-slate-900 dark:text-slate-100 animate-in fade-in-50 zoom-in-95 duration-100">
+              <div className="absolute right-0 top-full mt-2 w-72 sm:w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl p-3 z-50 text-slate-900 dark:text-slate-100 animate-in fade-in-50 zoom-in-95 duration-100">
                 {/* 1. Appearance */}
-                <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-2 py-1">
+                <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-1 py-1">
                   Appearance
                 </div>
                 <div
@@ -208,8 +234,42 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {/* 2. Divider */}
                 <div className="my-2 border-t border-slate-200 dark:border-slate-700" />
 
-                {/* 3. Test Data */}
-                <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-2 py-1">
+                {/* 3. Gemini API Key */}
+                <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-1 py-1 flex items-center justify-between">
+                  <span>Gemini API Key</span>
+                  <span className="text-[9px] text-purple-600 dark:text-purple-400 font-semibold lowercase">5-Why AI</span>
+                </div>
+                <div className="px-1 py-1 space-y-1.5">
+                  <div className="relative flex items-center">
+                    <div className="absolute left-2.5 text-slate-400 pointer-events-none">
+                      <Key className="w-3.5 h-3.5" />
+                    </div>
+                    <input
+                      type={showApiKey ? 'text' : 'password'}
+                      value={geminiApiKey}
+                      onChange={(e) => handleApiKeyChange(e.target.value)}
+                      placeholder="Enter Gemini API key..."
+                      className="w-full pl-8 pr-8 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-1.5 focus:ring-purple-500 focus:border-purple-500 font-mono"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowApiKey((prev) => !prev)}
+                      className="absolute right-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors p-0.5"
+                      title={showApiKey ? 'Hide API key' : 'Show API key'}
+                    >
+                      {showApiKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-tight">
+                    Used only in your browser to call Gemini's API directly for 5-Why suggestions. Never sent anywhere else.
+                  </p>
+                </div>
+
+                {/* 4. Divider */}
+                <div className="my-2 border-t border-slate-200 dark:border-slate-700" />
+
+                {/* 5. Test Data */}
+                <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-1 py-1">
                   Test data
                 </div>
                 <button
@@ -223,11 +283,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <span>Auto-Fill Test Sample</span>
                 </button>
 
-                {/* 4. Divider */}
+                {/* 6. Divider */}
                 <div className="my-2 border-t border-slate-200 dark:border-slate-700" />
 
-                {/* 5. App Details */}
-                <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-2 py-1">
+                {/* 7. App Details */}
+                <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-1 py-1">
                   App details
                 </div>
                 <div className="space-y-0.5">

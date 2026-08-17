@@ -6,7 +6,8 @@ import {
   deleteReportFromStorage,
   saveDraftToStorage,
   getDraftFromStorage,
-  clearDraftFromStorage
+  clearDraftFromStorage,
+  generateReportId
 } from './utils/storage';
 import { useTheme } from './hooks/useTheme';
 import { Navbar } from './components/Navbar';
@@ -33,7 +34,7 @@ export default function App() {
 
   // Current active form report draft
   const [reportData, setReportData] = useState<Partial<MaintenanceReport>>({
-    id: 'rep-' + Date.now(),
+    id: generateReportId(),
     reportNumber: '',
     title: '',
     technicianName: '',
@@ -129,7 +130,7 @@ export default function App() {
     setErrorMsg(null);
 
     const finalReport: MaintenanceReport = {
-      id: reportData.id || 'rep-' + Date.now(),
+      id: reportData.id || generateReportId(),
       reportNumber: reportData.reportNumber || '',
       title: reportData.title?.trim()
         ? reportData.title
@@ -159,7 +160,7 @@ export default function App() {
 
       // Reset draft form for next entry
       setReportData({
-        id: 'rep-' + Date.now(),
+        id: generateReportId(),
         reportNumber: '',
         title: '',
         technicianName: '',
