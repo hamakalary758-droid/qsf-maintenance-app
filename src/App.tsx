@@ -8,7 +8,6 @@ import {
   getDraftFromStorage,
   clearDraftFromStorage
 } from './utils/storage';
-import { subscribeToSyncStatus } from './offline/syncQueue';
 import { useTheme } from './hooks/useTheme';
 import { Navbar } from './components/Navbar';
 import { PhaseTracker } from './components/PhaseTracker';
@@ -97,20 +96,25 @@ export default function App() {
 
     loadInitialReports();
 
-    // Listen to sync updates (when a pending item completes sync and receives its report_number)
-    const unsubscribe = subscribeToSyncStatus((status) => {
-      if (status.state === 'online') {
-        getReportsFromStorage().then((updated) => {
-          if (isMounted) {
-            setReports(updated);
-          }
-        }).catch(() => {});
-      }
-    });
+    // Refetch reports once whenever the browser genuinely regains network
+    // connectivity (e.g. a pending item completes sync and receives its
+    // report_number). This listens to the browser's real 'online' event,
+    // which fires only on an actual reconnect — NOT to the app's internal
+    // sync-status broadcasts, which fire repeatedly (including a transient
+    // 'syncing' state on every sync attempt, even when nothing needs
+    // syncing) and previously caused an infinite refetch loop.
+    const handleBrowserOnline = () => {
+      getReportsFromStorage().then((updated) => {
+        if (isMounted) {
+          setReports(updated);
+        }
+      }).catch(() => {});
+    };
+    window.addEventListener('online', handleBrowserOnline);
 
     return () => {
       isMounted = false;
-      unsubscribe();
+      window.removeEventListener('online', handleBrowserOnline);
     };
   }, []);
 
