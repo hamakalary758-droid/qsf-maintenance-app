@@ -679,150 +679,6 @@ export const exportReportToPDF = async (elementId: string, filename: string) => 
     const contentWidth = pageWidth - margin * 2; // 190mm
     const maxContentHeight = pageHeight - margin * 2; // 277mm
 
-    // Color sanitizer for Tailwind OKLCH/OKLAB/P3 color values in html2canvas clone
-    const sanitizeColorsInClone = (clonedDoc: Document, clonedElement: HTMLElement) => {
-      const tempCanvas = document.createElement('canvas');
-      tempCanvas.width = 1;
-      tempCanvas.height = 1;
-      const ctx = tempCanvas.getContext('2d', { willReadFrequently: true });
-
-      const colorToRgb = (colorStr: string): string => {
-        if (!ctx || !colorStr) return 'rgb(0,0,0)';
-        try {
-          ctx.clearRect(0, 0, 1, 1);
-          ctx.fillStyle = 'rgb(0,0,0)';
-          ctx.fillStyle = colorStr.trim();
-          const data = ctx.getImageData(0, 0, 1, 1).data;
-          const r = data[0];
-          const g = data[1];
-          const b = data[2];
-          const a = data[3] / 255;
-          return a === 1 ? `rgb(${r}, ${g}, ${b})` : `rgba(${r}, ${g}, ${b}, ${a.toFixed(2)})`;
-        } catch {
-          return 'rgb(0,0,0)';
-        }
-      };
-
-      const hasUnsupportedColor = (str: string | null | undefined): boolean => {
-        if (!str) return false;
-        return /oklch|oklab|lab|lch|color\(|color-mix|hwb/i.test(str);
-      };
-
-      const replaceColorFunctions = (cssText: string): string => {
-        if (!cssText) return '';
-        const colorFuncRegex = /\b(oklch|oklab|lab|lch|color-mix|color|hwb)\s*\(/gi;
-        let result = '';
-        let lastIndex = 0;
-        let match: RegExpExecArray | null;
-
-        while ((match = colorFuncRegex.exec(cssText)) !== null) {
-          result += cssText.slice(lastIndex, match.index);
-          const startParenIndex = match.index + match[0].length - 1;
-
-          let depth = 1;
-          let i = startParenIndex + 1;
-          while (i < cssText.length && depth > 0) {
-            if (cssText[i] === '(') depth++;
-            else if (cssText[i] === ')') depth--;
-            i++;
-          }
-
-          if (depth === 0) {
-            const fullFunctionStr = cssText.slice(match.index, i);
-            const converted = colorToRgb(fullFunctionStr);
-            result += converted;
-            lastIndex = i;
-            colorFuncRegex.lastIndex = i;
-          } else {
-            result += cssText.slice(match.index, match.index + match[0].length);
-            lastIndex = match.index + match[0].length;
-          }
-        }
-        result += cssText.slice(lastIndex);
-        return result;
-      };
-
-      // 1. Gather all CSS rules from document stylesheets & style tags
-      let combinedCss = '';
-      try {
-        for (let i = 0; i < document.styleSheets.length; i++) {
-          const sheet = document.styleSheets[i];
-          try {
-            if (sheet.cssRules) {
-              for (let j = 0; j < sheet.cssRules.length; j++) {
-                combinedCss += sheet.cssRules[j].cssText + '\n';
-              }
-            }
-          } catch {
-            // cross-origin stylesheet; fallback
-          }
-        }
-      } catch (err) {
-        console.warn('Could not read styleSheets rules directly:', err);
-      }
-
-      // If combinedCss is empty, read text content of existing style elements
-      if (!combinedCss) {
-        document.querySelectorAll('style').forEach((st) => {
-          if (st.textContent) combinedCss += st.textContent + '\n';
-        });
-      }
-
-      // Sanitize all color functions across the entire CSS bundle
-      const sanitizedCss = replaceColorFunctions(combinedCss);
-
-      // Remove existing <style> and <link rel="stylesheet"> in clonedDoc so html2canvas doesn't re-parse raw oklch files
-      clonedDoc.querySelectorAll('link[rel="stylesheet"]').forEach((link) => link.remove());
-      clonedDoc.querySelectorAll('style').forEach((style) => style.remove());
-
-      // Inject the sanitized CSS stylesheet into the clone
-      const sanitizedStyleEl = clonedDoc.createElement('style');
-      sanitizedStyleEl.textContent = sanitizedCss;
-      if (clonedDoc.head) {
-        clonedDoc.head.appendChild(sanitizedStyleEl);
-      } else {
-        clonedDoc.documentElement.appendChild(sanitizedStyleEl);
-      }
-
-      // 2. Walk all cloned elements and rewrite any computed properties using unsupported color functions to standard inline RGB
-      const allElements = [clonedElement, ...Array.from(clonedElement.querySelectorAll('*'))];
-      allElements.forEach((node) => {
-        if (node instanceof HTMLElement || node instanceof SVGElement) {
-          const el = node as HTMLElement;
-          const computed = window.getComputedStyle(el);
-
-          const colorProps: (keyof CSSStyleDeclaration)[] = [
-            'backgroundColor',
-            'color',
-            'borderColor',
-            'borderTopColor',
-            'borderBottomColor',
-            'borderLeftColor',
-            'borderRightColor',
-            'outlineColor',
-            'fill',
-            'stroke'
-          ];
-
-          colorProps.forEach((prop) => {
-            const val = computed[prop] as string | undefined;
-            if (hasUnsupportedColor(val)) {
-              const rgb = colorToRgb(val!);
-              el.style.setProperty(
-                String(prop).replace(/([A-Z])/g, '-$1').toLowerCase(),
-                rgb,
-                'important'
-              );
-            }
-          });
-
-          if (hasUnsupportedColor(computed.boxShadow)) {
-            el.style.setProperty('box-shadow', replaceColorFunctions(computed.boxShadow), 'important');
-          }
-        }
-      });
-    };
-
     // Look for top-level direct children inside the report printable card
     const sectionContainers = element.children;
 
@@ -839,8 +695,7 @@ export const exportReportToPDF = async (elementId: string, filename: string) => 
           useCORS: true,
           allowTaint: true,
           logging: false,
-          backgroundColor: '#ffffff',
-          onclone: (doc, el) => sanitizeColorsInClone(doc, el)
+          backgroundColor: '#ffffff'
         });
 
         const imgData = sectionCanvas.toDataURL('image/jpeg', 0.95);
@@ -917,8 +772,7 @@ export const exportReportToPDF = async (elementId: string, filename: string) => 
       useCORS: true,
       allowTaint: true,
       logging: false,
-      backgroundColor: '#ffffff',
-      onclone: (clonedDoc, clonedElement) => sanitizeColorsInClone(clonedDoc, clonedElement)
+      backgroundColor: '#ffffff'
     });
 
     const imgData = canvas.toDataURL('image/jpeg', 0.95);
