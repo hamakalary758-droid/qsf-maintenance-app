@@ -656,6 +656,48 @@ export const exportBatchToExcel = async (reports: MaintenanceReport[], shutdownN
  * 2. PDF Export (jspdf & html2canvas)
  * Renders report with section-aware pagination, proper page breaks, and photo scaling
  */
+
+/**
+ * Resolves computed background colors to concrete inline rgb/rgba strings on cloned elements
+ * so background fills render reliably in html2canvas-pro without touching stylesheets.
+ */
+const forceInlineBackgroundColors = (clonedElement: HTMLElement) => {
+  const tempCanvas = document.createElement('canvas');
+  tempCanvas.width = 1;
+  tempCanvas.height = 1;
+  const ctx = tempCanvas.getContext('2d', { willReadFrequently: true });
+  if (!ctx) return;
+
+  const allElements = [clonedElement, ...Array.from(clonedElement.querySelectorAll('*'))];
+  allElements.forEach((node) => {
+    if (node instanceof HTMLElement) {
+      try {
+        const bg = window.getComputedStyle(node).backgroundColor;
+        if (!bg || bg === 'transparent' || bg === 'rgba(0, 0, 0, 0)') {
+          return;
+        }
+
+        // If it's already a plain opaque rgb(r, g, b) value, it doesn't strictly need resolution,
+        // but resolving via 2D canvas safely handles oklch, oklab, color-mix, and css variables.
+        ctx.clearRect(0, 0, 1, 1);
+        ctx.fillStyle = 'rgba(0, 0, 0, 0)';
+        ctx.fillStyle = bg.trim();
+        const data = ctx.getImageData(0, 0, 1, 1).data;
+        const alpha = data[3] / 255;
+        if (alpha === 0) return;
+
+        const resolved = alpha === 1
+          ? `rgb(${data[0]}, ${data[1]}, ${data[2]})`
+          : `rgba(${data[0]}, ${data[1]}, ${data[2]}, ${alpha.toFixed(2)})`;
+
+        node.style.setProperty('background-color', resolved, 'important');
+      } catch {
+        // Per-element defensive catch
+      }
+    }
+  });
+};
+
 export const exportReportToPDF = async (elementId: string, filename: string) => {
   const element = document.getElementById(elementId);
   if (!element) {
@@ -695,7 +737,12 @@ export const exportReportToPDF = async (elementId: string, filename: string) => 
           useCORS: true,
           allowTaint: true,
           logging: false,
-          backgroundColor: '#ffffff'
+          backgroundColor: '#ffffff',
+          onclone: (_doc, el) => {
+            if (el instanceof HTMLElement) {
+              forceInlineBackgroundColors(el);
+            }
+          }
         });
 
         const imgData = sectionCanvas.toDataURL('image/jpeg', 0.95);
@@ -772,7 +819,12 @@ export const exportReportToPDF = async (elementId: string, filename: string) => 
       useCORS: true,
       allowTaint: true,
       logging: false,
-      backgroundColor: '#ffffff'
+      backgroundColor: '#ffffff',
+      onclone: (_clonedDoc, clonedElement) => {
+        if (clonedElement instanceof HTMLElement) {
+          forceInlineBackgroundColors(clonedElement);
+        }
+      }
     });
 
     const imgData = canvas.toDataURL('image/jpeg', 0.95);
