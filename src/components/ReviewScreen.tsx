@@ -1,6 +1,6 @@
 import React from 'react';
 import { MaintenanceReport } from '../types';
-import { FileCheck, Edit2, AlertTriangle, CheckCircle2, DollarSign, Camera, FileText, FileSpreadsheet, FileBox } from 'lucide-react';
+import { FileCheck, Edit2, AlertTriangle, CheckCircle2, DollarSign, Camera, FileText, FileSpreadsheet, FileBox, Info, ListChecks, GitBranch, FileSignature } from 'lucide-react';
 import { exportReportToExcel, exportReportToPDF, exportReportToWord, getReportIdentifier } from '../utils/exports';
 
 interface ReviewScreenProps {
@@ -47,31 +47,34 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({ reportData, onEditSe
         </p>
       </div>
 
-      <div id="review-report-printable" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 space-y-6 shadow-sm">
+      <div id="review-report-printable" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 space-y-6 shadow-sm overflow-hidden">
         
-        {/* Header Block */}
-        <div className="border-b border-slate-200 dark:border-slate-700 pb-4 flex flex-wrap justify-between items-start gap-3">
+        {/* Header Block with Colored Band */}
+        <div className="-m-5 mb-0 p-5 bg-sky-600 dark:bg-sky-800 text-white rounded-t-2xl flex flex-wrap justify-between items-start gap-4">
           <div>
-            <span className="px-2.5 py-1 bg-sky-100 text-sky-800 text-xs font-bold rounded-full border border-sky-200">
+            <span className="inline-block px-3 py-1 bg-white/15 text-white text-xs font-bold rounded-full border border-white/20 shadow-xs">
               {r.reportNumber || 'Pending Assignment'}
             </span>
-            <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100 mt-2">
+            <h1 className="text-xl font-extrabold text-white mt-2">
               {r.equipmentName || 'Equipment Maintenance Report'}
             </h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{r.shutdownName || 'Shutdown Event'}</p>
+            <p className="text-xs text-sky-100 mt-0.5">{r.shutdownName || 'Shutdown Event'}</p>
           </div>
 
-          <div className="text-right text-xs space-y-1">
-            <div><span className="text-slate-400 dark:text-slate-500">Date:</span> <strong className="text-slate-800 dark:text-slate-200">{r.date || 'N/A'}</strong></div>
-            <div><span className="text-slate-400 dark:text-slate-500">Technician:</span> <strong className="text-slate-800 dark:text-slate-200">{r.technicianName || 'N/A'} ({r.technicianId || 'N/A'})</strong></div>
-            <div><span className="text-slate-400 dark:text-slate-500">Type:</span> <strong className="text-amber-600">{r.failureType || 'Mechanical'}</strong></div>
+          <div className="text-right text-xs space-y-1 bg-white/10 dark:bg-black/20 p-2.5 rounded-xl border border-white/10 backdrop-blur-xs">
+            <div><span className="text-sky-200">Date:</span> <strong className="text-white ml-1">{r.date || 'N/A'}</strong></div>
+            <div><span className="text-sky-200">Technician:</span> <strong className="text-white ml-1">{r.technicianName || 'N/A'} ({r.technicianId || 'N/A'})</strong></div>
+            <div><span className="text-sky-200">Type:</span> <strong className="text-amber-300 ml-1 font-bold">{r.failureType || 'Mechanical'}</strong></div>
           </div>
         </div>
 
         {/* Section 1: General Info */}
         <div className="space-y-2">
-          <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-800 p-2.5 rounded-lg border border-slate-200 dark:border-slate-700">
-            <h3 className="font-bold text-xs text-slate-800 dark:text-slate-200">1. Basic Equipment & Location Info</h3>
+          <div className="flex items-center justify-between bg-sky-50 dark:bg-slate-800 p-2.5 rounded-lg border border-sky-100 dark:border-slate-700">
+            <div className="flex items-center space-x-1.5">
+              <Info className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0" />
+              <h3 className="font-bold text-xs text-sky-900 dark:text-sky-100">1. Basic Equipment & Location Info</h3>
+            </div>
             <button
               onClick={() => onEditSection(0)}
               className="text-sky-600 dark:text-sky-400 font-bold text-xs hover:underline flex items-center space-x-1 print-hide"
@@ -90,11 +93,14 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({ reportData, onEditSe
 
         {/* Section 2: 5W+1H */}
         <div className="space-y-2">
-          <div className="flex items-center justify-between bg-indigo-50/80 p-2.5 rounded-lg border border-indigo-100">
-            <h3 className="font-bold text-xs text-indigo-900">2. 5W + 1H Methodical Breakdown</h3>
+          <div className="flex items-center justify-between bg-sky-50 dark:bg-slate-800 p-2.5 rounded-lg border border-sky-100 dark:border-slate-700">
+            <div className="flex items-center space-x-1.5">
+              <ListChecks className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0" />
+              <h3 className="font-bold text-xs text-sky-900 dark:text-sky-100">2. 5W + 1H Methodical Breakdown</h3>
+            </div>
             <button
               onClick={() => onEditSection(1)}
-              className="text-indigo-600 font-bold text-xs hover:underline flex items-center space-x-1 print-hide"
+              className="text-sky-600 dark:text-sky-400 font-bold text-xs hover:underline flex items-center space-x-1 print-hide"
             >
               <Edit2 className="w-3.5 h-3.5" />
               <span>Edit Section</span>
@@ -103,64 +109,109 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({ reportData, onEditSe
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
             <div className="p-2.5 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
-              <span className="font-bold text-indigo-700 text-[10px] uppercase block">WHAT</span>
+              <span className="font-bold text-sky-700 dark:text-sky-400 text-[10px] uppercase block">WHAT</span>
               <p className="text-slate-800 dark:text-slate-200 mt-0.5">{fiveW.what || 'Not recorded'}</p>
             </div>
             <div className="p-2.5 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
-              <span className="font-bold text-indigo-700 text-[10px] uppercase block">WHEN</span>
+              <span className="font-bold text-sky-700 dark:text-sky-400 text-[10px] uppercase block">WHEN</span>
               <p className="text-slate-800 dark:text-slate-200 mt-0.5">{fiveW.when || 'Not recorded'}</p>
             </div>
             <div className="p-2.5 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
-              <span className="font-bold text-indigo-700 text-[10px] uppercase block">WHERE</span>
+              <span className="font-bold text-sky-700 dark:text-sky-400 text-[10px] uppercase block">WHERE</span>
               <p className="text-slate-800 dark:text-slate-200 mt-0.5">{fiveW.where || 'Not recorded'}</p>
             </div>
             <div className="p-2.5 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
-              <span className="font-bold text-indigo-700 text-[10px] uppercase block">WHO</span>
+              <span className="font-bold text-sky-700 dark:text-sky-400 text-[10px] uppercase block">WHO</span>
               <p className="text-slate-800 dark:text-slate-200 mt-0.5">{fiveW.who || 'Not recorded'}</p>
             </div>
             <div className="p-2.5 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
-              <span className="font-bold text-indigo-700 text-[10px] uppercase block">WHICH</span>
+              <span className="font-bold text-sky-700 dark:text-sky-400 text-[10px] uppercase block">WHICH</span>
               <p className="text-slate-800 dark:text-slate-200 mt-0.5">{fiveW.which || 'Not recorded'}</p>
             </div>
             <div className="p-2.5 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
-              <span className="font-bold text-indigo-700 text-[10px] uppercase block">HOW</span>
+              <span className="font-bold text-sky-700 dark:text-sky-400 text-[10px] uppercase block">HOW</span>
               <p className="text-slate-800 dark:text-slate-200 mt-0.5">{fiveW.how || 'Not recorded'}</p>
             </div>
           </div>
         </div>
 
-        {/* Section 3: 5-Why */}
+        {/* Section 3: 5-Why Timeline */}
         <div className="space-y-2">
-          <div className="flex items-center justify-between bg-purple-50/80 p-2.5 rounded-lg border border-purple-100">
-            <h3 className="font-bold text-xs text-purple-900">3. 5-Why Root Cause Flow</h3>
+          <div className="flex items-center justify-between bg-sky-50 dark:bg-slate-800 p-2.5 rounded-lg border border-sky-100 dark:border-slate-700">
+            <div className="flex items-center space-x-1.5">
+              <GitBranch className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0" />
+              <h3 className="font-bold text-xs text-sky-900 dark:text-sky-100">3. 5-Why Root Cause Flow</h3>
+            </div>
             <button
               onClick={() => onEditSection(2)}
-              className="text-purple-600 font-bold text-xs hover:underline flex items-center space-x-1 print-hide"
+              className="text-sky-600 dark:text-sky-400 font-bold text-xs hover:underline flex items-center space-x-1 print-hide"
             >
               <Edit2 className="w-3.5 h-3.5" />
               <span>Edit Section</span>
             </button>
           </div>
 
-          <div className="space-y-1.5 text-xs text-slate-800 dark:text-slate-200">
-            <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700"><span className="font-bold text-purple-700 mr-2">Why #1:</span>{fiveWhy.why1 || 'N/A'}</div>
-            <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700"><span className="font-bold text-purple-700 mr-2">Why #2:</span>{fiveWhy.why2 || 'N/A'}</div>
-            <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700"><span className="font-bold text-purple-700 mr-2">Why #3:</span>{fiveWhy.why3 || 'N/A'}</div>
-            <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700"><span className="font-bold text-purple-700 mr-2">Why #4:</span>{fiveWhy.why4 || 'N/A'}</div>
-            <div className="p-2.5 bg-rose-50 rounded border border-rose-300 font-medium text-rose-900">
-              <span className="font-extrabold text-rose-700 mr-2 uppercase">Why #5 (Root Cause):</span>
-              {fiveWhy.why5 || 'N/A'}
+          <div className="relative pl-6 space-y-3 pt-1 pb-1">
+            {/* Connecting vertical timeline line */}
+            <div className="absolute left-[9px] top-3 bottom-4 w-0.5 bg-slate-300 dark:bg-slate-600" />
+
+            {/* Why 1 */}
+            <div className="relative">
+              <div className="absolute -left-[19px] top-1.5 w-2.5 h-2.5 rounded-full bg-sky-500 ring-4 ring-white dark:ring-slate-900" />
+              <div className="text-xs text-slate-800 dark:text-slate-200 py-1">
+                <span className="font-bold text-sky-700 dark:text-sky-400 mr-2">Why #1:</span>
+                <span>{fiveWhy.why1 || 'N/A'}</span>
+              </div>
+            </div>
+
+            {/* Why 2 */}
+            <div className="relative">
+              <div className="absolute -left-[19px] top-1.5 w-2.5 h-2.5 rounded-full bg-sky-500 ring-4 ring-white dark:ring-slate-900" />
+              <div className="text-xs text-slate-800 dark:text-slate-200 py-1">
+                <span className="font-bold text-sky-700 dark:text-sky-400 mr-2">Why #2:</span>
+                <span>{fiveWhy.why2 || 'N/A'}</span>
+              </div>
+            </div>
+
+            {/* Why 3 */}
+            <div className="relative">
+              <div className="absolute -left-[19px] top-1.5 w-2.5 h-2.5 rounded-full bg-sky-500 ring-4 ring-white dark:ring-slate-900" />
+              <div className="text-xs text-slate-800 dark:text-slate-200 py-1">
+                <span className="font-bold text-sky-700 dark:text-sky-400 mr-2">Why #3:</span>
+                <span>{fiveWhy.why3 || 'N/A'}</span>
+              </div>
+            </div>
+
+            {/* Why 4 */}
+            <div className="relative">
+              <div className="absolute -left-[19px] top-1.5 w-2.5 h-2.5 rounded-full bg-sky-500 ring-4 ring-white dark:ring-slate-900" />
+              <div className="text-xs text-slate-800 dark:text-slate-200 py-1">
+                <span className="font-bold text-sky-700 dark:text-sky-400 mr-2">Why #4:</span>
+                <span>{fiveWhy.why4 || 'N/A'}</span>
+              </div>
+            </div>
+
+            {/* Why 5 - Terminal Root Cause Node */}
+            <div className="relative">
+              <div className="absolute -left-[20px] top-3.5 w-3 h-3 rounded-full bg-rose-500 ring-4 ring-white dark:ring-slate-900" />
+              <div className="p-3 bg-rose-50 dark:bg-rose-950/40 rounded-xl border border-rose-300 dark:border-rose-800 font-medium text-rose-900 dark:text-rose-200 text-xs">
+                <span className="font-extrabold text-rose-700 dark:text-rose-400 mr-2 uppercase block sm:inline">Why #5 (Root Cause):</span>
+                <span>{fiveWhy.why5 || 'N/A'}</span>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Section 4: Actions & Parts */}
         <div className="space-y-2">
-          <div className="flex items-center justify-between bg-emerald-50/80 p-2.5 rounded-lg border border-emerald-100">
-            <h3 className="font-bold text-xs text-emerald-900">4. Actions & Spare Parts</h3>
+          <div className="flex items-center justify-between bg-sky-50 dark:bg-slate-800 p-2.5 rounded-lg border border-sky-100 dark:border-slate-700">
+            <div className="flex items-center space-x-1.5">
+              <DollarSign className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0" />
+              <h3 className="font-bold text-xs text-sky-900 dark:text-sky-100">4. Actions & Spare Parts</h3>
+            </div>
             <button
               onClick={() => onEditSection(3)}
-              className="text-emerald-600 font-bold text-xs hover:underline flex items-center space-x-1 print-hide"
+              className="text-sky-600 dark:text-sky-400 font-bold text-xs hover:underline flex items-center space-x-1 print-hide"
             >
               <Edit2 className="w-3.5 h-3.5" />
               <span>Edit Section</span>
@@ -218,11 +269,14 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({ reportData, onEditSe
         {/* Section 5: Photos */}
         {photos.length > 0 && (
           <div className="space-y-2">
-            <div className="flex items-center justify-between bg-purple-50/80 p-2.5 rounded-lg border border-purple-100">
-              <h3 className="font-bold text-xs text-purple-900">5. Attached Inspection Photos & Annotations ({photos.length})</h3>
+            <div className="flex items-center justify-between bg-sky-50 dark:bg-slate-800 p-2.5 rounded-lg border border-sky-100 dark:border-slate-700">
+              <div className="flex items-center space-x-1.5">
+                <Camera className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0" />
+                <h3 className="font-bold text-xs text-sky-900 dark:text-sky-100">5. Attached Inspection Photos & Annotations ({photos.length})</h3>
+              </div>
               <button
                 onClick={() => onEditSection(4)}
-                className="text-purple-600 font-bold text-xs hover:underline flex items-center space-x-1 print-hide"
+                className="text-sky-600 dark:text-sky-400 font-bold text-xs hover:underline flex items-center space-x-1 print-hide"
               >
                 <Edit2 className="w-3.5 h-3.5" />
                 <span>Edit Section</span>
@@ -253,8 +307,11 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({ reportData, onEditSe
 
         {/* Section 6: Sign-off & Approval */}
         <div className="space-y-2">
-          <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-800 p-2.5 rounded-lg border border-slate-200 dark:border-slate-700">
-            <h3 className="font-bold text-xs text-slate-800 dark:text-slate-200">6. Sign-off & Approval</h3>
+          <div className="flex items-center justify-between bg-sky-50 dark:bg-slate-800 p-2.5 rounded-lg border border-sky-100 dark:border-slate-700">
+            <div className="flex items-center space-x-1.5">
+              <FileSignature className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0" />
+              <h3 className="font-bold text-xs text-sky-900 dark:text-sky-100">6. Sign-off & Approval</h3>
+            </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 p-4 bg-slate-50/50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-800">
             <div>
@@ -296,7 +353,7 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({ reportData, onEditSe
           </button>
 
           <button
-            onClick={() => exportReportToWord(r as MaintenanceReport)}
+            onClick={() => { void exportReportToWord(r as MaintenanceReport); }}
             className="px-3 py-1.5 bg-blue-700 hover:bg-blue-600 text-white font-bold text-xs rounded-lg flex items-center space-x-1 cursor-pointer"
           >
             <FileBox className="w-3.5 h-3.5" />
@@ -314,3 +371,4 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({ reportData, onEditSe
     </div>
   );
 };
+

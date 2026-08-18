@@ -1,4 +1,4 @@
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import saveAs from 'file-saver';
@@ -20,96 +20,299 @@ export const getReportIdentifier = (report: MaintenanceReport): string => {
 };
 
 /**
- * 1. Excel Export (xlsx)
- * Creates a clean spreadsheet with multiple tables: Overview, 5W+1H, 5-Why, Actions, Spare Parts
+ * Helper to convert a blob/fetchable image URL into a standalone base64 data URI
+ * so images persist in exported Word documents across sessions and environments.
+ */
+const photoUrlToDataUri = async (url: string): Promise<string | null> => {
+  try {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    return await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (err) {
+    console.warn('Failed to convert photo to data URI for Word export:', err);
+    return null;
+  }
+};
+
+/**
+ * Common cell borders and styles for ExcelJS worksheets
+ */
+const cellBorder: Partial<ExcelJS.Borders> = {
+  top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+  left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+  bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+  right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+};
+
+const applyHeaderStyle = (cell: ExcelJS.Cell, fontSize = 11) => {
+  cell.fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: 'FF0284C7' }
+  };
+  cell.font = {
+    name: 'Segoe UI',
+    color: { argb: 'FFFFFFFF' },
+    bold: true,
+    size: fontSize
+  };
+  cell.alignment = { vertical: 'middle', horizontal: 'left' };
+  cell.border = cellBorder;
+};
+
+const applyLabelStyle = (cell: ExcelJS.Cell) => {
+  cell.fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: 'FFF1F5F9' }
+  };
+  cell.font = {
+    name: 'Segoe UI',
+    color: { argb: 'FF334155' },
+    bold: true,
+    size: 10
+  };
+  cell.alignment = { vertical: 'middle' };
+  cell.border = cellBorder;
+};
+
+const applyDataStyle = (cell: ExcelJS.Cell, isMono = false) => {
+  cell.font = {
+    name: isMono ? 'Courier New' : 'Segoe UI',
+    size: 10,
+    color: { argb: 'FF1E293B' }
+  };
+  cell.alignment = { vertical: 'middle' };
+  cell.border = cellBorder;
+};
+
+/**
+ * 1. Excel Export (xlsx via exceljs)
+ * Creates a clean styled spreadsheet with multiple sheets: Overview, 5W+1H, 5-Why, Actions, Spare Parts, Photos
  */
 export const exportReportToExcel = async (report: MaintenanceReport): Promise<void> => {
-  const wb = XLSX.utils.book_new();
+  const wb = new ExcelJS.Workbook();
+  wb.creator = 'QSF Plant Maintenance';
+  wb.created = new Date();
 
-  // Overview Sheet
-  const overviewData = [
-    ['SHUTDOWN MAINTENANCE REPORT', ''],
+  // 1. Overview Sheet
+  const wsOverview = wb.addWorksheet('Overview', {
+    views: [{ showGridLines: true }]
+  });
+  wsOverview.columns = [{ width: 24 }, { width: 52 }];
+
+  // Title row
+  const titleRow = wsOverview.addRow(['SHUTDOWN MAINTENANCE REPORT', '']);
+  titleRow.height = 26;
+  wsOverview.mergeCells('A1:B1');
+  applyHeaderStyle(wsOverview.getCell('A1'), 12);
+  applyHeaderStyle(wsOverview.getCell('B1'), 12);
+
+  const overviewRows = [
     ['Report Number', getReportIdentifier(report)],
-    ['Shutdown Event', report.shutdownName],
-    ['Date', report.date],
-    ['Technician Name', report.technicianName],
+    ['Shutdown Event', report.shutdownName || 'N/A'],
+    ['Date', report.date || 'N/A'],
+    ['Technician Name', report.technicianName || 'N/A'],
     ['Technician ID', report.technicianId || 'N/A'],
-    ['Equipment Name', report.equipmentName],
-    ['Equipment Code', report.equipmentCode],
-    ['Location / Area', report.location],
-    ['Failure Classification', report.failureType],
-    ['Status', report.status],
-    ['Created Date', new Date(report.createdAt).toLocaleString()],
-    ['Last Updated', new Date(report.updatedAt).toLocaleString()],
+    ['Equipment Name', report.equipmentName || 'N/A'],
+    ['Equipment Code', report.equipmentCode || 'N/A'],
+    ['Location / Area', report.location || 'N/A'],
+    ['Failure Classification', report.failureType || 'N/A'],
+    ['Status', report.status || 'Draft'],
+    ['Created Date', report.createdAt ? new Date(report.createdAt).toLocaleString() : 'N/A'],
+    ['Last Updated', report.updatedAt ? new Date(report.updatedAt).toLocaleString() : 'N/A'],
     ['Notes', report.notes || '']
   ];
-  const wsOverview = XLSX.utils.aoa_to_sheet(overviewData);
-  XLSX.utils.book_append_sheet(wb, wsOverview, 'Overview');
 
-  // 5W+1H Sheet
-  const fiveWData = [
-    ['5W+1H ANALYSIS ASPECT', 'DETAILS'],
-    ['WHAT (Problem Description)', report.fiveWOneH.what],
-    ['WHEN (Timing / Shift)', report.fiveWOneH.when],
-    ['WHERE (Component / Location)', report.fiveWOneH.where],
-    ['WHO (Discovered / Team)', report.fiveWOneH.who],
-    ['WHICH (Operating Mode / Condition)', report.fiveWOneH.which],
-    ['HOW (Detection / Severity)', report.fiveWOneH.how]
+  overviewRows.forEach(([label, val]) => {
+    const row = wsOverview.addRow([label, val]);
+    row.height = 20;
+    applyLabelStyle(row.getCell(1));
+    applyDataStyle(row.getCell(2));
+  });
+
+  // 2. 5W+1H Sheet
+  const wsFiveW = wb.addWorksheet('5W1H Analysis', {
+    views: [{ showGridLines: true }]
+  });
+  wsFiveW.columns = [{ width: 34 }, { width: 65 }];
+
+  const fiveWHeader = wsFiveW.addRow(['5W+1H ANALYSIS ASPECT', 'DETAILS']);
+  fiveWHeader.height = 24;
+  applyHeaderStyle(fiveWHeader.getCell(1));
+  applyHeaderStyle(fiveWHeader.getCell(2));
+
+  const fiveWRows = [
+    ['WHAT (Problem Description)', report.fiveWOneH?.what || ''],
+    ['WHEN (Timing / Shift)', report.fiveWOneH?.when || ''],
+    ['WHERE (Component / Location)', report.fiveWOneH?.where || ''],
+    ['WHO (Discovered / Team)', report.fiveWOneH?.who || ''],
+    ['WHICH (Operating Mode / Condition)', report.fiveWOneH?.which || ''],
+    ['HOW (Detection / Severity)', report.fiveWOneH?.how || '']
   ];
-  const wsFiveW = XLSX.utils.aoa_to_sheet(fiveWData);
-  XLSX.utils.book_append_sheet(wb, wsFiveW, '5W1H Analysis');
 
-  // 5-Why Root Cause Sheet
-  const fiveWhyData = [
-    ['WHY STEP', 'ANALYSIS / OBSERVATION'],
-    ['1st Why', report.fiveWhy.why1],
-    ['2nd Why', report.fiveWhy.why2],
-    ['3rd Why', report.fiveWhy.why3],
-    ['4th Why', report.fiveWhy.why4],
-    ['5th Why (Root Cause)', report.fiveWhy.why5]
+  fiveWRows.forEach(([aspect, detail]) => {
+    const row = wsFiveW.addRow([aspect, detail]);
+    row.height = 22;
+    applyLabelStyle(row.getCell(1));
+    applyDataStyle(row.getCell(2));
+  });
+
+  // 3. 5-Why Sheet
+  const wsFiveWhy = wb.addWorksheet('5-Why Analysis', {
+    views: [{ showGridLines: true }]
+  });
+  wsFiveWhy.columns = [{ width: 28 }, { width: 70 }];
+
+  const fiveWhyHeader = wsFiveWhy.addRow(['WHY STEP', 'ANALYSIS / OBSERVATION']);
+  fiveWhyHeader.height = 24;
+  applyHeaderStyle(fiveWhyHeader.getCell(1));
+  applyHeaderStyle(fiveWhyHeader.getCell(2));
+
+  const fiveWhyRows = [
+    ['1st Why', report.fiveWhy?.why1 || ''],
+    ['2nd Why', report.fiveWhy?.why2 || ''],
+    ['3rd Why', report.fiveWhy?.why3 || ''],
+    ['4th Why', report.fiveWhy?.why4 || ''],
+    ['5th Why (Root Cause)', report.fiveWhy?.why5 || '']
   ];
-  const wsFiveWhy = XLSX.utils.aoa_to_sheet(fiveWhyData);
-  XLSX.utils.book_append_sheet(wb, wsFiveWhy, '5-Why Analysis');
 
-  // Corrective Actions Sheet
-  const actionHeaders = ['Action Description', 'Assignee', 'Priority', 'Status', 'Target Date'];
-  const actionRows = report.correctiveActions.map((ca) => [
-    ca.action,
-    ca.assignee,
-    ca.priority,
-    ca.status,
-    ca.targetDate
-  ]);
-  const wsActions = XLSX.utils.aoa_to_sheet([actionHeaders, ...actionRows]);
-  XLSX.utils.book_append_sheet(wb, wsActions, 'Corrective Actions');
+  fiveWhyRows.forEach(([step, obs], idx) => {
+    const row = wsFiveWhy.addRow([step, obs]);
+    row.height = 22;
+    if (idx === 4) {
+      // Root cause red tint
+      [row.getCell(1), row.getCell(2)].forEach((cell) => {
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFFEF2F2' }
+        };
+        cell.font = {
+          name: 'Segoe UI',
+          color: { argb: 'FF991B1B' },
+          bold: true,
+          size: 10
+        };
+        cell.border = cellBorder;
+        cell.alignment = { vertical: 'middle' };
+      });
+    } else {
+      applyLabelStyle(row.getCell(1));
+      applyDataStyle(row.getCell(2));
+    }
+  });
 
-  // Spare Parts Sheet
-  const partHeaders = ['Part Name', 'Part Number', 'Quantity', 'Unit Cost ($)', 'Total Cost ($)', 'Status'];
-  const partRows = report.spareParts.map((sp) => [
-    sp.partName,
-    sp.partNumber,
-    sp.quantity,
-    sp.unitCost,
-    sp.quantity * sp.unitCost,
-    sp.status
-  ]);
-  const totalCost = report.spareParts.reduce((sum, sp) => sum + sp.quantity * sp.unitCost, 0);
-  partRows.push(['TOTAL SPARE PARTS COST', '', '', '', totalCost, '']);
+  // 4. Corrective Actions Sheet
+  const wsActions = wb.addWorksheet('Corrective Actions', {
+    views: [{ showGridLines: true }]
+  });
+  wsActions.columns = [{ width: 42 }, { width: 22 }, { width: 14 }, { width: 14 }, { width: 16 }];
 
-  const wsParts = XLSX.utils.aoa_to_sheet([partHeaders, ...partRows]);
-  XLSX.utils.book_append_sheet(wb, wsParts, 'Spare Parts');
+  const actionHeaderRow = wsActions.addRow(['Action Description', 'Assignee', 'Priority', 'Status', 'Target Date']);
+  actionHeaderRow.height = 24;
+  for (let c = 1; c <= 5; c++) {
+    applyHeaderStyle(actionHeaderRow.getCell(c));
+  }
 
-  // Attached Photos Sheet
+  (report.correctiveActions || []).forEach((ca) => {
+    const row = wsActions.addRow([ca.action, ca.assignee, ca.priority, ca.status, ca.targetDate]);
+    row.height = 20;
+    for (let c = 1; c <= 5; c++) {
+      applyDataStyle(row.getCell(c));
+    }
+  });
+
+  // 5. Spare Parts Sheet
+  const wsParts = wb.addWorksheet('Spare Parts', {
+    views: [{ showGridLines: true }]
+  });
+  wsParts.columns = [{ width: 35 }, { width: 22 }, { width: 12 }, { width: 16 }, { width: 16 }, { width: 14 }];
+
+  const partHeaderRow = wsParts.addRow(['Part Name', 'Part Number', 'Quantity', 'Unit Cost', 'Total Cost', 'Status']);
+  partHeaderRow.height = 24;
+  for (let c = 1; c <= 6; c++) {
+    applyHeaderStyle(partHeaderRow.getCell(c));
+  }
+
+  let totalCost = 0;
+  (report.spareParts || []).forEach((sp) => {
+    const qty = sp.quantity || 0;
+    const unitCost = sp.unitCost || 0;
+    const itemTotal = qty * unitCost;
+    totalCost += itemTotal;
+
+    const row = wsParts.addRow([sp.partName, sp.partNumber, qty, unitCost, itemTotal, sp.status]);
+    row.height = 20;
+    applyDataStyle(row.getCell(1));
+    applyDataStyle(row.getCell(2), true);
+    applyDataStyle(row.getCell(3));
+    row.getCell(3).alignment = { horizontal: 'center', vertical: 'middle' };
+
+    const unitCell = row.getCell(4);
+    applyDataStyle(unitCell);
+    unitCell.numFmt = '$#,##0.00';
+    unitCell.alignment = { horizontal: 'right', vertical: 'middle' };
+
+    const totalCell = row.getCell(5);
+    applyDataStyle(totalCell);
+    totalCell.numFmt = '$#,##0.00';
+    totalCell.alignment = { horizontal: 'right', vertical: 'middle' };
+    totalCell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FF1E293B' } };
+
+    applyDataStyle(row.getCell(6));
+  });
+
+  // Total Row
+  const totalRowIndex = wsParts.rowCount + 1;
+  const totalRow = wsParts.addRow(['TOTAL SPARE PARTS COST', '', '', '', totalCost, '']);
+  totalRow.height = 22;
+  wsParts.mergeCells(`A${totalRowIndex}:C${totalRowIndex}`);
+  for (let c = 1; c <= 6; c++) {
+    const cell = totalRow.getCell(c);
+    cell.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFF1F5F9' }
+    };
+    cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FF0F172A' } };
+    cell.border = cellBorder;
+    cell.alignment = { vertical: 'middle' };
+  }
+  const totalValCell = totalRow.getCell(5);
+  totalValCell.numFmt = '$#,##0.00';
+  totalValCell.alignment = { horizontal: 'right', vertical: 'middle' };
+
+  // 6. Attached Photos Sheet (if photos exist)
   if (report.photos && report.photos.length > 0) {
-    const photoHeaders = ['Photo Index', 'Caption / Notes', 'Timestamp', 'Note'];
-    const photoRows = report.photos.map((ph, idx) => [
-      `Photo #${idx + 1}`,
-      ph.caption || 'No caption',
-      ph.timestamp || 'N/A',
-      'See attached photo files exported alongside this report'
-    ]);
-    const wsPhotos = XLSX.utils.aoa_to_sheet([photoHeaders, ...photoRows]);
-    XLSX.utils.book_append_sheet(wb, wsPhotos, 'Attached Photos');
+    const wsPhotos = wb.addWorksheet('Attached Photos', {
+      views: [{ showGridLines: true }]
+    });
+    wsPhotos.columns = [{ width: 16 }, { width: 45 }, { width: 22 }, { width: 50 }];
+
+    const photoHeaderRow = wsPhotos.addRow(['Photo Index', 'Caption / Notes', 'Timestamp', 'Note']);
+    photoHeaderRow.height = 24;
+    for (let c = 1; c <= 4; c++) {
+      applyHeaderStyle(photoHeaderRow.getCell(c));
+    }
+
+    report.photos.forEach((ph, idx) => {
+      const row = wsPhotos.addRow([
+        `Photo #${idx + 1}`,
+        ph.caption || 'No caption',
+        ph.timestamp || 'N/A',
+        'See attached photo files exported alongside this report'
+      ]);
+      row.height = 20;
+      for (let c = 1; c <= 4; c++) {
+        applyDataStyle(row.getCell(c));
+      }
+    });
   }
 
   // Trigger separate download for attached photo files
@@ -130,94 +333,282 @@ export const exportReportToExcel = async (report: MaintenanceReport): Promise<vo
   }
 
   // Trigger File Download
+  const buffer = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  });
   const filename = `${getReportIdentifier(report)}_${report.equipmentCode}_Report.xlsx`;
-  XLSX.writeFile(wb, filename);
+  saveAs(blob, filename);
 };
 
 /**
- * Builds a single-sheet 2D array representation for a report in batch Excel export
+ * Adds a structured, styled single-report worksheet to a batch ExcelJS workbook
  */
-export const buildReportExcelSheet = (report: MaintenanceReport): XLSX.WorkSheet => {
-  const totalCost = report.spareParts.reduce((sum, sp) => sum + sp.quantity * sp.unitCost, 0);
-
-  const rows: (string | number)[][] = [
-    ['SHUTDOWN MAINTENANCE REPORT', ''],
-    ['Report Number', getReportIdentifier(report)],
-    ['Shutdown Event', report.shutdownName],
-    ['Date', report.date],
-    ['Technician Name', report.technicianName],
-    ['Technician ID', report.technicianId || 'N/A'],
-    ['Equipment Name', report.equipmentName],
-    ['Equipment Code', report.equipmentCode],
-    ['Location / Area', report.location],
-    ['Failure Classification', report.failureType],
-    ['Status', report.status],
-    ['Created Date', new Date(report.createdAt).toLocaleString()],
-    ['Last Updated', new Date(report.updatedAt).toLocaleString()],
-    ['Notes', report.notes || ''],
-    [],
-    ['5W+1H ANALYSIS ASPECT', 'DETAILS'],
-    ['WHAT (Problem Description)', report.fiveWOneH.what],
-    ['WHEN (Timing / Shift)', report.fiveWOneH.when],
-    ['WHERE (Component / Location)', report.fiveWOneH.where],
-    ['WHO (Discovered / Team)', report.fiveWOneH.who],
-    ['WHICH (Operating Mode / Condition)', report.fiveWOneH.which],
-    ['HOW (Detection / Severity)', report.fiveWOneH.how],
-    [],
-    ['WHY STEP', 'ANALYSIS / OBSERVATION'],
-    ['1st Why', report.fiveWhy.why1],
-    ['2nd Why', report.fiveWhy.why2],
-    ['3rd Why', report.fiveWhy.why3],
-    ['4th Why', report.fiveWhy.why4],
-    ['5th Why (Root Cause)', report.fiveWhy.why5],
-    [],
-    ['CORRECTIVE ACTIONS', '', '', '', ''],
-    ['Action Description', 'Assignee', 'Priority', 'Status', 'Target Date'],
-    ...report.correctiveActions.map((ca) => [
-      ca.action,
-      ca.assignee,
-      ca.priority,
-      ca.status,
-      ca.targetDate
-    ]),
-    [],
-    ['SPARE PARTS & MATERIALS', '', '', '', '', ''],
-    ['Part Name', 'Part Number', 'Quantity', 'Unit Cost ($)', 'Total Cost ($)', 'Status'],
-    ...report.spareParts.map((sp) => [
-      sp.partName,
-      sp.partNumber,
-      sp.quantity,
-      sp.unitCost,
-      sp.quantity * sp.unitCost,
-      sp.status
-    ]),
-    ['TOTAL SPARE PARTS COST', '', '', '', totalCost, '']
+export const addReportExcelSheet = (
+  wb: ExcelJS.Workbook,
+  report: MaintenanceReport,
+  sheetName: string
+): ExcelJS.Worksheet => {
+  const ws = wb.addWorksheet(sheetName, {
+    views: [{ showGridLines: true }]
+  });
+  ws.columns = [
+    { width: 28 },
+    { width: 36 },
+    { width: 14 },
+    { width: 16 },
+    { width: 16 },
+    { width: 14 }
   ];
 
+  // 1. Title Banner
+  const titleRow = ws.addRow(['SHUTDOWN MAINTENANCE REPORT', '', '', '', '', '']);
+  titleRow.height = 26;
+  ws.mergeCells(`A${ws.rowCount}:F${ws.rowCount}`);
+  for (let c = 1; c <= 6; c++) {
+    applyHeaderStyle(titleRow.getCell(c), 12);
+  }
+
+  // 2. Overview Rows
+  const overviewRows = [
+    ['Report Number', getReportIdentifier(report)],
+    ['Shutdown Event', report.shutdownName || 'N/A'],
+    ['Date', report.date || 'N/A'],
+    ['Technician Name', report.technicianName || 'N/A'],
+    ['Technician ID', report.technicianId || 'N/A'],
+    ['Equipment Name', report.equipmentName || 'N/A'],
+    ['Equipment Code', report.equipmentCode || 'N/A'],
+    ['Location / Area', report.location || 'N/A'],
+    ['Failure Classification', report.failureType || 'N/A'],
+    ['Status', report.status || 'Draft'],
+    ['Created Date', report.createdAt ? new Date(report.createdAt).toLocaleString() : 'N/A'],
+    ['Last Updated', report.updatedAt ? new Date(report.updatedAt).toLocaleString() : 'N/A'],
+    ['Notes', report.notes || '']
+  ];
+
+  overviewRows.forEach(([label, val]) => {
+    const row = ws.addRow([label, val, '', '', '', '']);
+    row.height = 20;
+    const rIdx = ws.rowCount;
+    ws.mergeCells(`B${rIdx}:F${rIdx}`);
+    applyLabelStyle(row.getCell(1));
+    for (let c = 2; c <= 6; c++) {
+      applyDataStyle(row.getCell(c));
+    }
+  });
+
+  // 3. 5W+1H Section
+  ws.addRow([]); // Blank spacer
+  const fiveWHeaderRow = ws.addRow(['5W+1H ANALYSIS ASPECT', 'DETAILS', '', '', '', '']);
+  fiveWHeaderRow.height = 24;
+  const fIdx = ws.rowCount;
+  ws.mergeCells(`B${fIdx}:F${fIdx}`);
+  for (let c = 1; c <= 6; c++) {
+    applyHeaderStyle(fiveWHeaderRow.getCell(c));
+  }
+
+  const fiveWRows = [
+    ['WHAT (Problem Description)', report.fiveWOneH?.what || ''],
+    ['WHEN (Timing / Shift)', report.fiveWOneH?.when || ''],
+    ['WHERE (Component / Location)', report.fiveWOneH?.where || ''],
+    ['WHO (Discovered / Team)', report.fiveWOneH?.who || ''],
+    ['WHICH (Operating Mode / Condition)', report.fiveWOneH?.which || ''],
+    ['HOW (Detection / Severity)', report.fiveWOneH?.how || '']
+  ];
+
+  fiveWRows.forEach(([aspect, detail]) => {
+    const row = ws.addRow([aspect, detail, '', '', '', '']);
+    row.height = 22;
+    const curIdx = ws.rowCount;
+    ws.mergeCells(`B${curIdx}:F${curIdx}`);
+    applyLabelStyle(row.getCell(1));
+    for (let c = 2; c <= 6; c++) {
+      applyDataStyle(row.getCell(c));
+    }
+  });
+
+  // 4. 5-Why Section
+  ws.addRow([]);
+  const fiveWhyHeaderRow = ws.addRow(['WHY STEP', 'ANALYSIS / OBSERVATION', '', '', '', '']);
+  fiveWhyHeaderRow.height = 24;
+  const wIdx = ws.rowCount;
+  ws.mergeCells(`B${wIdx}:F${wIdx}`);
+  for (let c = 1; c <= 6; c++) {
+    applyHeaderStyle(fiveWhyHeaderRow.getCell(c));
+  }
+
+  const fiveWhyRows = [
+    ['1st Why', report.fiveWhy?.why1 || ''],
+    ['2nd Why', report.fiveWhy?.why2 || ''],
+    ['3rd Why', report.fiveWhy?.why3 || ''],
+    ['4th Why', report.fiveWhy?.why4 || ''],
+    ['5th Why (Root Cause)', report.fiveWhy?.why5 || '']
+  ];
+
+  fiveWhyRows.forEach(([step, obs], idx) => {
+    const row = ws.addRow([step, obs, '', '', '', '']);
+    row.height = 22;
+    const curIdx = ws.rowCount;
+    ws.mergeCells(`B${curIdx}:F${curIdx}`);
+
+    if (idx === 4) {
+      // Root cause distinct fill
+      for (let c = 1; c <= 6; c++) {
+        const cell = row.getCell(c);
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFFEF2F2' }
+        };
+        cell.font = {
+          name: 'Segoe UI',
+          color: { argb: 'FF991B1B' },
+          bold: true,
+          size: 10
+        };
+        cell.border = cellBorder;
+        cell.alignment = { vertical: 'middle' };
+      }
+    } else {
+      applyLabelStyle(row.getCell(1));
+      for (let c = 2; c <= 6; c++) {
+        applyDataStyle(row.getCell(c));
+      }
+    }
+  });
+
+  // 5. Corrective Actions Section
+  ws.addRow([]);
+  const actTitleRow = ws.addRow(['CORRECTIVE ACTIONS', '', '', '', '']);
+  actTitleRow.height = 24;
+  const actTIdx = ws.rowCount;
+  ws.mergeCells(`A${actTIdx}:E${actTIdx}`);
+  for (let c = 1; c <= 5; c++) {
+    applyHeaderStyle(actTitleRow.getCell(c));
+  }
+
+  const actHeadRow = ws.addRow(['Action Description', 'Assignee', 'Priority', 'Status', 'Target Date']);
+  actHeadRow.height = 22;
+  for (let c = 1; c <= 5; c++) {
+    applyHeaderStyle(actHeadRow.getCell(c));
+  }
+
+  (report.correctiveActions || []).forEach((ca) => {
+    const row = ws.addRow([ca.action, ca.assignee, ca.priority, ca.status, ca.targetDate]);
+    row.height = 20;
+    for (let c = 1; c <= 5; c++) {
+      applyDataStyle(row.getCell(c));
+    }
+  });
+
+  // 6. Spare Parts Section
+  ws.addRow([]);
+  const partTitleRow = ws.addRow(['SPARE PARTS & MATERIALS', '', '', '', '', '']);
+  partTitleRow.height = 24;
+  const partTIdx = ws.rowCount;
+  ws.mergeCells(`A${partTIdx}:F${partTIdx}`);
+  for (let c = 1; c <= 6; c++) {
+    applyHeaderStyle(partTitleRow.getCell(c));
+  }
+
+  const partHeadRow = ws.addRow(['Part Name', 'Part Number', 'Quantity', 'Unit Cost ($)', 'Total Cost ($)', 'Status']);
+  partHeadRow.height = 22;
+  for (let c = 1; c <= 6; c++) {
+    applyHeaderStyle(partHeadRow.getCell(c));
+  }
+
+  let totalCost = 0;
+  (report.spareParts || []).forEach((sp) => {
+    const qty = sp.quantity || 0;
+    const unitCost = sp.unitCost || 0;
+    const itemTotal = qty * unitCost;
+    totalCost += itemTotal;
+
+    const row = ws.addRow([sp.partName, sp.partNumber, qty, unitCost, itemTotal, sp.status]);
+    row.height = 20;
+    applyDataStyle(row.getCell(1));
+    applyDataStyle(row.getCell(2), true);
+    applyDataStyle(row.getCell(3));
+    row.getCell(3).alignment = { horizontal: 'center', vertical: 'middle' };
+
+    const unitCell = row.getCell(4);
+    applyDataStyle(unitCell);
+    unitCell.numFmt = '$#,##0.00';
+    unitCell.alignment = { horizontal: 'right', vertical: 'middle' };
+
+    const totalCell = row.getCell(5);
+    applyDataStyle(totalCell);
+    totalCell.numFmt = '$#,##0.00';
+    totalCell.alignment = { horizontal: 'right', vertical: 'middle' };
+    totalCell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FF1E293B' } };
+
+    applyDataStyle(row.getCell(6));
+  });
+
+  // Total Spare Cost Row
+  const totalRowIndex = ws.rowCount + 1;
+  const totalRow = ws.addRow(['TOTAL SPARE PARTS COST', '', '', '', totalCost, '']);
+  totalRow.height = 22;
+  ws.mergeCells(`A${totalRowIndex}:C${totalRowIndex}`);
+  for (let c = 1; c <= 6; c++) {
+    const cell = totalRow.getCell(c);
+    cell.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFF1F5F9' }
+    };
+    cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FF0F172A' } };
+    cell.border = cellBorder;
+    cell.alignment = { vertical: 'middle' };
+  }
+  const totalValCell = totalRow.getCell(5);
+  totalValCell.numFmt = '$#,##0.00';
+  totalValCell.alignment = { horizontal: 'right', vertical: 'middle' };
+
+  // 7. Attached Photos Section (if any)
   if (report.photos && report.photos.length > 0) {
-    rows.push([]);
-    rows.push(['ATTACHED PHOTOS', '', '', '']);
-    rows.push(['Photo Index', 'Caption / Notes', 'Timestamp', 'Note']);
+    ws.addRow([]);
+    const photoTitleRow = ws.addRow(['ATTACHED PHOTOS', '', '', '']);
+    photoTitleRow.height = 24;
+    const pTIdx = ws.rowCount;
+    ws.mergeCells(`A${pTIdx}:D${pTIdx}`);
+    for (let c = 1; c <= 4; c++) {
+      applyHeaderStyle(photoTitleRow.getCell(c));
+    }
+
+    const photoHeadRow = ws.addRow(['Photo Index', 'Caption / Notes', 'Timestamp', 'Note']);
+    photoHeadRow.height = 22;
+    for (let c = 1; c <= 4; c++) {
+      applyHeaderStyle(photoHeadRow.getCell(c));
+    }
+
     report.photos.forEach((ph, idx) => {
-      rows.push([
+      const row = ws.addRow([
         `Photo #${idx + 1}`,
         ph.caption || 'No caption',
         ph.timestamp || 'N/A',
         'See attached photo files exported alongside this report'
       ]);
+      row.height = 20;
+      for (let c = 1; c <= 4; c++) {
+        applyDataStyle(row.getCell(c));
+      }
     });
   }
 
-  return XLSX.utils.aoa_to_sheet(rows);
+  return ws;
 };
 
 /**
- * Batch Excel Export
+ * Batch Excel Export (via exceljs)
  * Combines all reports for a shutdown into a single workbook (one sheet per report)
  */
 export const exportBatchToExcel = async (reports: MaintenanceReport[], shutdownName: string): Promise<void> => {
   if (!reports || reports.length === 0) return;
-  const wb = XLSX.utils.book_new();
+  const wb = new ExcelJS.Workbook();
+  wb.creator = 'QSF Plant Maintenance';
+  wb.created = new Date();
+
   const existingSheetNames = new Set<string>();
 
   for (let i = 0; i < reports.length; i++) {
@@ -230,8 +621,7 @@ export const exportBatchToExcel = async (reports: MaintenanceReport[], shutdownN
     }
     existingSheetNames.add(sheetName);
 
-    const ws = buildReportExcelSheet(r);
-    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    addReportExcelSheet(wb, r, sheetName);
   }
 
   // Trigger photo downloads for all reports in batch
@@ -255,7 +645,11 @@ export const exportBatchToExcel = async (reports: MaintenanceReport[], shutdownN
 
   const cleanName = (shutdownName || 'General').replace(/\s+/g, '_');
   const filename = `Shutdown_${cleanName}_Batch.xlsx`;
-  XLSX.writeFile(wb, filename);
+  const buffer = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  });
+  saveAs(blob, filename);
 };
 
 /**
@@ -318,82 +712,43 @@ export const exportReportToPDF = async (elementId: string, filename: string) => 
       };
 
       // 1. Style tags
-      Array.from(clonedDoc.querySelectorAll('style')).forEach((styleTag) => {
-        if (styleTag.textContent && /(oklch|oklab|lab|lch|color|hwb)\(/i.test(styleTag.textContent)) {
-          styleTag.textContent = replaceUnsupportedColors(styleTag.textContent);
+      const styleTags = clonedDoc.querySelectorAll('style');
+      styleTags.forEach((style) => {
+        if (style.textContent) {
+          style.textContent = replaceUnsupportedColors(style.textContent);
         }
       });
 
-      // 2. Stylesheets
-      try {
-        Array.from(clonedDoc.styleSheets).forEach((sheet) => {
-          try {
-            const rules = sheet.cssRules || sheet.rules;
-            if (!rules) return;
-            for (let i = rules.length - 1; i >= 0; i--) {
-              const rule = rules[i];
-              if (rule.cssText && /(oklch|oklab|lab|lch|color|hwb)\(/i.test(rule.cssText)) {
-                const newCssText = replaceUnsupportedColors(rule.cssText);
-                try {
-                  sheet.deleteRule(i);
-                  sheet.insertRule(newCssText, i);
-                } catch {
-                  // ignore rule insertion error
-                }
-              }
-            }
-          } catch {
-            // ignore cross-origin sheet
+      // 2. Computed inline styles of elements
+      const allElements = clonedElement.querySelectorAll('*');
+      allElements.forEach((el) => {
+        if (el instanceof HTMLElement) {
+          const computed = window.getComputedStyle(el);
+          if (computed.backgroundColor && computed.backgroundColor.includes('oklch')) {
+            el.style.backgroundColor = colorToRgb(computed.backgroundColor);
           }
-        });
-      } catch {
-        // ignore
-      }
-
-      // 3. Computed styles on elements
-      const allNodes = [clonedElement, ...Array.from(clonedElement.querySelectorAll('*'))];
-      const colorProps = [
-        'color', 'background-color', 'border-color', 'border-top-color',
-        'border-right-color', 'border-bottom-color', 'border-left-color',
-        'outline-color', 'fill', 'stroke', 'box-shadow', 'text-decoration-color'
-      ];
-
-      allNodes.forEach((node) => {
-        const el = node as HTMLElement;
-        if (!el || !el.style) return;
-        const styleAttr = el.getAttribute('style');
-        if (styleAttr && /(oklch|oklab|lab|lch|color|hwb)\(/i.test(styleAttr)) {
-          el.setAttribute('style', replaceUnsupportedColors(styleAttr));
-        }
-        try {
-          const computed = clonedDoc.defaultView?.getComputedStyle(el) || window.getComputedStyle(el);
-          if (computed) {
-            colorProps.forEach((prop) => {
-              const val = computed.getPropertyValue(prop);
-              if (val && /(oklch|oklab|lab|lch|color|hwb)\(/i.test(val)) {
-                el.style.setProperty(prop, replaceUnsupportedColors(val), 'important');
-              }
-            });
+          if (computed.color && computed.color.includes('oklch')) {
+            el.style.color = colorToRgb(computed.color);
           }
-        } catch {
-          // ignore
+          if (computed.borderColor && computed.borderColor.includes('oklch')) {
+            el.style.borderColor = colorToRgb(computed.borderColor);
+          }
         }
       });
     };
 
-    // Grab child section blocks from the printable container
-    const sectionNodes = Array.from(element.children) as HTMLElement[];
+    // Look for top-level direct children inside the report printable card
+    const sectionContainers = element.children;
 
-    // If there are distinct sections, render each section and budget page Y-coordinates
-    if (sectionNodes.length > 0) {
+    if (sectionContainers.length > 0) {
       let currentY = margin;
       let isFirstPage = true;
 
-      for (let i = 0; i < sectionNodes.length; i++) {
-        const sectionEl = sectionNodes[i];
-        if (!sectionEl || sectionEl.offsetHeight === 0) continue;
+      for (let i = 0; i < sectionContainers.length; i++) {
+        const section = sectionContainers[i] as HTMLElement;
+        if (!section || section.classList.contains('print-hide')) continue;
 
-        const sectionCanvas = await html2canvas(sectionEl, {
+        const sectionCanvas = await html2canvas(section, {
           scale: 2,
           useCORS: true,
           allowTaint: true,
@@ -521,18 +876,22 @@ export const exportReportToPDF = async (elementId: string, filename: string) => 
 };
 
 /**
+ * 3. Word Document Export (.doc formatted HTML)
  * Builds the inner HTML body for a single maintenance report in Word format
  */
-export const buildReportWordSectionHtml = (report: MaintenanceReport): string => {
+export const buildReportWordSectionHtml = (
+  report: MaintenanceReport,
+  resolvedPhotoUrls: (string | null)[] = []
+): string => {
   const actionsHtml = report.correctiveActions
     .map(
       (a) => `
       <tr>
-        <td style="padding: 8px; border: 1px solid #ddd;">${a.action}</td>
-        <td style="padding: 8px; border: 1px solid #ddd;">${a.assignee}</td>
-        <td style="padding: 8px; border: 1px solid #ddd;"><strong>${a.priority}</strong></td>
-        <td style="padding: 8px; border: 1px solid #ddd;">${a.status}</td>
-        <td style="padding: 8px; border: 1px solid #ddd;">${a.targetDate}</td>
+        <td style="padding: 8px; border: 1px solid #cbd5e1;">${a.action}</td>
+        <td style="padding: 8px; border: 1px solid #cbd5e1;">${a.assignee}</td>
+        <td style="padding: 8px; border: 1px solid #cbd5e1;"><strong>${a.priority}</strong></td>
+        <td style="padding: 8px; border: 1px solid #cbd5e1;">${a.status}</td>
+        <td style="padding: 8px; border: 1px solid #cbd5e1;">${a.targetDate}</td>
       </tr>
     `
     )
@@ -542,35 +901,47 @@ export const buildReportWordSectionHtml = (report: MaintenanceReport): string =>
     .map(
       (p) => `
       <tr>
-        <td style="padding: 8px; border: 1px solid #ddd;">${p.partName}</td>
-        <td style="padding: 8px; border: 1px solid #ddd; font-family: monospace;">${p.partNumber}</td>
-        <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${p.quantity}</td>
-        <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">$${p.unitCost}</td>
-        <td style="padding: 8px; border: 1px solid #ddd; text-align: right; font-weight: bold;">$${p.quantity * p.unitCost}</td>
-        <td style="padding: 8px; border: 1px solid #ddd;">${p.status}</td>
+        <td style="padding: 8px; border: 1px solid #cbd5e1;">${p.partName}</td>
+        <td style="padding: 8px; border: 1px solid #cbd5e1; font-family: monospace;">${p.partNumber}</td>
+        <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;">${p.quantity}</td>
+        <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: right;">$${p.unitCost.toFixed(2)}</td>
+        <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: right; font-weight: bold;">$${(p.quantity * p.unitCost).toFixed(2)}</td>
+        <td style="padding: 8px; border: 1px solid #cbd5e1;">${p.status}</td>
       </tr>
     `
     )
     .join('');
 
   const photosHtml = report.photos
-    .map(
-      (ph) => `
+    .map((ph, idx) => {
+      const photoSrc = resolvedPhotoUrls[idx] || ph.url;
+      return `
       <div style="margin-bottom: 20px; text-align: center;">
-        <img src="${ph.url}" style="max-width: 500px; height: auto; border: 1px solid #cccccc; border-radius: 4px;" alt="${ph.caption}" />
-        <p style="font-size: 11px; color: #555555; margin-top: 4px;"><em>${ph.caption} (${ph.timestamp})</em></p>
+        <img src="${photoSrc}" style="max-width: 500px; height: auto; border: 1px solid #cbd5e1; border-radius: 4px;" alt="${ph.caption || `Photo #${idx + 1}`}" />
+        <p style="font-size: 11px; color: #555555; margin-top: 4px;"><em>${ph.caption || `Photo #${idx + 1}`} (${ph.timestamp || 'Recorded'})</em></p>
       </div>
-    `
-    )
+    `;
+    })
     .join('');
 
   const totalSparePartsCost = report.spareParts.reduce((acc, p) => acc + p.quantity * p.unitCost, 0);
 
   return `
     <div style="margin-bottom: 24px;">
-      <h1>PLANT SHUTDOWN MAINTENANCE REPORT</h1>
+      <!-- Colored Header Band -->
+      <div style="background-color: #0284c7; color: #ffffff; padding: 16px 20px; border-radius: 4px 4px 0 0; margin-bottom: 0;">
+        <div style="display: inline-block; background: rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 12px; font-size: 12px; margin-bottom: 8px; font-weight: bold;">
+          ${getReportIdentifier(report)}
+        </div>
+        <h1 style="color: #ffffff; font-size: 20px; margin: 0; padding: 0; border: none; font-weight: bold;">
+          PLANT SHUTDOWN MAINTENANCE REPORT
+        </h1>
+        <p style="font-size: 12px; color: #e0f2fe; margin: 4px 0 0 0;">
+          ${report.equipmentName} (${report.equipmentCode}) — ${report.shutdownName || 'Shutdown Event'}
+        </p>
+      </div>
       
-      <table class="meta-table">
+      <table class="meta-table" style="border-top: none;">
         <tr>
           <td class="meta-label">Report Number</td>
           <td>${getReportIdentifier(report)}</td>
@@ -684,7 +1055,11 @@ export const buildReportWordSectionHtml = (report: MaintenanceReport): string =>
  * 3. Word Document Export (.doc formatted HTML)
  * Produces a Word-compatible HTML file that opens directly in Microsoft Word with rich styling, tables & photos
  */
-export const exportReportToWord = (report: MaintenanceReport) => {
+export const exportReportToWord = async (report: MaintenanceReport): Promise<void> => {
+  const resolvedPhotoUrls = await Promise.all(
+    (report.photos || []).map((ph) => (ph.url ? photoUrlToDataUri(ph.url) : Promise.resolve(null)))
+  );
+
   const wordHtml = `
     <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
     <head>
@@ -692,22 +1067,22 @@ export const exportReportToWord = (report: MaintenanceReport) => {
       <title>Shutdown Maintenance Report - ${getReportIdentifier(report)}</title>
       <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.5; color: #1e293b; padding: 20px; }
-        h1 { color: #0f172a; font-size: 24px; border-bottom: 3px solid #0284c7; padding-bottom: 8px; margin-bottom: 16px; }
-        h2 { color: #0369a1; font-size: 16px; margin-top: 24px; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
+        h1 { color: #0f172a; font-size: 20px; margin: 0; padding: 0; }
+        h2 { color: #0369a1; font-size: 15px; margin-top: 24px; margin-bottom: 12px; border-left: 4px solid #0284c7; padding-left: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
         .meta-table, .data-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
         .meta-table td { padding: 6px 10px; border: 1px solid #cbd5e1; }
         .meta-label { background-color: #f1f5f9; font-weight: bold; width: 25%; color: #334155; }
         .data-table th { background-color: #0284c7; color: #ffffff; padding: 10px; text-align: left; border: 1px solid #0284c7; font-size: 13px; }
         .data-table td { font-size: 13px; }
-        .why-box { background-color: #f8fafc; border-left: 4px solid #0ea5e9; padding: 10px 14px; margin-bottom: 8px; border-radius: 2px; }
+        .why-box { background-color: #f8fafc; border-left: 5px solid #0284c7; padding: 10px 14px; margin-bottom: 8px; border-radius: 2px; }
         .why-title { font-weight: bold; color: #0369a1; font-size: 12px; }
         .why-desc { font-size: 13px; color: #1e293b; margin-top: 2px; }
-        .root-cause { background-color: #fef2f2; border-left: 4px solid #ef4444; }
+        .root-cause { background-color: #fef2f2; border-left: 5px solid #ef4444; }
         .root-cause .why-title { color: #991b1b; }
       </style>
     </head>
     <body>
-      ${buildReportWordSectionHtml(report)}
+      ${buildReportWordSectionHtml(report, resolvedPhotoUrls)}
     </body>
     </html>
   `;
@@ -732,37 +1107,41 @@ export const exportBatchToWord = async (reports: MaintenanceReport[], shutdownNa
       <title>Shutdown Maintenance Batch - ${shutdownName}</title>
       <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.5; color: #1e293b; padding: 20px; }
-        h1 { color: #0f172a; font-size: 22px; border-bottom: 3px solid #0284c7; padding-bottom: 8px; margin-bottom: 16px; }
-        h2 { color: #0369a1; font-size: 15px; margin-top: 20px; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
+        h1 { color: #0f172a; font-size: 20px; margin: 0; padding: 0; }
+        h2 { color: #0369a1; font-size: 15px; margin-top: 20px; margin-bottom: 10px; border-left: 4px solid #0284c7; padding-left: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
         .meta-table, .data-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
         .meta-table td { padding: 6px 10px; border: 1px solid #cbd5e1; }
         .meta-label { background-color: #f1f5f9; font-weight: bold; width: 25%; color: #334155; }
         .data-table th { background-color: #0284c7; color: #ffffff; padding: 8px; text-align: left; border: 1px solid #0284c7; font-size: 12px; }
         .data-table td { font-size: 12px; }
-        .why-box { background-color: #f8fafc; border-left: 4px solid #0ea5e9; padding: 8px 12px; margin-bottom: 6px; border-radius: 2px; }
+        .why-box { background-color: #f8fafc; border-left: 5px solid #0284c7; padding: 8px 12px; margin-bottom: 6px; border-radius: 2px; }
         .why-title { font-weight: bold; color: #0369a1; font-size: 12px; }
         .why-desc { font-size: 12px; color: #1e293b; margin-top: 2px; }
-        .root-cause { background-color: #fef2f2; border-left: 4px solid #ef4444; }
+        .root-cause { background-color: #fef2f2; border-left: 5px solid #ef4444; }
         .root-cause .why-title { color: #991b1b; }
         .batch-report-divider { page-break-before: always; margin-top: 30px; border-top: 2px dashed #94a3b8; padding-top: 20px; }
-        .report-header-banner { background-color: #0284c7; color: white; padding: 8px 12px; font-weight: bold; font-size: 14px; margin-bottom: 12px; border-radius: 4px; }
+        .report-header-banner { background-color: #0284c7; color: white; padding: 10px 14px; font-weight: bold; font-size: 13px; margin-bottom: 12px; border-radius: 4px; }
       </style>
     </head>
     <body>
   `;
 
-  const sectionsHtml = reports
-    .map((report, idx) => {
-      const headerBanner = `<div class="report-header-banner">REPORT ${idx + 1} OF ${reports.length}: ${getReportIdentifier(report)} — ${report.equipmentName} (${report.equipmentCode})</div>`;
-      const reportContent = buildReportWordSectionHtml(report);
-      if (idx === 0) {
-        return `${headerBanner}${reportContent}`;
-      }
-      return `<div class="batch-report-divider">${headerBanner}${reportContent}</div>`;
-    })
-    .join('');
+  const sectionsHtmlArray: string[] = [];
+  for (let idx = 0; idx < reports.length; idx++) {
+    const report = reports[idx];
+    const resolvedPhotoUrls = await Promise.all(
+      (report.photos || []).map((ph) => (ph.url ? photoUrlToDataUri(ph.url) : Promise.resolve(null)))
+    );
+    const headerBanner = `<div class="report-header-banner">REPORT ${idx + 1} OF ${reports.length}: ${getReportIdentifier(report)} — ${report.equipmentName} (${report.equipmentCode})</div>`;
+    const reportContent = buildReportWordSectionHtml(report, resolvedPhotoUrls);
+    if (idx === 0) {
+      sectionsHtmlArray.push(`${headerBanner}${reportContent}`);
+    } else {
+      sectionsHtmlArray.push(`<div class="batch-report-divider">${headerBanner}${reportContent}</div>`);
+    }
+  }
 
-  const fullWordHtml = `${wordHeader}${sectionsHtml}</body></html>`;
+  const fullWordHtml = `${wordHeader}${sectionsHtmlArray.join('')}</body></html>`;
 
   const blob = new Blob(['\ufeff', fullWordHtml], {
     type: 'application/msword'
@@ -824,4 +1203,3 @@ export const exportReportsToCSV = (reports: MaintenanceReport[]): void => {
   const filename = `QSF_Report_History_${new Date().toISOString().split('T')[0]}.csv`;
   saveAs(blob, filename);
 };
-
