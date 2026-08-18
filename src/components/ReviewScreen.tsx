@@ -47,10 +47,10 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({ reportData, onEditSe
         </p>
       </div>
 
-      <div id="review-report-printable" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 space-y-6 shadow-sm overflow-hidden">
+      <div id="review-report-printable" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl space-y-6 shadow-sm overflow-hidden">
         
         {/* Header Block with Colored Band */}
-        <div className="-m-5 mb-0 p-5 bg-sky-600 dark:bg-sky-800 text-white rounded-t-2xl flex flex-wrap justify-between items-start gap-4">
+        <div className="p-5 bg-sky-600 dark:bg-sky-800 text-white flex flex-wrap justify-between items-start gap-4">
           <div>
             <span className="inline-block px-3 py-1 bg-white/15 text-white text-xs font-bold rounded-full border border-white/20 shadow-xs">
               {r.reportNumber || 'Pending Assignment'}
@@ -69,7 +69,7 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({ reportData, onEditSe
         </div>
 
         {/* Section 1: General Info */}
-        <div className="space-y-2">
+        <div className="space-y-2 px-5">
           <div className="flex items-center justify-between bg-sky-50 dark:bg-slate-800 p-2.5 rounded-lg border border-sky-100 dark:border-slate-700">
             <div className="flex items-center space-x-1.5">
               <Info className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0" />
@@ -92,7 +92,7 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({ reportData, onEditSe
         </div>
 
         {/* Section 2: 5W+1H */}
-        <div className="space-y-2">
+        <div className="space-y-2 px-5">
           <div className="flex items-center justify-between bg-sky-50 dark:bg-slate-800 p-2.5 rounded-lg border border-sky-100 dark:border-slate-700">
             <div className="flex items-center space-x-1.5">
               <ListChecks className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0" />
@@ -136,7 +136,7 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({ reportData, onEditSe
         </div>
 
         {/* Section 3: 5-Why Timeline */}
-        <div className="space-y-2">
+        <div className="space-y-2 px-5">
           <div className="flex items-center justify-between bg-sky-50 dark:bg-slate-800 p-2.5 rounded-lg border border-sky-100 dark:border-slate-700">
             <div className="flex items-center space-x-1.5">
               <GitBranch className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0" />
@@ -203,7 +203,7 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({ reportData, onEditSe
         </div>
 
         {/* Section 4: Actions & Parts */}
-        <div className="space-y-2">
+        <div className="space-y-2 px-5">
           <div className="flex items-center justify-between bg-sky-50 dark:bg-slate-800 p-2.5 rounded-lg border border-sky-100 dark:border-slate-700">
             <div className="flex items-center space-x-1.5">
               <DollarSign className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0" />
@@ -268,7 +268,7 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({ reportData, onEditSe
 
         {/* Section 5: Photos */}
         {photos.length > 0 && (
-          <div className="space-y-2">
+          <div className="space-y-2 px-5">
             <div className="flex items-center justify-between bg-sky-50 dark:bg-slate-800 p-2.5 rounded-lg border border-sky-100 dark:border-slate-700">
               <div className="flex items-center space-x-1.5">
                 <Camera className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0" />
@@ -306,7 +306,7 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({ reportData, onEditSe
         )}
 
         {/* Section 6: Sign-off & Approval */}
-        <div className="space-y-2">
+        <div className="space-y-2 px-5 pb-5">
           <div className="flex items-center justify-between bg-sky-50 dark:bg-slate-800 p-2.5 rounded-lg border border-sky-100 dark:border-slate-700">
             <div className="flex items-center space-x-1.5">
               <FileSignature className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0" />
