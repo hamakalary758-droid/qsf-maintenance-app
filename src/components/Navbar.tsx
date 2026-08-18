@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AppTab, MaintenanceReport } from '../types';
-import { Wrench, Smartphone, History, Shield, CheckSquare, Plus, Wifi, WifiOff, Settings, Sparkles, RefreshCw, AlertTriangle, CheckCircle2, RotateCcw, X, Key, Eye, EyeOff, BarChart3 } from 'lucide-react';
+import { Wrench, Smartphone, History, Shield, CheckSquare, Plus, Wifi, WifiOff, Menu, Bell, Sparkles, RefreshCw, AlertTriangle, CheckCircle2, RotateCcw, X, Key, Eye, EyeOff, BarChart3 } from 'lucide-react';
 import { subscribeToSyncStatus, processSyncQueue, SyncStatusInfo } from '../offline/syncQueue';
 
 interface NavbarProps {
@@ -197,36 +197,58 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header className="bg-slate-900 border-b border-slate-800 text-white sticky top-0 z-40 shadow-lg">
-      <div className="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
         
-        {/* Brand & Plant Badge */}
-        <div className="flex items-center space-x-3">
-          <div className="p-2 bg-sky-500/20 text-sky-400 rounded-xl border border-sky-500/30 flex items-center justify-center shadow-xs">
-            <Wrench className="w-5 h-5" />
+        {/* Brand */}
+        <div className="flex items-center space-x-2.5">
+          <div className="w-7 h-7 bg-sky-500/20 text-sky-400 rounded-lg border border-sky-500/30 flex items-center justify-center shadow-xs shrink-0">
+            <Wrench className="w-3.5 h-3.5" />
           </div>
-          <div>
-            <div className="flex items-center space-x-2">
-              <h1 className="font-extrabold text-sm sm:text-base tracking-tight text-white">
-                Shutdown Maintenance Reporter
-              </h1>
-              <span className="hidden sm:inline-block px-2 py-0.5 bg-slate-800 text-sky-400 text-[10px] font-bold rounded-full border border-slate-700">
-                Mobile Plant Edition
-              </span>
-            </div>
-            <p className="text-[11px] text-slate-400">Plant Shutdown Field Companion</p>
-          </div>
+          <h1 className="font-semibold text-sm text-white">
+            QSF maintenance
+          </h1>
         </div>
 
-        {/* Network Indicator & Settings */}
-        <div className="flex items-center space-x-2">
-          {renderOverdueBadge()}
-          {renderSyncBadge()}
+        {/* Status & Menu */}
+        <div className="flex items-center space-x-3.5">
+          {/* Overdue bell */}
+          <button
+            onClick={() => onSelectTab('history')}
+            aria-label={overdueActionsCount > 0 ? `${overdueActionsCount} overdue corrective actions` : 'No overdue actions'}
+            className="relative text-slate-300 hover:text-white transition-colors"
+          >
+            <Bell className="w-[18px] h-[18px]" />
+            {overdueActionsCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-rose-500 rounded-full" />
+            )}
+          </button>
+
+          {/* Sync status dot */}
+          <button
+            onClick={() => setIsSyncModalOpen(true)}
+            aria-label={`Sync status: ${syncInfo.state}`}
+            className="p-0.5"
+          >
+            <span
+              className={`block w-2 h-2 rounded-full ${
+                !syncInfo.isOnline || syncInfo.state === 'offline'
+                  ? 'bg-amber-400'
+                  : syncInfo.state === 'syncing'
+                  ? 'bg-sky-400 animate-pulse'
+                  : syncInfo.state === 'sync_failed'
+                  ? 'bg-rose-500'
+                  : syncInfo.state === 'pending_sync' || syncInfo.pendingCount > 0
+                  ? 'bg-amber-400'
+                  : 'bg-emerald-400'
+              }`}
+            />
+          </button>
 
           {/* Settings Menu */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setIsSettingsOpen((prev) => !prev)}
-              aria-label="Settings"
+              aria-label="Menu"
               aria-expanded={isSettingsOpen}
               className={`p-2 rounded-lg border transition-colors ${
                 isSettingsOpen
@@ -234,7 +256,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   : 'bg-slate-800/60 hover:bg-slate-800 text-slate-300 hover:text-white border-slate-700'
               }`}
             >
-              <Settings className="w-4 h-4" />
+              <Menu className="w-4 h-4" />
             </button>
 
             {isSettingsOpen && (

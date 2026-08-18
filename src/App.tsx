@@ -402,7 +402,7 @@ export default function App() {
 
         {/* TAB 1: NEW REPORT FORM WIZARD */}
         {activeTab === 'new-report' && (
-          <div className="space-y-4">
+          <div className="space-y-4 pb-24 sm:pb-0">
             
             {/* Form Wizard Step Bar */}
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-3 shadow-sm">
@@ -455,7 +455,7 @@ export default function App() {
             </div>
 
             {/* Wizard Navigation Footer Buttons */}
-            <div className="flex items-center justify-between bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-3.5 shadow-sm">
+            <div className="flex items-center justify-between bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 sm:border sm:rounded-2xl shadow-sm fixed bottom-0 left-0 right-0 z-40 p-3.5 pb-[calc(0.875rem+env(safe-area-inset-bottom))] sm:static sm:z-auto sm:pb-3.5">
               <button
                 onClick={() => setCurrentStepIndex((prev) => Math.max(0, prev - 1))}
                 disabled={currentStepIndex === 0}
