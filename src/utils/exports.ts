@@ -662,6 +662,8 @@ export const exportBatchToExcel = async (reports: MaintenanceReport[], shutdownN
  * so background fills render reliably in html2canvas-pro without touching stylesheets.
  */
 const forceInlineBackgroundColors = (clonedElement: HTMLElement) => {
+  console.log('[PDF-BG-DEBUG] forceInlineBackgroundColors called, clonedElement:', clonedElement.tagName, clonedElement.id, 'ownerDocument === main document?', clonedElement.ownerDocument === document);
+
   const tempCanvas = document.createElement('canvas');
   tempCanvas.width = 1;
   tempCanvas.height = 1;
@@ -674,6 +676,12 @@ const forceInlineBackgroundColors = (clonedElement: HTMLElement) => {
       try {
         const nodeView = node.ownerDocument?.defaultView ?? window;
         const bg = nodeView.getComputedStyle(node).backgroundColor;
+
+        if (node.className && typeof node.className === 'string' && node.className.includes('bg-')) {
+          console.log('[PDF-BG-DEBUG]', node.tagName, node.className.slice(0, 60), '-> bg:', bg);
+          console.log('[PDF-BG-DEBUG] guard check for', node.tagName, '- raw bg value:', JSON.stringify(bg));
+        }
+
         if (!bg || bg === 'transparent' || bg === 'rgba(0, 0, 0, 0)') {
           return;
         }
@@ -691,9 +699,13 @@ const forceInlineBackgroundColors = (clonedElement: HTMLElement) => {
           ? `rgb(${data[0]}, ${data[1]}, ${data[2]})`
           : `rgba(${data[0]}, ${data[1]}, ${data[2]}, ${alpha.toFixed(2)})`;
 
+        if (node.className && typeof node.className === 'string' && node.className.includes('bg-')) {
+          console.log('[PDF-BG-DEBUG] applied resolved bg:', resolved, 'to', node.tagName);
+        }
+
         node.style.setProperty('background-color', resolved, 'important');
-      } catch {
-        // Per-element defensive catch
+      } catch (err) {
+        console.warn('[PDF-BG-DEBUG] Error processing node:', err);
       }
     }
   });
