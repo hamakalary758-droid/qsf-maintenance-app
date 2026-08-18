@@ -23,7 +23,7 @@ import { PhotoCaptureStep } from './components/ReportForm/PhotoCaptureStep';
 import { ReviewScreen } from './components/ReviewScreen';
 import { Dashboard } from './components/Dashboard';
 import { EquipmentTemplate } from './constants/equipmentTemplates';
-import { ChevronLeft, ChevronRight, CheckCircle2, AlertCircle, X, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CheckCircle2, AlertCircle, X, Loader2, Trash2 } from 'lucide-react';
 
 export default function App() {
   const { theme, toggleTheme } = useTheme();
@@ -33,6 +33,7 @@ export default function App() {
   const [isLoadingReports, setIsLoadingReports] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [showDiscardModal, setShowDiscardModal] = useState<boolean>(false);
 
   // Current active form report draft
   const [reportData, setReportData] = useState<Partial<MaintenanceReport>>({
@@ -222,6 +223,16 @@ export default function App() {
     setActiveTab('new-report');
   };
 
+  const handleDiscardDraft = () => {
+    setShowDiscardModal(true);
+  };
+
+  const handleConfirmDiscard = () => {
+    clearDraftFromStorage();
+    handleNewReport();
+    setShowDiscardModal(false);
+  };
+
   const handleDuplicateReport = (source: MaintenanceReport) => {
     const originLine = `[Duplicated from ${source.reportNumber || 'PENDING report'} — ${source.equipmentName} (${source.equipmentCode}) — on ${new Date().toISOString().split('T')[0]}]`;
     const carriedNotes = source.notes ? `${originLine}\n${source.notes}` : originLine;
@@ -402,6 +413,15 @@ export default function App() {
                   </span>
                   <span className="text-xs text-slate-400 dark:text-slate-500">({currentStepIndex + 1} of {formSteps.length})</span>
                 </div>
+                <button
+                  type="button"
+                  onClick={handleDiscardDraft}
+                  className="flex items-center space-x-1 text-xs font-semibold text-rose-500 hover:text-rose-700 dark:hover:text-rose-400 px-2 py-1 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+                  title="Discard this draft and start fresh"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Discard</span>
+                </button>
               </div>
 
               {/* Progress Steps Pills */}
@@ -517,6 +537,51 @@ export default function App() {
           Designed for mobile field entry with offline local cache, 5W+1H, 5-Why analysis, photo markup, and Excel/PDF/Word exports.
         </p>
       </footer>
+
+      {/* Discard Draft Confirmation Modal */}
+      {showDiscardModal && (
+        <div
+          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn"
+          onClick={() => setShowDiscardModal(false)}
+        >
+          <div
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start space-x-3.5">
+              <div className="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-950/50 flex items-center justify-center shrink-0 text-rose-600 dark:text-rose-400">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                  Discard Report Draft?
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                  Are you sure you want to discard this draft and start a new report? All unsaved form inputs, photos, and analysis will be cleared. This action cannot be undone.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end space-x-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => setShowDiscardModal(false)}
+                className="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDiscard}
+                className="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 active:bg-rose-800 rounded-xl shadow-sm hover:shadow transition-all flex items-center space-x-1.5 cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Yes, Discard Draft</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
