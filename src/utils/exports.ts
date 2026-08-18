@@ -672,7 +672,8 @@ const forceInlineBackgroundColors = (clonedElement: HTMLElement) => {
   allElements.forEach((node) => {
     if (node instanceof HTMLElement) {
       try {
-        const bg = window.getComputedStyle(node).backgroundColor;
+        const nodeView = node.ownerDocument?.defaultView ?? window;
+        const bg = nodeView.getComputedStyle(node).backgroundColor;
         if (!bg || bg === 'transparent' || bg === 'rgba(0, 0, 0, 0)') {
           return;
         }
