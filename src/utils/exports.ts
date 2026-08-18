@@ -658,12 +658,47 @@ export const exportBatchToExcel = async (reports: MaintenanceReport[], shutdownN
  */
 
 /**
+ * Copies the live page's actual CSS rules into the cloned document as an inline <style> block,
+ * ADDITIVELY (does not remove or modify any existing <style>/<link> in the clone). This guarantees
+ * the clone has synchronously-available real CSS regardless of whether its own linked stylesheet
+ * has finished loading over the network by the time html2canvas-pro captures it.
+ */
+const injectLiveStylesheetIntoClone = (clonedDoc: Document) => {
+  let combinedCss = '';
+  try {
+    for (let i = 0; i < document.styleSheets.length; i++) {
+      const sheet = document.styleSheets[i];
+      try {
+        if (sheet.cssRules) {
+          for (let j = 0; j < sheet.cssRules.length; j++) {
+            combinedCss += sheet.cssRules[j].cssText + '\n';
+          }
+        }
+      } catch {
+        // Cross-origin stylesheet; skip, nothing we can do about it.
+      }
+    }
+  } catch (err) {
+    console.warn('injectLiveStylesheetIntoClone: could not read document.styleSheets', err);
+  }
+
+  if (!combinedCss) return;
+
+  const styleEl = clonedDoc.createElement('style');
+  styleEl.setAttribute('data-injected-for-pdf-export', 'true');
+  styleEl.textContent = combinedCss;
+  if (clonedDoc.head) {
+    clonedDoc.head.appendChild(styleEl);
+  } else {
+    clonedDoc.documentElement.appendChild(styleEl);
+  }
+};
+
+/**
  * Resolves computed background colors to concrete inline rgb/rgba strings on cloned elements
  * so background fills render reliably in html2canvas-pro without touching stylesheets.
  */
 const forceInlineBackgroundColors = (clonedElement: HTMLElement) => {
-  console.log('[PDF-BG-DEBUG] forceInlineBackgroundColors called, clonedElement:', clonedElement.tagName, clonedElement.id, 'ownerDocument === main document?', clonedElement.ownerDocument === document);
-
   const tempCanvas = document.createElement('canvas');
   tempCanvas.width = 1;
   tempCanvas.height = 1;
@@ -676,11 +711,6 @@ const forceInlineBackgroundColors = (clonedElement: HTMLElement) => {
       try {
         const nodeView = node.ownerDocument?.defaultView ?? window;
         const bg = nodeView.getComputedStyle(node).backgroundColor;
-
-        if (node.className && typeof node.className === 'string' && node.className.includes('bg-')) {
-          console.log('[PDF-BG-DEBUG]', node.tagName, node.className.slice(0, 60), '-> bg:', bg);
-          console.log('[PDF-BG-DEBUG] guard check for', node.tagName, '- raw bg value:', JSON.stringify(bg));
-        }
 
         if (!bg || bg === 'transparent' || bg === 'rgba(0, 0, 0, 0)') {
           return;
@@ -699,13 +729,9 @@ const forceInlineBackgroundColors = (clonedElement: HTMLElement) => {
           ? `rgb(${data[0]}, ${data[1]}, ${data[2]})`
           : `rgba(${data[0]}, ${data[1]}, ${data[2]}, ${alpha.toFixed(2)})`;
 
-        if (node.className && typeof node.className === 'string' && node.className.includes('bg-')) {
-          console.log('[PDF-BG-DEBUG] applied resolved bg:', resolved, 'to', node.tagName);
-        }
-
         node.style.setProperty('background-color', resolved, 'important');
-      } catch (err) {
-        console.warn('[PDF-BG-DEBUG] Error processing node:', err);
+      } catch {
+        // Per-element defensive catch
       }
     }
   });
@@ -751,7 +777,10 @@ export const exportReportToPDF = async (elementId: string, filename: string) => 
           allowTaint: true,
           logging: false,
           backgroundColor: '#ffffff',
-          onclone: (_doc, el) => {
+          onclone: (doc, el) => {
+            if (doc) {
+              injectLiveStylesheetIntoClone(doc);
+            }
             if (el instanceof HTMLElement) {
               forceInlineBackgroundColors(el);
             }
@@ -833,7 +862,10 @@ export const exportReportToPDF = async (elementId: string, filename: string) => 
       allowTaint: true,
       logging: false,
       backgroundColor: '#ffffff',
-      onclone: (_clonedDoc, clonedElement) => {
+      onclone: (clonedDoc, clonedElement) => {
+        if (clonedDoc) {
+          injectLiveStylesheetIntoClone(clonedDoc);
+        }
         if (clonedElement instanceof HTMLElement) {
           forceInlineBackgroundColors(clonedElement);
         }
