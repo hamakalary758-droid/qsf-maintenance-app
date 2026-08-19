@@ -478,6 +478,14 @@ export const getDraftFromStorage = async (): Promise<Partial<MaintenanceReport> 
   }
 };
 
+export const clearDraftTextOnly = async (): Promise<void> => {
+  try {
+    localStorage.removeItem(DRAFT_KEY);
+  } catch (err) {
+    console.warn('clearDraftTextOnly error:', err);
+  }
+};
+
 export const clearDraftFromStorage = async (draftId?: string): Promise<void> => {
   try {
     let targetId = draftId;

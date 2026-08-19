@@ -10,6 +10,7 @@ import {
   saveDraftPhotosToStorage,
   getDraftFromStorage,
   clearDraftFromStorage,
+  clearDraftTextOnly,
   generateReportId
 } from './utils/storage';
 import { validateReportForFinalization, ValidationError } from './utils/validation';
@@ -198,7 +199,7 @@ export default function App() {
     try {
       const updatedList = await saveReportToStorage(finalReport);
       setReports(updatedList);
-      await clearDraftFromStorage(finalReport.id);
+      await clearDraftTextOnly();
 
       // Reset draft form for next entry
       setReportData({
