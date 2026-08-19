@@ -62,7 +62,11 @@ function mapRowToReport(row: any): MaintenanceReport {
     status: row.status || 'Draft',
     createdAt: row.created_at || new Date().toISOString(),
     updatedAt: row.updated_at || new Date().toISOString(),
-    notes: row.notes || ''
+    notes: row.notes || '',
+    isArchived: Boolean(row.is_archived),
+    archivedAt: row.archived_at || undefined,
+    archivedBy: row.archived_by || undefined,
+    archiveReason: row.archive_reason || undefined
   };
 }
 
@@ -259,9 +263,98 @@ export const saveReportToStorage = async (report: MaintenanceReport): Promise<Ma
 };
 
 /**
- * Deletes report locally from IndexedDB immediately, marks for background deletion on Supabase.
+ * Soft-deletes (archives) a report in IndexedDB and queues an update sync for Supabase.
+ * Preserves all report data and local photo blobs intact.
  */
-export const deleteReportFromStorage = async (id: string): Promise<MaintenanceReport[]> => {
+export const archiveReportInStorage = async (id: string, archivedBy: string = 'Current User', reason?: string): Promise<MaintenanceReport[]> => {
+  const now = new Date().toISOString();
+  const existing = await db.reports.get(id);
+
+  if (existing) {
+    const updatedData: MaintenanceReport = {
+      ...existing.data,
+      isArchived: true,
+      archivedAt: now,
+      archivedBy: archivedBy,
+      archiveReason: reason || '',
+      updatedAt: now
+    };
+
+    await db.reports.put({
+      ...existing,
+      data: updatedData,
+      syncStatus: 'pending_sync',
+      updatedAt: now
+    });
+
+    // Queue update in syncQueue
+    await db.syncQueue.put({
+      id: 'sq-arch-' + id,
+      reportLocalId: id,
+      operation: 'update',
+      attempts: 0,
+      lastAttemptAt: undefined,
+      lastError: undefined
+    });
+
+    await notifySyncListeners();
+
+    setTimeout(() => {
+      processSyncQueue(true);
+    }, 100);
+  }
+
+  return await getReportsFromStorage();
+};
+
+/**
+ * Restores an archived report back to active status.
+ */
+export const unarchiveReportInStorage = async (id: string): Promise<MaintenanceReport[]> => {
+  const now = new Date().toISOString();
+  const existing = await db.reports.get(id);
+
+  if (existing) {
+    const updatedData: MaintenanceReport = {
+      ...existing.data,
+      isArchived: false,
+      archivedAt: undefined,
+      archivedBy: undefined,
+      archiveReason: undefined,
+      updatedAt: now
+    };
+
+    await db.reports.put({
+      ...existing,
+      data: updatedData,
+      syncStatus: 'pending_sync',
+      updatedAt: now
+    });
+
+    await db.syncQueue.put({
+      id: 'sq-unarch-' + id,
+      reportLocalId: id,
+      operation: 'update',
+      attempts: 0,
+      lastAttemptAt: undefined,
+      lastError: undefined
+    });
+
+    await notifySyncListeners();
+
+    setTimeout(() => {
+      processSyncQueue(true);
+    }, 100);
+  }
+
+  return await getReportsFromStorage();
+};
+
+/**
+ * Permanently deletes a report locally from IndexedDB and all associated photo blobs,
+ * marking it for permanent deletion on Supabase. (Unwired from primary UI as per ADR).
+ */
+export const permanentlyDeleteReportFromStorage = async (id: string): Promise<MaintenanceReport[]> => {
   // Revoke any active Object URLs for this report
   const oldUrls = activeObjectURLsByReport.get(id);
   if (oldUrls) {
@@ -300,12 +393,28 @@ export const deleteReportFromStorage = async (id: string): Promise<MaintenanceRe
   return await getReportsFromStorage();
 };
 
+/**
+ * Backward-compatible delete wrapper (now performs soft-delete archiving).
+ */
+export const deleteReportFromStorage = async (id: string): Promise<MaintenanceReport[]> => {
+  return await archiveReportInStorage(id);
+};
+
 // Draft storage functions for active in-progress form wizard
 export const saveDraftToStorage = (draft: Partial<MaintenanceReport>) => {
   try {
     localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-  } catch (err) {
+  } catch (err: any) {
     console.warn('Failed to save draft to localStorage (quota may be full):', err);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('draft_storage_warning', {
+          detail: {
+            message: 'Draft auto-save warning: Browser cache quota exceeded. Text is preserved in memory, but large attached photos cannot be cached in temporary draft storage.'
+          }
+        })
+      );
+    }
   }
 };
 

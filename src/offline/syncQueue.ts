@@ -39,7 +39,11 @@ function mapReportToRow(report: Partial<MaintenanceReport>) {
     status: report.status || 'Draft',
     notes: report.notes || '',
     created_at: report.createdAt || now,
-    updated_at: now
+    updated_at: now,
+    is_archived: report.isArchived ?? false,
+    archived_at: report.archivedAt || null,
+    archived_by: report.archivedBy || null,
+    archive_reason: report.archiveReason || null
   };
 }
 

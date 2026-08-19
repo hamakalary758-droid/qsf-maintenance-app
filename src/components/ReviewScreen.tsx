@@ -1,15 +1,17 @@
 import React from 'react';
 import { MaintenanceReport } from '../types';
-import { FileCheck, Edit2, AlertTriangle, CheckCircle2, DollarSign, Camera, FileText, FileSpreadsheet, FileBox, Info, ListChecks, GitBranch, FileSignature } from 'lucide-react';
+import { ValidationError } from '../utils/validation';
+import { FileCheck, Edit2, AlertTriangle, CheckCircle2, DollarSign, Camera, FileText, FileSpreadsheet, FileBox, Info, ListChecks, GitBranch, FileSignature, AlertCircle, ArrowRight } from 'lucide-react';
 import { exportReportToExcel, exportReportToPDF, exportReportToWord, getReportIdentifier } from '../utils/exports';
 
 interface ReviewScreenProps {
   reportData: Partial<MaintenanceReport>;
+  validationErrors?: ValidationError[];
   onEditSection: (stepIndex: number) => void;
   onFinalize: () => void;
 }
 
-export const ReviewScreen: React.FC<ReviewScreenProps> = ({ reportData, onEditSection, onFinalize }) => {
+export const ReviewScreen: React.FC<ReviewScreenProps> = ({ reportData, validationErrors = [], onEditSection, onFinalize }) => {
   const r = reportData;
   const fiveW = r.fiveWOneH || { what: '', when: '', where: '', who: '', which: '', how: '' };
   const fiveWhy = r.fiveWhy || { why1: '', why2: '', why3: '', why4: '', why5: '' };
@@ -18,6 +20,15 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({ reportData, onEditSe
   const photos = r.photos || [];
 
   const totalPartCost = parts.reduce((acc, p) => acc + (p.quantity || 0) * (p.unitCost || 0), 0);
+  const hasErrors = validationErrors.length > 0;
+
+  const sectionStepNames: Record<number, string> = {
+    0: 'Basic Info',
+    1: '5W+1H Breakdown',
+    2: '5-Why Analysis',
+    3: 'Actions & Parts',
+    4: 'Photos & Markup'
+  };
 
   return (
     <div className="space-y-6 animate-fadeIn pb-12">
@@ -46,6 +57,42 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({ reportData, onEditSe
           Verify all maintenance facts, 5W+1H responses, root cause logic, spare parts, and photos below. Click any section&apos;s edit button to adjust inputs.
         </p>
       </div>
+
+      {/* Validation Errors Notice (Top) */}
+      {hasErrors && (
+        <div className="bg-rose-50 dark:bg-rose-950/40 border-2 border-rose-300 dark:border-rose-800 rounded-xl p-4 space-y-2.5 animate-fadeIn">
+          <div className="flex items-center space-x-2 text-rose-800 dark:text-rose-200">
+            <AlertCircle className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0" />
+            <h3 className="font-bold text-xs uppercase tracking-wider">
+              {validationErrors.length === 1 ? '1 Required Field Missing' : `${validationErrors.length} Required Fields Missing`}
+            </h3>
+          </div>
+          <p className="text-xs text-rose-700 dark:text-rose-300">
+            Please resolve the following items before finalizing this maintenance report:
+          </p>
+          <div className="space-y-1.5 pt-1">
+            {validationErrors.map((err, idx) => (
+              <div
+                key={`val-err-top-${idx}`}
+                className="flex items-center justify-between bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-800/80 rounded-lg p-2.5 text-xs text-slate-800 dark:text-slate-200 shadow-2xs"
+              >
+                <div className="flex items-center space-x-2">
+                  <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0" />
+                  <span className="font-medium">{err.message}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onEditSection(err.stepIndex)}
+                  className="px-2.5 py-1 bg-rose-100 hover:bg-rose-200 dark:bg-rose-900/50 dark:hover:bg-rose-900 text-rose-800 dark:text-rose-200 font-bold text-[11px] rounded-md transition-colors flex items-center space-x-1 shrink-0 cursor-pointer"
+                >
+                  <span>Fix in {sectionStepNames[err.stepIndex] || `Step ${err.stepIndex + 1}`}</span>
+                  <ArrowRight className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div id="review-report-printable" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl space-y-6 shadow-sm overflow-hidden">
         
@@ -327,6 +374,16 @@ export const ReviewScreen: React.FC<ReviewScreenProps> = ({ reportData, onEditSe
           </div>
         </div>
       </div>
+
+      {/* Bottom Validation Errors Notice if any */}
+      {hasErrors && (
+        <div className="bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 rounded-xl p-3.5 flex items-center justify-between text-xs text-rose-800 dark:text-rose-200 animate-fadeIn">
+          <div className="flex items-center space-x-2">
+            <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
+            <span><strong>{validationErrors.length} required field(s)</strong> must be resolved before finalizing. Click &apos;Fix in Section&apos; above.</span>
+          </div>
+        </div>
+      )}
 
       {/* Export Bar & Finalize Action */}
       <div className="bg-slate-900 p-4 rounded-xl border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-white">

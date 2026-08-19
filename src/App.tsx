@@ -3,12 +3,15 @@ import { MaintenanceReport, AppTab } from './types';
 import {
   getReportsFromStorage,
   saveReportToStorage,
+  archiveReportInStorage,
+  unarchiveReportInStorage,
   deleteReportFromStorage,
   saveDraftToStorage,
   getDraftFromStorage,
   clearDraftFromStorage,
   generateReportId
 } from './utils/storage';
+import { validateReportForFinalization, ValidationError } from './utils/validation';
 import { useTheme } from './hooks/useTheme';
 import { Navbar } from './components/Navbar';
 import { PhaseTracker } from './components/PhaseTracker';
@@ -23,7 +26,7 @@ import { PhotoCaptureStep } from './components/ReportForm/PhotoCaptureStep';
 import { ReviewScreen } from './components/ReviewScreen';
 import { Dashboard } from './components/Dashboard';
 import { EquipmentTemplate } from './constants/equipmentTemplates';
-import { ChevronLeft, ChevronRight, CheckCircle2, AlertCircle, X, Loader2, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CheckCircle2, AlertCircle, AlertTriangle, X, Loader2, Trash2 } from 'lucide-react';
 
 export default function App() {
   const { theme, toggleTheme } = useTheme();
@@ -33,7 +36,9 @@ export default function App() {
   const [isLoadingReports, setIsLoadingReports] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [draftWarning, setDraftWarning] = useState<string | null>(null);
   const [showDiscardModal, setShowDiscardModal] = useState<boolean>(false);
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
 
   // Current active form report draft
   const [reportData, setReportData] = useState<Partial<MaintenanceReport>>({
@@ -100,13 +105,6 @@ export default function App() {
 
     loadInitialReports();
 
-    // Refetch reports once whenever the browser genuinely regains network
-    // connectivity (e.g. a pending item completes sync and receives its
-    // report_number). This listens to the browser's real 'online' event,
-    // which fires only on an actual reconnect — NOT to the app's internal
-    // sync-status broadcasts, which fire repeatedly (including a transient
-    // 'syncing' state on every sync attempt, even when nothing needs
-    // syncing) and previously caused an infinite refetch loop.
     const handleBrowserOnline = () => {
       getReportsFromStorage().then((updated) => {
         if (isMounted) {
@@ -116,19 +114,42 @@ export default function App() {
     };
     window.addEventListener('online', handleBrowserOnline);
 
+    const handleDraftStorageWarning = (e: Event) => {
+      const customEvent = e as CustomEvent<{ message: string }>;
+      if (customEvent.detail?.message && isMounted) {
+        setDraftWarning(customEvent.detail.message);
+      }
+    };
+    window.addEventListener('draft_storage_warning', handleDraftStorageWarning);
+
     return () => {
       isMounted = false;
       window.removeEventListener('online', handleBrowserOnline);
+      window.removeEventListener('draft_storage_warning', handleDraftStorageWarning);
     };
   }, []);
 
   const handleUpdateReportData = (updates: Partial<MaintenanceReport>) => {
     const updated = { ...reportData, ...updates };
     setReportData(updated);
+    // When user modifies fields, clear existing validation errors if any were flagged
+    if (validationErrors.length > 0) {
+      setValidationErrors([]);
+    }
     saveDraftToStorage(updated);
   };
 
   const handleFinalizeReport = async () => {
+    // 1. Strict validation gate — kill fallback chains
+    const validationResult = validateReportForFinalization(reportData);
+    if (!validationResult.valid) {
+      setValidationErrors(validationResult.errors);
+      setCurrentStepIndex(5); // Bring user to Review screen showing full audit errors
+      setErrorMsg(`Please resolve the ${validationResult.errors.length} missing required field(s) before finalizing.`);
+      return;
+    }
+
+    setValidationErrors([]);
     setIsSaving(true);
     setErrorMsg(null);
 
@@ -136,16 +157,16 @@ export default function App() {
       id: reportData.id || generateReportId(),
       reportNumber: reportData.reportNumber || '',
       title: reportData.title?.trim()
-        ? reportData.title
-        : (reportData.equipmentName ? `${reportData.equipmentName} Shutdown Report` : 'Shutdown Maintenance Report'),
-      technicianName: reportData.technicianName || '',
-      technicianId: reportData.technicianId || '',
-      date: reportData.date || new Date().toISOString().split('T')[0],
-      shutdownName: reportData.shutdownName || '',
-      equipmentName: reportData.equipmentName || 'Unspecified Equipment',
-      equipmentCode: reportData.equipmentCode || 'EQ-000',
-      location: reportData.location || 'Plant Floor',
-      failureType: reportData.failureType || 'Mechanical Failure',
+        ? reportData.title.trim()
+        : `${reportData.equipmentName!.trim()} Shutdown Report`,
+      technicianName: reportData.technicianName!.trim(),
+      technicianId: (reportData.technicianId || '').trim(),
+      date: reportData.date!.trim(),
+      shutdownName: (reportData.shutdownName || '').trim(),
+      equipmentName: reportData.equipmentName!.trim(),
+      equipmentCode: reportData.equipmentCode!.trim(),
+      location: reportData.location!.trim(),
+      failureType: reportData.failureType!,
       fiveWOneH: reportData.fiveWOneH || { what: '', when: '', where: '', who: '', which: '', how: '' },
       fiveWhy: reportData.fiveWhy || { why1: '', why2: '', why3: '', why4: '', why5: '' },
       correctiveActions: reportData.correctiveActions || [],
@@ -194,11 +215,13 @@ export default function App() {
 
   const handleSelectReportToEdit = (report: MaintenanceReport) => {
     setReportData(report);
+    setValidationErrors([]);
     setCurrentStepIndex(5); // Go straight to Review Screen for full view
     setActiveTab('new-report');
   };
 
   const handleNewReport = () => {
+    setValidationErrors([]);
     setReportData({
       id: generateReportId(),
       reportNumber: '',
@@ -234,6 +257,7 @@ export default function App() {
   };
 
   const handleDuplicateReport = (source: MaintenanceReport) => {
+    setValidationErrors([]);
     const originLine = `[Duplicated from ${source.reportNumber || 'PENDING report'} — ${source.equipmentName} (${source.equipmentCode}) — on ${new Date().toISOString().split('T')[0]}]`;
     const carriedNotes = source.notes ? `${originLine}\n${source.notes}` : originLine;
 
@@ -262,6 +286,7 @@ export default function App() {
   };
 
   const handleNewReportFromTemplate = (template: EquipmentTemplate) => {
+    setValidationErrors([]);
     setReportData({
       id: generateReportId(),
       reportNumber: '',
@@ -286,16 +311,25 @@ export default function App() {
     setActiveTab('new-report');
   };
 
-  const handleDeleteReport = async (id: string) => {
-    if (confirm('Are you sure you want to delete this saved report?')) {
-      setErrorMsg(null);
-      try {
-        const updated = await deleteReportFromStorage(id);
-        setReports(updated);
-      } catch (err) {
-        console.error('Failed to delete report:', err);
-        setErrorMsg("Couldn't delete report. Please check your connection.");
-      }
+  const handleArchiveReport = async (id: string, reason?: string) => {
+    setErrorMsg(null);
+    try {
+      const updated = await archiveReportInStorage(id, 'Current User', reason);
+      setReports(updated);
+    } catch (err) {
+      console.error('Failed to archive report:', err);
+      setErrorMsg("Couldn't archive report. Please check your storage connection.");
+    }
+  };
+
+  const handleUnarchiveReport = async (id: string) => {
+    setErrorMsg(null);
+    try {
+      const updated = await unarchiveReportInStorage(id);
+      setReports(updated);
+    } catch (err) {
+      console.error('Failed to unarchive report:', err);
+      setErrorMsg("Couldn't restore report. Please check your storage connection.");
     }
   };
 
@@ -305,7 +339,7 @@ export default function App() {
     { title: '5-Why Analysis', component: <FiveWhyStep reportData={reportData} onChange={handleUpdateReportData} /> },
     { title: 'Actions & Parts', component: <ActionsAndPartsStep reportData={reportData} onChange={handleUpdateReportData} /> },
     { title: 'Photos & Markup', component: <PhotoCaptureStep reportData={reportData} onChange={handleUpdateReportData} /> },
-    { title: 'Review & Finalize', component: <ReviewScreen reportData={reportData} onEditSection={(idx) => setCurrentStepIndex(idx)} onFinalize={handleFinalizeReport} /> }
+    { title: 'Review & Finalize', component: <ReviewScreen reportData={reportData} validationErrors={validationErrors} onEditSection={(idx) => setCurrentStepIndex(idx)} onFinalize={handleFinalizeReport} /> }
   ];
 
   // Quick Demo Auto-Fill for instant field testing
@@ -392,8 +426,28 @@ export default function App() {
             </div>
             <button
               onClick={() => setErrorMsg(null)}
-              className="text-rose-500 hover:text-rose-700 p-1 rounded-lg"
+              className="text-rose-500 hover:text-rose-700 p-1 rounded-lg cursor-pointer"
               title="Dismiss error"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
+        {/* Draft Storage Quota Warning Banner */}
+        {draftWarning && (
+          <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-200 px-4 py-3 rounded-2xl flex items-center justify-between shadow-sm animate-fadeIn">
+            <div className="flex items-start space-x-2">
+              <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+              <div className="text-xs">
+                <strong className="font-bold block">Local Storage Notice</strong>
+                <span>{draftWarning}</span>
+              </div>
+            </div>
+            <button
+              onClick={() => setDraftWarning(null)}
+              className="text-amber-600 hover:text-amber-800 dark:text-amber-400 p-1 rounded-lg cursor-pointer shrink-0"
+              title="Dismiss notice"
             >
               <X className="w-4 h-4" />
             </button>
@@ -506,7 +560,8 @@ export default function App() {
             reports={reports}
             isLoading={isLoadingReports}
             onSelectReport={handleSelectReportToEdit}
-            onDeleteReport={handleDeleteReport}
+            onArchiveReport={handleArchiveReport}
+            onUnarchiveReport={handleUnarchiveReport}
             onNewReport={handleNewReport}
             onDuplicateReport={handleDuplicateReport}
             onNewReportFromTemplate={handleNewReportFromTemplate}

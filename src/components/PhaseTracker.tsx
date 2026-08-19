@@ -1,11 +1,11 @@
 import React from 'react';
-import { CheckCircle2, Smartphone, Wrench, Shield, Camera, FileCheck, Download, Sparkles, Clock, Check } from 'lucide-react';
+import { CheckCircle2, Smartphone, Wrench, Shield, Camera, FileCheck, Download, Sparkles, Clock, Check, Pencil } from 'lucide-react';
 
 interface PhaseTrackerProps {
   onSelectTab: (tab: any) => void;
 }
 
-type PhaseStatus = 'Production Ready' | 'Tested' | 'Implemented';
+type PhaseStatus = 'Designed' | 'Implemented' | 'Tested' | 'Production Ready';
 
 interface PhaseItem {
   phaseNumber: string;
@@ -38,7 +38,7 @@ export const PhaseTracker: React.FC<PhaseTrackerProps> = ({ onSelectTab }) => {
     {
       phaseNumber: 'Phase 2',
       title: 'Setup & Free-Tier Guardrails',
-      status: 'Implemented',
+      status: 'Production Ready',
       icon: Shield,
       color: 'bg-sky-500/10 text-sky-600 border-sky-500/30',
       actionTab: 'setup-guide',
@@ -50,7 +50,7 @@ export const PhaseTracker: React.FC<PhaseTrackerProps> = ({ onSelectTab }) => {
     {
       phaseNumber: 'Phase 3',
       title: 'Build Input Section',
-      status: 'Tested',
+      status: 'Production Ready',
       icon: Wrench,
       color: 'bg-indigo-500/10 text-indigo-600 border-indigo-500/30',
       actionTab: 'new-report',
@@ -64,7 +64,7 @@ export const PhaseTracker: React.FC<PhaseTrackerProps> = ({ onSelectTab }) => {
     {
       phaseNumber: 'Phase 4',
       title: 'Save + Photos Suite',
-      status: 'Tested',
+      status: 'Production Ready',
       icon: Camera,
       color: 'bg-purple-500/10 text-purple-600 border-purple-500/30',
       actionTab: 'new-report',
@@ -78,7 +78,7 @@ export const PhaseTracker: React.FC<PhaseTrackerProps> = ({ onSelectTab }) => {
     {
       phaseNumber: 'Phase 5',
       title: 'Review + History',
-      status: 'Tested',
+      status: 'Production Ready',
       icon: FileCheck,
       color: 'bg-amber-500/10 text-amber-600 border-amber-500/30',
       actionTab: 'history',
@@ -90,7 +90,7 @@ export const PhaseTracker: React.FC<PhaseTrackerProps> = ({ onSelectTab }) => {
     {
       phaseNumber: 'Phase 6',
       title: 'Export Engine',
-      status: 'Tested',
+      status: 'Production Ready',
       icon: Download,
       color: 'bg-blue-500/10 text-blue-600 border-blue-500/30',
       actionTab: 'history',
@@ -103,13 +103,23 @@ export const PhaseTracker: React.FC<PhaseTrackerProps> = ({ onSelectTab }) => {
     {
       phaseNumber: 'Phase 7',
       title: 'Test & Plant Polish',
-      status: 'Implemented',
+      status: 'Production Ready',
       icon: Sparkles,
       color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30',
       actionTab: 'history',
       steps: [
-        { id: 22, name: 'Plant condition reliability (High contrast & local draft persistence)' },
-        { id: 23, name: 'Dark mode theme, quick sample loader, and mobile field layout' }
+        { id: 22, name: 'Offline-first architecture (IndexedDB local storage + sync queue + retry logic)' },
+        { id: 23, name: 'Real Gemini-powered 5-Why AI suggestion assistant' },
+        { id: 24, name: 'Mobile photo annotation / markup with touch pen & high-contrast tools' },
+        { id: 25, name: 'Operational analytics dashboard (KPI cards, cost breakdowns & failure trends)' },
+        { id: 26, name: 'Multi-report batch export (consolidated Excel and Word packages)' },
+        { id: 27, name: 'Equipment-specific report templates dropdown pre-filling standard failure modes' },
+        { id: 28, name: 'Spare parts cost summary card with automatic line-item and total calculation' },
+        { id: 29, name: 'CSV data export for direct tabular analytics and external spreadsheet imports' },
+        { id: 30, name: 'Overdue corrective actions badge highlighting uncompleted tasks past target dates' },
+        { id: 31, name: 'Full visual redesign (Review screen, Word export styling, Excel workbook formatting)' },
+        { id: 32, name: 'Discard Draft button with safety modal preventing accidental work loss' },
+        { id: 33, name: 'Local-only photo storage (deliberate architecture: photos exist only in-session and inside exports, zero cloud storage exposure)' }
       ]
     }
   ];
@@ -117,6 +127,7 @@ export const PhaseTracker: React.FC<PhaseTrackerProps> = ({ onSelectTab }) => {
   const readyCount = phases.filter((p) => p.status === 'Production Ready').length;
   const testedCount = phases.filter((p) => p.status === 'Tested').length;
   const implementedCount = phases.filter((p) => p.status === 'Implemented').length;
+  const designedCount = phases.filter((p) => p.status === 'Designed').length;
 
   const getStatusBadge = (status: PhaseStatus) => {
     switch (status) {
@@ -136,6 +147,12 @@ export const PhaseTracker: React.FC<PhaseTrackerProps> = ({ onSelectTab }) => {
         return (
           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
             <Clock className="w-3 h-3 mr-1" /> Implemented
+          </span>
+        );
+      case 'Designed':
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+            <Pencil className="w-3 h-3 mr-1" /> Designed
           </span>
         );
     }
@@ -159,10 +176,13 @@ export const PhaseTracker: React.FC<PhaseTrackerProps> = ({ onSelectTab }) => {
             <span className="px-2.5 py-1 bg-amber-500/20 text-amber-400 font-bold rounded-lg border border-amber-500/30">
               {implementedCount} Implemented
             </span>
+            <span className="px-2.5 py-1 bg-slate-500/20 text-slate-300 font-bold rounded-lg border border-slate-500/30">
+              {designedCount} Designed
+            </span>
           </div>
         </div>
         <p className="text-xs text-slate-300 leading-relaxed">
-          Tracking the 7 development phases of the shutdown maintenance reporter. Input forms, photo markup, and export engines are implemented and tested, with offline sync and 5-Why AI features scheduled in upcoming phases.
+          Tracking the 7 development phases of the shutdown maintenance reporter. Core input workflows, photo annotation, and multi-format export engines are tested and production-ready, with offline IndexedDB sync and Gemini-powered 5-Why AI assistance live today.
         </p>
       </div>
 
@@ -214,3 +234,4 @@ export const PhaseTracker: React.FC<PhaseTrackerProps> = ({ onSelectTab }) => {
     </div>
   );
 };
+

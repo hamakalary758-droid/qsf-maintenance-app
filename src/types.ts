@@ -17,6 +17,8 @@ export interface FiveWhy {
   why3: string;
   why4: string;
   why5: string; // Root Cause
+  notApplicable?: boolean;
+  notApplicableReason?: string;
 }
 
 export interface CorrectiveAction {
@@ -66,6 +68,10 @@ export interface MaintenanceReport {
   createdAt: string;
   updatedAt: string;
   notes?: string;
+  isArchived?: boolean;
+  archivedAt?: string;
+  archivedBy?: string;
+  archiveReason?: string;
 }
 
 export type AppTab = 'new-report' | 'history' | 'dashboard' | 'mockups' | 'setup-guide' | 'phase-checklist';
