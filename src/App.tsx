@@ -33,6 +33,7 @@ import { ChevronLeft, ChevronRight, CheckCircle2, AlertCircle, AlertTriangle, X,
 export default function App() {
   const { theme, toggleTheme } = useTheme();
   const [activeTab, setActiveTab] = useState<AppTab>('new-report');
+  const [isQskView, setIsQskView] = useState<boolean>(false);
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
   const [reports, setReports] = useState<MaintenanceReport[]>([]);
   const [isLoadingReports, setIsLoadingReports] = useState<boolean>(false);
@@ -431,10 +432,15 @@ export default function App() {
         theme={theme}
         onToggleTheme={toggleTheme}
         onAutoFill={prefillSampleData}
+        isQskView={isQskView}
+        onToggleQskView={() => setIsQskView(prev => !prev)}
       />
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 space-y-6">
+      {/* Main Content Area — QSF (normal tabbed content) */}
+      <main
+        className="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 space-y-6"
+        style={{ display: isQskView ? 'none' : undefined }}
+      >
         
         {/* Error Banner */}
         {errorMsg && (
@@ -600,6 +606,19 @@ export default function App() {
         {activeTab === 'phase-checklist' && (
           <PhaseTracker onSelectTab={(tab) => setActiveTab(tab)} />
         )}
+      </main>
+
+      {/* Main Content Area — QSK Master Data Explorer (embedded, unmodified app, kept mounted so its session persists across toggles) */}
+      <main
+        className="flex-1 w-full flex flex-col"
+        style={{ display: isQskView ? undefined : 'none' }}
+      >
+        <iframe
+          src="/qsk/QSK_Master_Data_Explorer.html"
+          title="QSK Master Data Explorer"
+          className="flex-1 w-full border-0"
+          style={{ minHeight: 'calc(100dvh - 130px)' }}
+        />
       </main>
 
       {/* Footer */}

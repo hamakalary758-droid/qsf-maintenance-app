@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AppTab, MaintenanceReport } from '../types';
-import { Wrench, Smartphone, History, Shield, CheckSquare, Plus, Wifi, WifiOff, Menu, Bell, Sparkles, RefreshCw, AlertTriangle, CheckCircle2, RotateCcw, X, Key, Eye, EyeOff, BarChart3 } from 'lucide-react';
+import { Wrench, Smartphone, History, Shield, CheckSquare, Plus, Wifi, WifiOff, Menu, Bell, Sparkles, RefreshCw, AlertTriangle, CheckCircle2, RotateCcw, X, Key, Eye, EyeOff, BarChart3, ChevronDown } from 'lucide-react';
 import { subscribeToSyncStatus, processSyncQueue, SyncStatusInfo } from '../offline/syncQueue';
 
 interface NavbarProps {
@@ -11,6 +11,8 @@ interface NavbarProps {
   theme: 'light' | 'dark';
   onToggleTheme: () => void;
   onAutoFill: () => void;
+  isQskView: boolean;
+  onToggleQskView: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -20,7 +22,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   reports = [],
   theme,
   onToggleTheme,
-  onAutoFill
+  onAutoFill,
+  isQskView,
+  onToggleQskView
 }) => {
   const [syncInfo, setSyncInfo] = useState<SyncStatusInfo>({
     state: typeof navigator !== 'undefined' && navigator.onLine ? 'online' : 'offline',
@@ -205,7 +209,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <Wrench className="w-3.5 h-3.5" />
           </div>
           <h1 className="font-semibold text-sm text-white">
-            QSF maintenance
+            {isQskView ? 'QSK master data explorer' : 'QSF maintenance'}
           </h1>
         </div>
 
@@ -221,6 +225,21 @@ export const Navbar: React.FC<NavbarProps> = ({
             {overdueActionsCount > 0 && (
               <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-rose-500 rounded-full" />
             )}
+          </button>
+
+          {/* QSK view toggle */}
+          <button
+            onClick={onToggleQskView}
+            aria-label={isQskView ? 'Switch back to QSF maintenance' : 'Switch to QSK master data explorer'}
+            title={isQskView ? 'Back to QSF maintenance' : 'Open QSK master data explorer'}
+            className="flex items-center space-x-1 text-slate-300 hover:text-white transition-colors"
+          >
+            <span className="text-[10px] font-semibold uppercase tracking-wide hidden sm:inline">
+              {isQskView ? 'QSF' : 'QSK'}
+            </span>
+            <ChevronDown
+              className={`w-4 h-4 transition-transform duration-200 ${isQskView ? 'rotate-180' : ''}`}
+            />
           </button>
 
           {/* Sync status dot */}
