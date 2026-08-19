@@ -401,9 +401,11 @@ export const deleteReportFromStorage = async (id: string): Promise<MaintenanceRe
 };
 
 // Draft storage functions for active in-progress form wizard
-export const saveDraftToStorage = (draft: Partial<MaintenanceReport>) => {
+export const saveDraftToStorage = async (draft: Partial<MaintenanceReport>): Promise<void> => {
   try {
-    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    // Strip photos from localStorage serialization to prevent quota exhaustion
+    const { photos, ...textDraft } = draft;
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(textDraft));
   } catch (err: any) {
     console.warn('Failed to save draft to localStorage (quota may be full):', err);
     if (typeof window !== 'undefined') {
@@ -418,19 +420,98 @@ export const saveDraftToStorage = (draft: Partial<MaintenanceReport>) => {
   }
 };
 
-export const getDraftFromStorage = (): Partial<MaintenanceReport> | null => {
+/**
+ * Persists draft inspection photos into IndexedDB as Blobs.
+ * Keyed by the draft report's unique local ID.
+ */
+export const saveDraftPhotosToStorage = async (draftId: string, photos: PlantPhoto[]): Promise<void> => {
+  if (!draftId) return;
+  try {
+    const existingPhotos = await db.photos.where('reportLocalId').equals(draftId).toArray();
+    const currentPhotoIds = new Set(photos.map((p) => p.id));
+
+    // Delete photos removed in this draft version
+    for (const stored of existingPhotos) {
+      if (!currentPhotoIds.has(stored.id)) {
+        await db.photos.delete(stored.id);
+      }
+    }
+
+    // Save/update Blobs in IndexedDB
+    for (const photo of photos) {
+      if (photo.url) {
+        try {
+          const blob = await urlToBlob(photo.url);
+          const photoId = photo.id || (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function' ? 'ph-' + crypto.randomUUID() : 'ph-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6));
+          await db.photos.put({
+            id: photoId,
+            reportLocalId: draftId,
+            blob,
+            caption: photo.caption || '',
+            createdAt: photo.timestamp || new Date().toISOString()
+          });
+        } catch (err) {
+          console.warn('Failed to save draft photo blob:', err);
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('saveDraftPhotosToStorage error:', err);
+  }
+};
+
+export const getDraftFromStorage = async (): Promise<Partial<MaintenanceReport> | null> => {
   try {
     const raw = localStorage.getItem(DRAFT_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
+    if (!raw) return null;
+    const draft: Partial<MaintenanceReport> = JSON.parse(raw);
+    
+    // Rehydrate photos from IndexedDB if draft has an ID
+    if (draft && draft.id) {
+      const photos = await getPhotosForReport(draft.id);
+      draft.photos = photos;
+    }
+    return draft;
+  } catch (err) {
+    console.warn('getDraftFromStorage error:', err);
     return null;
   }
 };
 
-export const clearDraftFromStorage = () => {
+export const clearDraftFromStorage = async (draftId?: string): Promise<void> => {
   try {
+    let targetId = draftId;
+    if (!targetId) {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          targetId = parsed.id;
+        } catch {
+          // ignore
+        }
+      }
+    }
+
     localStorage.removeItem(DRAFT_KEY);
-  } catch {
-    // ignore
+
+    if (targetId) {
+      // Clean up object URLs
+      const oldUrls = activeObjectURLsByReport.get(targetId);
+      if (oldUrls) {
+        oldUrls.forEach((url) => {
+          try {
+            URL.revokeObjectURL(url);
+          } catch {
+            // ignore
+          }
+        });
+        activeObjectURLsByReport.delete(targetId);
+      }
+
+      await db.photos.where('reportLocalId').equals(targetId).delete();
+    }
+  } catch (err) {
+    console.warn('clearDraftFromStorage error:', err);
   }
 };

@@ -100,7 +100,9 @@ export const FiveWOneHStep: React.FC<FiveWOneHStepProps> = ({ reportData, onChan
               <div>
                 <div className="flex items-center space-x-1.5 mb-1">
                   <IconComp className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400" />
-                  <span className="font-bold text-xs text-slate-800 dark:text-slate-200">{f.title}</span>
+                  <span className="font-bold text-xs text-slate-800 dark:text-slate-200">
+                    {f.title} <span className="text-rose-500 font-bold ml-0.5">*</span>
+                  </span>
                 </div>
                 <p className="text-[10px] text-slate-500 dark:text-slate-400 mb-2">{f.subtitle}</p>
 

@@ -38,7 +38,7 @@ export const PhaseTracker: React.FC<PhaseTrackerProps> = ({ onSelectTab }) => {
     {
       phaseNumber: 'Phase 2',
       title: 'Setup & Free-Tier Guardrails',
-      status: 'Production Ready',
+      status: 'Implemented',
       icon: Shield,
       color: 'bg-sky-500/10 text-sky-600 border-sky-500/30',
       actionTab: 'setup-guide',
@@ -97,7 +97,7 @@ export const PhaseTracker: React.FC<PhaseTrackerProps> = ({ onSelectTab }) => {
       steps: [
         { id: 19, name: 'Excel export (.xlsx)' },
         { id: 20, name: 'PDF export (.pdf)' },
-        { id: 21, name: 'Word export (.doc/.docx formatted)' }
+        { id: 21, name: 'Word export (.doc formatted HTML document compatible with MS Word)' }
       ]
     },
     {
@@ -119,7 +119,7 @@ export const PhaseTracker: React.FC<PhaseTrackerProps> = ({ onSelectTab }) => {
         { id: 30, name: 'Overdue corrective actions badge highlighting uncompleted tasks past target dates' },
         { id: 31, name: 'Full visual redesign (Review screen, Word export styling, Excel workbook formatting)' },
         { id: 32, name: 'Discard Draft button with safety modal preventing accidental work loss' },
-        { id: 33, name: 'Local-only photo storage (deliberate architecture: photos exist only in-session and inside exports, zero cloud storage exposure)' }
+        { id: 33, name: 'Local-only photo storage (deliberate architecture: photos are persisted locally in this device\'s IndexedDB storage and survive refreshes/restarts, but are lost if browser/site data is cleared — never uploaded to any server)' }
       ]
     }
   ];

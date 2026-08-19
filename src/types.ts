@@ -17,6 +17,10 @@ export interface FiveWhy {
   why3: string;
   why4: string;
   why5: string; // Root Cause
+  why1Skipped?: boolean;
+  why2Skipped?: boolean;
+  why3Skipped?: boolean;
+  why4Skipped?: boolean;
   notApplicable?: boolean;
   notApplicableReason?: string;
 }

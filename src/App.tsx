@@ -7,6 +7,7 @@ import {
   unarchiveReportInStorage,
   deleteReportFromStorage,
   saveDraftToStorage,
+  saveDraftPhotosToStorage,
   getDraftFromStorage,
   clearDraftFromStorage,
   generateReportId
@@ -77,6 +78,16 @@ export default function App() {
   // Load stored reports on mount
   useEffect(() => {
     let isMounted = true;
+
+    // Part 5: Request persistent storage to reduce browser eviction risks under storage pressure
+    if (typeof navigator !== 'undefined' && navigator.storage?.persist) {
+      navigator.storage.persist().then((persisted) => {
+        console.log('IndexedDB persistent storage enabled:', persisted);
+      }).catch((err) => {
+        console.warn('Storage persistence request failed:', err);
+      });
+    }
+
     const loadInitialReports = async () => {
       setIsLoadingReports(true);
       setErrorMsg(null);
@@ -96,10 +107,14 @@ export default function App() {
         }
       }
 
-      // Check for draft in storage
-      const draft = getDraftFromStorage();
-      if (draft && draft.equipmentName) {
-        setReportData(draft);
+      // Check for draft in storage (with photos rehydrated from IndexedDB)
+      try {
+        const draft = await getDraftFromStorage();
+        if (draft && draft.equipmentName && isMounted) {
+          setReportData(draft);
+        }
+      } catch (err) {
+        console.warn('Failed to load draft from storage:', err);
       }
     };
 
@@ -137,6 +152,9 @@ export default function App() {
       setValidationErrors([]);
     }
     saveDraftToStorage(updated);
+    if (updates.photos !== undefined && updated.id) {
+      saveDraftPhotosToStorage(updated.id, updates.photos);
+    }
   };
 
   const handleFinalizeReport = async () => {
@@ -180,7 +198,7 @@ export default function App() {
     try {
       const updatedList = await saveReportToStorage(finalReport);
       setReports(updatedList);
-      clearDraftFromStorage();
+      await clearDraftFromStorage(finalReport.id);
 
       // Reset draft form for next entry
       setReportData({
@@ -251,7 +269,7 @@ export default function App() {
   };
 
   const handleConfirmDiscard = () => {
-    clearDraftFromStorage();
+    clearDraftFromStorage(reportData.id);
     handleNewReport();
     setShowDiscardModal(false);
   };

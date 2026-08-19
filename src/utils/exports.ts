@@ -1184,7 +1184,7 @@ export const exportBatchToWord = async (reports: MaintenanceReport[], shutdownNa
     type: 'application/msword'
   });
   const cleanName = (shutdownName || 'General').replace(/\s+/g, '_');
-  const filename = `Shutdown_${cleanName}_Batch.docx`;
+  const filename = `Shutdown_${cleanName}_Batch.doc`;
   saveAs(blob, filename);
 };
 

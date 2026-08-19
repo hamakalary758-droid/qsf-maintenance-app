@@ -97,6 +97,42 @@ export const SetupGuide: React.FC = () => {
           </ul>
         </div>
       </div>
+
+      {/* Guardrail 3: Local-Only Photo Storage & Deletion Warning */}
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded-2xl p-4 shadow-sm space-y-3">
+        <div className="flex items-center space-x-2 text-amber-800 dark:text-amber-300 font-bold text-sm">
+          <div className="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-lg border border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300">
+            <Shield className="w-5 h-5" />
+          </div>
+          <h3>Local-Only Photo Storage & Device Data Notice</h3>
+        </div>
+
+        <p className="text-xs text-amber-900 dark:text-amber-200 leading-relaxed font-medium">
+          Photos are stored locally on this device only (in browser IndexedDB storage) and are never uploaded to any remote server or cloud bucket.
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          <div className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-amber-200 dark:border-amber-800/40 space-y-1">
+            <strong className="text-slate-800 dark:text-slate-200 flex items-center space-x-1.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+              <span>Session & Export Inclusion</span>
+            </strong>
+            <p className="text-[11px] text-slate-600 dark:text-slate-400">
+              Attached inspection photos persist across page refreshes and are embedded directly into generated Word, PDF, and Excel export files.
+            </p>
+          </div>
+
+          <div className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-rose-200 dark:border-rose-800/40 space-y-1">
+            <strong className="text-rose-700 dark:text-rose-400 flex items-center space-x-1.5">
+              <Lock className="w-4 h-4 text-rose-500" />
+              <span>Permanent Deletion Warning</span>
+            </strong>
+            <p className="text-[11px] text-slate-600 dark:text-slate-400">
+              All stored photos will be <strong className="text-rose-700 dark:text-rose-300">permanently deleted</strong> if you clear browser site data/cookies, uninstall the PWA, or wipe website storage on this device.
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
