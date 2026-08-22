@@ -603,6 +603,67 @@
     }
 
     /* ================================================================
+       THEME: QSF
+       QSF plant theme — slate chrome, sky accent, emerald/amber/rose signals.
+       data-theme="qsf" triggers this theme.
+       ================================================================ */
+    :root[data-theme="qsf"] {
+        /* App surface colours */
+        --bg-0:               #ffffff;
+        --bg-1:               #f8fafc;
+        --bg-2:               #f1f5f9;
+        --panel:              #ffffff;
+        --panel-solid:        #ffffff;
+        --panel-border:       #e2e8f0;
+        --panel-border-strong: #cbd5e1;
+        --text-0:             #0f172a;
+        --text-1:             #1e293b;
+        --text-2:             #475569;
+        --accent:             #0284c7;
+        --accent-2:           #0ea5e9;
+        --accent-dim:         rgba(2, 132, 199, 0.12);
+        --accent-ring:        rgba(2, 132, 199, 0.40);
+        --accent-glow:        rgba(2, 132, 199, 0.20);
+        --steel:              #0369a1;
+        --steel-dim:          rgba(3, 105, 161, 0.12);
+        --steel-glow:         rgba(3, 105, 161, 0.20);
+        --teal:               #10b981;
+        --teal-dim:           rgba(16, 185, 129, 0.12);
+        --teal-glow:          rgba(16, 185, 129, 0.20);
+        --amber:              #f59e0b;
+        --amber-dim:          rgba(245, 158, 11, 0.12);
+        --amber-glow:         rgba(245, 158, 11, 0.20);
+        --violet:             #7c3aed;
+        --violet-dim:         rgba(124, 58, 237, 0.12);
+        --violet-glow:        rgba(124, 58, 237, 0.20);
+        --danger:             #f43f5e;
+        --danger-dim:         rgba(244, 63, 94, 0.12);
+        --danger-glow:        rgba(244, 63, 94, 0.20);
+        --shadow-lg:          0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        --shadow-sm:          0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        --body-bg:            var(--bg-0);
+        --body-bg-pattern:    linear-gradient(rgba(0, 0, 0, 0.02) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 0, 0, 0.02) 1px, transparent 1px);
+        --scrollbar-thumb:    #cbd5e1;
+        --scrollbar-thumb-hover: #94a3b8;
+        --toast-bg:           #ffffff;
+        --toast-border:       #e2e8f0;
+        --select-bg:          #ffffff;
+        --select-text:        #0f172a;
+        --select-border:      #e2e8f0;
+        --dev-panel-bg:       rgba(255, 255, 255, 0.98);
+        --dev-panel-border:   #e2e8f0;
+        --dev-text:           #475569;
+        --dev-highlight:      #0284c7;
+        --hl-fl-bg:           rgba(2, 132, 199, 0.10);
+        --hl-fl-text:         #0284c7;
+        --hl-equip-bg:        rgba(16, 185, 129, 0.10);
+        --hl-equip-text:      #059669;
+        --hl-mat-bg:          rgba(244, 63, 94, 0.10);
+        --hl-mat-text:        #e11d48;
+    }
+
+    /* ================================================================
        THEME: Wide + Labels
        Same dark slate palette, alternate variant.
        data-theme="wide" triggers this theme.
@@ -707,145 +768,29 @@
     header.topbar {
         display: flex;
         align-items: center;
-        gap: 18px;
-        padding: 16px 20px;
-        margin-bottom: 18px;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 10px 18px;
+        margin-bottom: 6px;
         animation: rise .5s ease both;
         position: relative;
         z-index: 500;
     }
-    .brand {
+
+    .header-left {
         display: flex;
         align-items: center;
-        gap: 14px;
-        min-width: 0;
-    }
-
-    .logo-slot {
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        overflow: hidden;
-        border-radius: 16px;
-        background: linear-gradient(155deg, rgba(255, 122, 61, 0.22), rgba(77, 143, 245, 0.14));
-        border: 1px solid var(--panel-border-strong);
-        width: auto;
-        height: auto;
-        min-width: 56px;
-        min-height: 56px;
-        max-height: 80px;
-        max-width: 180px;
-        transition: transform .25s ease, box-shadow .25s ease, background 0.2s ease, border-color 0.2s ease;
-        padding: 4px;
-    }
-    .logo-slot:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 26px -8px var(--accent-glow);
-    }
-    .logo-slot img {
-        display: block;
-        max-height: 72px;
-        max-width: 100%;
-        width: auto;
-        height: auto;
-        object-fit: contain;
-        border-radius: 12px;
-    }
-    .logo-slot .placeholder-icon {
-        width: 26px;
-        height: 26px;
-        color: var(--accent-2);
-        opacity: .9;
-        flex-shrink: 0;
-    }
-
-    .logo-upload-btn {
-        position: absolute;
-        bottom: -4px;
-        inset-inline-end: -4px;
-        width: 22px;
-        height: 22px;
-        border-radius: 50%;
-        background: var(--accent);
-        border: 2px solid var(--bg-1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #1a0e08;
-        font-size: 11px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-        z-index: 2;
-        transition: transform .15s ease;
-    }
-    .logo-upload-btn:hover {
-        transform: scale(1.12);
-    }
-    .logo-upload-btn svg {
-        width: 11px;
-        height: 11px;
-    }
-
-    .logo-remove-btn {
-        position: absolute;
-        top: -4px;
-        inset-inline-end: -4px;
-        width: 22px;
-        height: 22px;
-        border-radius: 50%;
-        background: var(--danger);
-        border: 2px solid var(--bg-1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #fff;
-        font-size: 11px;
-        font-weight: 700;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-        opacity: 0;
-        transition: opacity .2s ease, transform .15s ease;
-        z-index: 3;
-        cursor: pointer;
-    }
-    .logo-slot:hover .logo-remove-btn {
-        opacity: 1;
-    }
-    .logo-remove-btn:hover {
-        transform: scale(1.12);
-    }
-
-    .brand-text {
-        min-width: 0;
-    }
-    .brand-text .eyebrow {
-        font-size: 10.5px;
-        letter-spacing: .16em;
-        text-transform: uppercase;
-        color: var(--text-2);
-        font-weight: 600;
-        margin: 0 0 2px;
-    }
-    .brand-text h1 {
-        font-size: 19px;
-        margin: 0;
-        font-weight: 700;
-        letter-spacing: -.01em;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        background: linear-gradient(90deg, var(--text-0), var(--text-1));
-        -webkit-background-clip: text;
-        background-clip: text;
-        transition: background 0.2s ease;
+        gap: 10px;
+        flex-wrap: wrap;
+        flex: 1 1 auto;
     }
 
     .header-right {
-        margin-inline-start: auto;
         display: flex;
         align-items: center;
-        gap: 14px;
-        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 10px;
+        flex-shrink: 0;
     }
 
     .lang-switch {
@@ -886,7 +831,7 @@
         background: rgba(255, 255, 255, 0.02);
         color: var(--text-1);
         border-radius: 999px;
-        padding: 8px 16px;
+        padding: 7px 14px;
         font-size: 12px;
         font-family: var(--font-mono);
         cursor: pointer;
@@ -914,25 +859,35 @@
         top: calc(100% + 8px);
         right: 0;
         background: var(--panel-solid, #1a1a2e);
-        border: 1px solid var(--panel-border);
+        border: 1px solid var(--panel-border-strong);
         border-radius: 12px;
-        padding: 6px;
-        min-width: 160px;
+        padding: 8px;
+        min-width: 195px;
         z-index: 99999;
         flex-direction: column;
-        gap: 2px;
+        gap: 3px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         backdrop-filter: none;
         -webkit-backdrop-filter: none;
     }
     .theme-dropdown-menu.open {
         display: flex;
     }
+    .dropdown-section-title {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-2);
+        padding: 4px 6px 2px;
+        font-family: var(--font-mono);
+    }
     .theme-dropdown-item {
         border: none;
         background: transparent;
         color: var(--text-2);
         border-radius: 8px;
-        padding: 8px 12px;
+        padding: 6px 10px;
         font-size: 12px;
         font-family: var(--font-mono);
         cursor: pointer;
@@ -955,6 +910,29 @@
         height: 1px;
         background: var(--panel-border);
         margin: 4px 6px;
+    }
+    .theme-dropdown-menu .theme-toggle,
+    .theme-dropdown-menu .density-toggle {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-sizing: border-box;
+        border-radius: 8px;
+        padding: 6px 10px;
+        margin: 2px 0;
+    }
+    .theme-dropdown-menu .lang-switch {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        box-sizing: border-box;
+        margin: 2px 0;
+    }
+    .theme-dropdown-menu .lang-switch button {
+        flex: 1;
+        text-align: center;
+        padding: 4px 6px;
     }
 
     .theme-toggle {
@@ -1081,20 +1059,20 @@
         flex-wrap: wrap;
         align-items: baseline;
         justify-content: center;
-        gap: 6px 16px;
+        gap: 6px 10px;
         margin-bottom: 8px;
     }
     .visible-legend-item {
         display: inline-flex;
         align-items: baseline;
-        gap: 4px;
+        gap: 3px;
         white-space: nowrap;
-        font-size: 11px;
+        font-size: 10px;
         font-family: var(--font-mono);
         color: var(--text-2);
     }
     .visible-legend-item b {
-        font-size: 13px;
+        font-size: 11px;
         font-weight: 600;
     }
     .visible-legend-sep {
@@ -1131,21 +1109,10 @@
         display: flex;
         align-items: center;
         flex-wrap: wrap;
-        gap: 12px;
+        gap: 10px 14px;
         margin-bottom: 6px;
-        padding: 4px 14px 6px;
+        padding: 6px 14px;
         animation: rise .5s ease .05s both;
-        /* Bug fix: .ribbon and .tree-actions-row both use .glass, and backdrop-filter
-           creates its own isolated stacking context. With neither element given an
-           explicit z-index, their paint order fell back to plain DOM order -- so
-           .tree-actions-row (later in the HTML) always painted its own blurred glass
-           layer ON TOP of anything inside .ribbon, including the filter dropdown
-           (whose z-index:300 only competes within ribbon's own local stacking
-           context, not against outside siblings). This never showed visibly until
-           the filter dropdown grew tall enough to extend into that overlap. Explicit
-           position+z-index here makes ribbon's entire stacking context -- dropdowns
-           included -- reliably paint above whatever comes after it in the page.
-        */
         position: relative;
         z-index: 400;
     }
@@ -1185,17 +1152,32 @@
     }
     .ribbon-panel.active {
         display: flex;
-        flex: 1 1 400px;
+        flex: 1 1 320px;
         min-width: 0;
         flex-wrap: wrap;
         align-items: center;
         justify-content: space-between;
-        gap: 16px;
+        gap: 12px;
         animation: fadeIn .2s ease;
     }
 
-    /* ---- Tree actions row: everything that directly affects the tree render,
-       lined up together above it (undo/redo/expand/collapse + Danger Zone) ---- */
+    /* ---- Tree actions group & Danger Zone inside unified Row 2 ---- */
+    .tree-actions-group {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px 12px;
+        flex: 1 1 100%;
+        padding-top: 6px;
+        border-top: 1px solid var(--panel-border);
+    }
+    .tree-actions-left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
     .tree-actions-row {
         display: flex;
         align-items: center;
@@ -1204,27 +1186,8 @@
         gap: 10px;
         padding: 4px 14px;
         margin-bottom: 6px;
-        animation: rise .5s ease .08s both;
-        /* Bug fix (Level-Based Expand/Collapse Panel Project, Step 1 live-test):
-           same root cause as the .ribbon fix above -- .tree-actions-row uses
-           .glass, whose backdrop-filter creates its own isolated stacking
-           context. With no explicit z-index here, paint order fell back to
-           plain DOM order, so the tree panel below (later in the HTML) always
-           painted its own layer ON TOP of anything inside .tree-actions-row,
-           including the new "Jump to level" dropdown -- same way it once hid
-           part of the Filter dropdown for .ribbon. Never showed visibly until
-           this new dropdown grew tall enough to extend into that overlap.
-           Explicit position+z-index makes this row's stacking context --
-           dropdowns included -- reliably paint above the tree panel after it.
-        */
         position: relative;
         z-index: 400;
-    }
-    .tree-actions-left {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex-wrap: wrap;
     }
 
     .toolbar {
@@ -1478,6 +1441,29 @@
         background: var(--danger-dim);
         border-color: rgba(240, 85, 106, 0.4);
     }
+    .btn.btn-icon-danger,
+    .btn-icon-danger {
+        padding: 7px 10px;
+        color: var(--danger);
+        border-color: rgba(240, 85, 106, 0.35);
+        background: rgba(240, 85, 106, 0.04);
+        justify-content: center;
+    }
+    .btn.btn-icon-danger:hover,
+    .btn-icon-danger:hover {
+        background: var(--danger-dim);
+        border-color: var(--danger);
+        color: var(--danger);
+        box-shadow: 0 0 0 4px rgba(240, 85, 106, 0.15);
+    }
+    .btn.btn-icon-danger svg,
+    .btn-icon-danger svg {
+        color: var(--danger);
+    }
+    .btn.btn-icon-danger span,
+    .btn-icon-danger span {
+        display: none !important;
+    }
     .btn:disabled {
         opacity: .4;
         cursor: not-allowed;
@@ -1499,45 +1485,12 @@
     }
 
     /* ================================================================
-       MODULE: tree.css — Tree panel, Danger Zone, rows, health dots, badges,
+       MODULE: tree.css — Tree panel, rows, health dots, badges,
        toggle/expand controls, row actions, and the right-click context menu
        ================================================================ */
     .tree-panel {
         padding: 8px;
         animation: rise .5s ease .1s both;
-    }
-    .danger-zone {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin-top: 10px;
-        padding: 10px 14px;
-        border-radius: 12px;
-        border: 1px solid rgba(240, 85, 106, 0.25);
-        background: linear-gradient(155deg, rgba(240, 85, 106, 0.08), rgba(240, 85, 106, 0.02));
-    }
-    .danger-zone-label {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: var(--danger);
-        font-size: 11.5px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: .05em;
-        opacity: .85;
-    }
-    .danger-zone-label svg {
-        width: 16px;
-        height: 16px;
-        flex-shrink: 0;
-    }
-    .danger-zone-actions {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
     }
     .empty-state {
         display: flex;
@@ -2479,6 +2432,315 @@
         }
         .node-sub {
             display: none;
+        }
+        .node-row .node-actions {
+            opacity: 1;
+        }
+    }
+
+    @media (max-width: 760px) {
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            width: 100%;
+        }
+        .stat-pill {
+            min-width: 0;
+            padding: 6px 8px;
+            border-radius: 8px;
+            gap: 0;
+            align-items: flex-start;
+        }
+        .stat-pill b {
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 1.2;
+        }
+        .stat-pill span {
+            font-size: 9px;
+            color: var(--text-2);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+            line-height: 1.2;
+        }
+        .visible-legend {
+            justify-content: flex-start;
+            gap: 4px 10px;
+            font-size: 10px;
+        }
+        .visible-legend-item {
+            font-size: 10px;
+        }
+        .visible-legend-item b {
+            font-size: 11px;
+        }
+        #sapValidationBtn span,
+        #importBtn span,
+        #exportBtn span,
+        #readableReportBtn span,
+        #resetImportBtn span,
+        #resetBlankBtn span,
+        #shortcutsBtn span,
+        #diagnosticsBtn span,
+        #compareBtn span,
+        #grammarDictBtn span,
+        #mcRemoveBtn span,
+        #selectModeBtn span,
+        #expandAllBtn span,
+        #collapseAllBtn span,
+        #levelJumpMenuBtn span,
+        #addPlantBtn span,
+        #tcTabUploadBtn span,
+        #tcMaterialTabUploadBtn span,
+        #tcFLTabUploadBtn span,
+        #mcUploadBtn span {
+            display: none;
+        }
+        #shortcutsBtn,
+        #diagnosticsBtn,
+        #compareBtn,
+        #grammarDictBtn,
+        #mcRemoveBtn,
+        #tcTabUploadBtn,
+        #tcMaterialTabUploadBtn,
+        #tcFLTabUploadBtn,
+        #mcUploadBtn {
+            padding: 8px;
+            width: 34px;
+            justify-content: center;
+        }
+        .ribbon-tabs {
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            gap: 4px;
+            padding: 3px;
+        }
+        .ribbon-tab span {
+            display: none;
+        }
+        .ribbon-tab {
+            flex: 1 1 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 4px;
+            font-size: 16px;
+            min-width: 0;
+        }
+        .ribbon-panel.active {
+            gap: 8px;
+        }
+        .toolbar-left,
+        .toolbar-right {
+            flex: 1 1 100%;
+            width: 100%;
+        }
+        .toolbar-left {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 6px;
+        }
+        .search-wrap {
+            min-width: 0;
+            flex: 1 1 auto;
+            max-width: none;
+        }
+        .search-wrap input {
+            font-size: 13px;
+        }
+        #filterMenu {
+            flex: 0 0 auto;
+        }
+        #filterMenuBtn {
+            padding: 8px 10px;
+            white-space: nowrap;
+        }
+        .toolbar-right {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-around;
+            gap: 6px;
+            flex-wrap: nowrap;
+        }
+        .export-group {
+            display: contents;
+        }
+        .export-group-title {
+            display: none;
+        }
+        .export-group-buttons {
+            display: contents;
+        }
+        #sapValidationBtn,
+        #importBtn,
+        #exportBtn,
+        #readableReportBtn,
+        #resetImportBtn,
+        #resetBlankBtn {
+            flex: 1 1 0;
+            width: auto;
+            min-width: 0;
+            padding: 8px 4px;
+            justify-content: center;
+        }
+        .tree-actions-group {
+            padding-top: 6px;
+            gap: 6px;
+        }
+        .tree-actions-left {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            gap: 6px;
+            width: 100%;
+        }
+        .tree-actions-left > button {
+            flex: 1 1 0;
+            width: auto;
+            min-width: 0;
+            padding: 8px 4px;
+            justify-content: center;
+        }
+        .tree-actions-left > .filter-menu {
+            flex: 1 1 0;
+            width: auto;
+            min-width: 0;
+        }
+        .tree-actions-left .filter-menu-btn {
+            width: 100%;
+            padding: 8px 4px;
+            justify-content: center;
+        }
+        .tree-actions-left > button > svg,
+        .tree-actions-left .filter-menu-btn svg {
+            margin: 0 auto;
+        }
+    }
+
+    .row-action-menu {
+        position: fixed;
+        background: var(--panel-solid, #1a1a2e);
+        border: 1px solid var(--panel-border-strong, rgba(255, 255, 255, 0.15));
+        border-radius: 12px;
+        padding: 6px;
+        min-width: 150px;
+        z-index: 99999;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+    .row-action-item {
+        border: none;
+        background: transparent;
+        color: var(--text-1);
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 13px;
+        font-weight: 500;
+        font-family: inherit;
+        cursor: pointer;
+        text-align: left;
+        transition: background .12s ease, color .12s ease;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        min-height: 38px;
+        box-sizing: border-box;
+    }
+    .row-action-item:hover, .row-action-item:active {
+        background: var(--accent-dim);
+        color: var(--text-0);
+    }
+    .row-action-item.danger {
+        color: var(--danger, #f0556a);
+    }
+    .row-action-item.danger:hover, .row-action-item.danger:active {
+        background: var(--danger-dim, rgba(240, 85, 106, 0.12));
+        color: var(--danger, #f0556a);
+    }
+
+    /* ================================================================
+       MOBILE EDIT SHEET: Scoped specifically to #editModalOverlay at <=760px
+       Transforms the standard desktop modal into a touch-friendly bottom sheet.
+       ================================================================ */
+    @keyframes slideUpSheet {
+        from {
+            opacity: 0;
+            transform: translateY(100%);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @media (max-width: 760px) {
+        #editModalOverlay {
+            align-items: flex-end;
+            padding: 0;
+        }
+        #editModalOverlay .modal {
+            width: 100%;
+            max-width: none;
+            max-height: 92vh;
+            height: auto;
+            border-radius: 16px 16px 0 0;
+            margin: 0;
+            padding: 20px 18px 0;
+            overflow-y: auto;
+            animation: none;
+            box-sizing: border-box;
+        }
+        #editModalOverlay.open .modal {
+            animation: slideUpSheet 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        #editModalOverlay .modal-actions {
+            position: sticky;
+            bottom: 0;
+            background: var(--panel-solid);
+            padding-top: 12px;
+            margin-top: 12px;
+            border-top: 1px solid var(--panel-border);
+            padding-bottom: max(12px, env(safe-area-inset-bottom));
+            z-index: 10;
+            display: flex;
+            gap: 10px;
+        }
+        #editModalOverlay .modal-actions .btn {
+            flex: 1;
+            min-height: 44px;
+            padding: 12px 14px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #editModalOverlay .field {
+            margin-bottom: 18px;
+        }
+        #editModalOverlay .field label {
+            font-size: 12.5px;
+            margin-bottom: 7px;
+        }
+        #editModalOverlay .field input,
+        #editModalOverlay .field select,
+        #editModalOverlay .field textarea {
+            font-size: 16px; /* Prevents iOS Safari auto-zoom-on-focus */
+            padding: 12px 14px;
+            min-height: 44px;
+            box-sizing: border-box;
+            border-radius: 10px;
+        }
+        #editModalOverlay .hierarchy-bar .hierarchy-select {
+            font-size: 16px;
+            min-height: 44px;
+            padding: 10px 12px;
         }
     }
 
@@ -3914,41 +4176,6 @@
         padding: 6px 12px;
         margin-bottom: 8px;
     }
-    html[data-density="tight"] .brand {
-        gap: 8px;
-    }
-    html[data-density="tight"] .logo-slot {
-        min-width: 32px;
-        min-height: 32px;
-        max-height: 40px;
-        max-width: 100px;
-        padding: 2px;
-        border-radius: 8px;
-    }
-    html[data-density="tight"] .logo-slot img {
-        max-height: 32px;
-    }
-    html[data-density="tight"] .logo-slot .placeholder-icon {
-        width: 15px;
-        height: 15px;
-    }
-    html[data-density="tight"] .logo-upload-btn,
-    html[data-density="tight"] .logo-remove-btn {
-        width: 15px;
-        height: 15px;
-    }
-    html[data-density="tight"] .logo-upload-btn svg,
-    html[data-density="tight"] .logo-remove-btn svg {
-        width: 8px;
-        height: 8px;
-    }
-    html[data-density="tight"] .brand-text .eyebrow {
-        font-size: 8.5px;
-        margin: 0 0 1px;
-    }
-    html[data-density="tight"] .brand-text h1 {
-        font-size: 14px;
-    }
     html[data-density="tight"] .header-right {
         gap: 6px;
     }
@@ -4152,6 +4379,22 @@
     html[data-density="tight"] .stat-pill span {
         font-size: 8.5px;
     }
+    html[data-density="tight"] .ribbon {
+        gap: 8px;
+        padding: 4px 10px;
+        margin-bottom: 4px;
+    }
+    html[data-density="tight"] .ribbon-tab {
+        padding: 4px 10px;
+        font-size: 11.5px;
+    }
+    html[data-density="tight"] .tree-actions-group {
+        gap: 6px;
+        padding-top: 3px;
+    }
+    html[data-density="tight"] .tree-actions-left {
+        gap: 6px;
+    }
     html[data-density="tight"] .tree-actions-row {
         gap: 6px;
         padding: 2px 10px;
@@ -4205,59 +4448,19 @@
     <div id="app">
 
         <header class="topbar glass">
-            <div class="brand">
-                <div class="logo-slot" id="logoSlot" title="Upload company logo" data-module-section="MODULE_LOGO">
-                    <svg class="placeholder-icon" id="logoPlaceholderIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 8a2 2 0 0 1 2-2h1.2a2 2 0 0 0 1.66-.9l.5-.75A2 2 0 0 1 11.02 3.5h1.96a2 2 0 0 1 1.66.9l.5.75a2 2 0 0 0 1.66.9H18a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8Z"/><circle cx="12" cy="13" r="3.3"/></svg>
-                    <img id="logoImg" style="display:none" alt="Company logo">
-                    <button class="logo-remove-btn" id="logoRemoveBtn" title="Remove logo" aria-label="Remove logo" style="display:none;">&#x2715;</button>
-                    <button class="logo-upload-btn" id="logoUploadBtn" title="Change logo" aria-label="Upload logo">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
-                    </button>
-                </div>
-                <div class="brand-text">
-                    <p class="eyebrow" data-i18n="eyebrow">Master Data Explorer</p>
-                    <h1 data-i18n="companyName">Qaiwan Steel Factory</h1>
-                </div>
-            </div>
-
-            <div class="header-right">
+            <div class="header-left">
                 <div class="stats-row" id="statsRow" data-module-section="MODULE_RENDER"></div>
-                <div class="theme-switcher" id="themeSwitcher">
-                    <button class="theme-dropdown-btn" id="themeDropdownBtn" aria-haspopup="true" aria-expanded="false">
-                        <span id="themeDropdownLabel">Glassy</span>
-                        <span class="td-arrow">▼</span>
-                    </button>
-                    <div class="theme-dropdown-menu" id="themeDropdownMenu" role="menu">
-                        <button class="theme-dropdown-item active" data-theme-style="glassy" role="menuitem">● Glassy</button>
-                        <button class="theme-dropdown-item" data-theme-style="claude" role="menuitem">● Claude</button>
-                        <div class="theme-dropdown-sep"></div>
-                        <button class="theme-dropdown-item" data-theme-style="dark-slate" role="menuitem">● Dark Slate</button>
-                        <button class="theme-dropdown-item" data-theme-style="warm-sand" role="menuitem">● Warm Sand</button>
-                        <button class="theme-dropdown-item" data-theme-style="purple" role="menuitem">● Purple</button>
-                        <button class="theme-dropdown-item" data-theme-style="mono" role="menuitem">● Mono</button>
-                        <button class="theme-dropdown-item" data-theme-style="teal" role="menuitem">● Teal</button>
-                        <button class="theme-dropdown-item" data-theme-style="wide" role="menuitem">● Wide</button>
-                    </div>
-                </div>
-                <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme" data-module-section="MODULE_THEME">&#x1F319; Dark</button>
-                <button class="density-toggle" id="densityToggleBtn" aria-label="Toggle density" data-module-section="MODULE_DENSITY">
-                    <span class="density-track"><span class="density-thumb"></span></span>
-                    <span id="densityToggleLabel">Wide</span>
-                </button>
-                <div class="lang-switch" id="langSwitch" role="group" aria-label="Language" data-module-section="MODULE_LANGUAGE">
-                    <button data-lang="en" class="active">EN</button>
-                    <button data-lang="ar">AR</button>
-                    <button data-lang="ckb">CKB</button>
-                </div>
+            </div>
+            <div class="header-right">
             </div>
         </header>
 
         <div class="ribbon glass">
             <div class="ribbon-tabs" role="tablist">
-                <button class="ribbon-tab active" data-ribbon-tab="home" role="tab" aria-selected="true">&#x1F3E0; Home</button>
-                <button class="ribbon-tab" data-ribbon-tab="templatechecker" role="tab" aria-selected="false">&#x1F9FE; Template Checker</button>
-                <button class="ribbon-tab" data-ribbon-tab="materialchecker" role="tab" aria-selected="false">&#x1F529; Material Checker</button>
-                <button class="ribbon-tab" data-ribbon-tab="tools" role="tab" aria-selected="false">&#x1F6E0; Tools</button>
+                <button class="ribbon-tab active" data-ribbon-tab="home" role="tab" aria-selected="true" title="Home" aria-label="Home">&#x1F3E0;<span> Home</span></button>
+                <button class="ribbon-tab" data-ribbon-tab="templatechecker" role="tab" aria-selected="false" title="Template Checker" aria-label="Template Checker">&#x1F9FE;<span> Template Checker</span></button>
+                <button class="ribbon-tab" data-ribbon-tab="materialchecker" role="tab" aria-selected="false" title="Material Checker" aria-label="Material Checker">&#x1F529;<span> Material Checker</span></button>
+                <button class="ribbon-tab" data-ribbon-tab="tools" role="tab" aria-selected="false" title="Tools" aria-label="Tools">&#x1F6E0;<span> Tools</span></button>
             </div>
 
             <!-- HOME: everyday actions -- search/filter, add plant, SAP section, Import & Export -->
@@ -4310,7 +4513,7 @@
                     <div class="export-group" data-module-section="MODULE_SAP_VALIDATION">
                         <div class="export-group-title">SAP</div>
                         <div class="export-group-buttons">
-                            <button class="btn primary" id="sapValidationBtn" style="background:linear-gradient(155deg, #2563c9, #1d4ed8); border-color:transparent; color:#fff; box-shadow:0 8px 20px -8px rgba(37,99,201,0.55);">
+                            <button class="btn primary" id="sapValidationBtn" title="SAP Validation" aria-label="SAP Validation" style="background:linear-gradient(155deg, #2563c9, #1d4ed8); border-color:transparent; color:#fff; box-shadow:0 8px 20px -8px rgba(37,99,201,0.55);">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 11 2 2 4-4"/></svg>
                                 <span>SAP Validation</span>
                             </button>
@@ -4320,23 +4523,33 @@
                     <div class="export-group" data-module-section="MODULE_EXPORT">
                         <div class="export-group-title" data-i18n="exportGroupTitle">Import &amp; Export</div>
                         <div class="export-group-buttons">
-                            <button class="btn import-green" id="importBtn">
+                            <button class="btn import-green" id="importBtn" title="Import Excel" aria-label="Import Excel">
                                 <svg class="icon-default" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
                                 <svg class="icon-dark-slate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v4h16v-4"/></svg>
                                 <span data-i18n="importExcel">Import Excel</span>
                             </button>
-                            <button class="btn primary" id="exportBtn">
+                            <button class="btn primary" id="exportBtn" title="Export Current View" aria-label="Export Current View">
                                 <svg class="icon-default" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21V9m0 0 4 4m-4-4-4 4M4 7V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2"/></svg>
                                 <svg class="icon-dark-slate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"><path d="M12 21V9m0 0 4 4m-4-4-4 4M4 7V3h16v4"/></svg>
                                 <span data-i18n="exportExcel">Export Current View</span>
                             </button>
-                            <button class="btn" id="readableReportBtn">
+                            <button class="btn" id="readableReportBtn" title="Readable Report" aria-label="Readable Report">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h6M8 16h4"/></svg>
                                 <span data-i18n="readableReport">Readable Report</span>
                             </button>
                             <button class="btn small" id="viewDiagnosticsBtn" style="display:none;" title="View last import diagnostics">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5m0 3h.01"/></svg>
                                 <span>View diagnostics</span>
+                            </button>
+                            <button class="btn btn-icon-danger" id="resetImportBtn" title="Reset to Last Import" aria-label="Reset to Last Import">
+                                <svg class="icon-default" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/></svg>
+                                <svg class="icon-dark-slate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"><path d="M7 3h10l4 4v10l-4 4H7l-4-4V7Z M9 10h4l-1.5-1.5M13 14H9l1.5 1.5"/></svg>
+                                <span data-i18n="resetImport">Reset to Last Import</span>
+                            </button>
+                            <button class="btn btn-icon-danger" id="resetBlankBtn" title="Reset to Blank" aria-label="Reset to Blank">
+                                <svg class="icon-default" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6L18 18M18 6L6 18"/></svg>
+                                <svg class="icon-dark-slate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"><path d="M12 3 20 12 12 21 4 12 Z M9 9l6 6M15 9l-6 6"/></svg>
+                                <span data-i18n="resetBlank">Reset to Blank</span>
                             </button>
                         </div>
                     </div>
@@ -4346,16 +4559,16 @@
             <!-- TEMPLATE CHECKER: Equipment (Step 2) + Material (Step 5) upload-check features -->
             <div class="ribbon-panel" data-ribbon-panel="templatechecker">
                 <div class="toolbar-left">
-                    <button class="btn primary" id="tcTabUploadBtn" title="Upload a raw SAP Equipment upload template and see what's new, highlighted right in the tree">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4M12 3l8 4v5c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V7l8-4z"/></svg>
+                    <button class="btn primary" id="tcTabUploadBtn" title="Upload a raw SAP Equipment upload template and see what's new, highlighted right in the tree" aria-label="Check Equipment Template">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.4-3.4a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z"/></svg>
                         <span>Check Equipment Template</span>
                     </button>
-                    <button class="btn primary" id="tcMaterialTabUploadBtn" title="Upload a raw SAP Material BOM upload template and see what's new, highlighted right in the tree">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4M12 3l8 4v5c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V7l8-4z"/></svg>
+                    <button class="btn primary" id="tcMaterialTabUploadBtn" title="Upload a raw SAP Material BOM upload template and see what's new, highlighted right in the tree" aria-label="Check Material Template">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8v8a2 2 0 0 1-1 1.7l-7 4a2 2 0 0 1-2 0l-7-4A2 2 0 0 1 3 16V8a2 2 0 0 1 1-1.7l7-4a2 2 0 0 1 2 0l7 4A2 2 0 0 1 21 8Z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/></svg>
                         <span>Check Material Template</span>
                     </button>
-                    <button class="btn primary" id="tcFLTabUploadBtn" title="Upload a raw SAP Functional Location upload template and see what's new, highlighted right in the tree">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4M12 3l8 4v5c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V7l8-4z"/></svg>
+                    <button class="btn primary" id="tcFLTabUploadBtn" title="Upload a raw SAP Functional Location upload template and see what's new, highlighted right in the tree" aria-label="Check F.L. Template">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
                         <span>Check F.L. Template</span>
                     </button>
                 </div>
@@ -4365,11 +4578,11 @@
                  exact-duplicate / near-duplicate / grammar issues in descriptions. -->
             <div class="ribbon-panel" data-ribbon-panel="materialchecker">
                 <div class="toolbar-left">
-                    <button class="btn primary" id="mcUploadBtn" title="Upload a raw SAP material master list and analyze descriptions for duplicates and grammar issues">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4M12 3l8 4v5c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V7l8-4z"/></svg>
+                    <button class="btn primary" id="mcUploadBtn" title="Upload a raw SAP material master list and analyze descriptions for duplicates and grammar issues" aria-label="Upload Material List">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8v8a2 2 0 0 1-1 1.7l-7 4a2 2 0 0 1-2 0l-7-4A2 2 0 0 1 3 16V8a2 2 0 0 1 1-1.7l7-4a2 2 0 0 1 2 0l7 4A2 2 0 0 1 21 8Z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/></svg>
                         <span>Upload Material List</span>
                     </button>
-                    <button class="btn small" id="mcRemoveBtn" title="Remove the uploaded material list and clear this analysis" style="display:none;">
+                    <button class="btn small" id="mcRemoveBtn" title="Remove the uploaded material list and clear this analysis" aria-label="Remove file" style="display:none;">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m2 0v14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V6h12z"/></svg>
                         <span>Remove file</span>
                     </button>
@@ -4405,8 +4618,58 @@
                 </div>
             </div>
 
+            <!-- Always visible Tree actions & Danger zone merged into Row 2 -->
+            <div class="tree-actions-group">
+                <div class="tree-actions-left">
+                    <button class="btn small icon-only" id="undoBtn" title="Undo (Ctrl+Z)" aria-label="Undo" disabled data-module-section="MODULE_HISTORY">
+                        <svg class="icon-default" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 14 4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+                        <svg class="icon-dark-slate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"><path d="M9 14 4 9l5-5M4 9h11l3 3v4l-3 3h-5"/></svg>
+                    </button>
+                    <button class="btn small icon-only" id="redoBtn" title="Redo (Ctrl+Shift+Z)" aria-label="Redo" disabled>
+                        <svg class="icon-default" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m15 14 5-5-5-5M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg>
+                        <svg class="icon-dark-slate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"><path d="m15 14 5-5-5-5M20 9H9l-3 3v4l3 3h4"/></svg>
+                    </button>
+                    <button class="btn small" id="expandAllBtn" title="Expand all" aria-label="Expand all">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 6 5 5 5-5M7 13l5 5 5-5"/></svg>
+                        <span data-i18n="expandAll">Expand all</span>
+                    </button>
+                    <button class="btn small" id="collapseAllBtn" title="Collapse all" aria-label="Collapse all">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 18 5-5 5 5M7 11l5-5 5 5"/></svg>
+                        <span data-i18n="collapseAll">Collapse all</span>
+                    </button>
+                    <div class="filter-menu" id="levelJumpMenu">
+                        <button class="btn small filter-menu-btn" id="levelJumpMenuBtn" aria-haspopup="true" aria-expanded="false" title="Jump to level" aria-label="Jump to level">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 2 10 6-10 6L2 8l10-6z"/><path d="m2 13 10 6 10-6"/></svg>
+                            <span data-i18n="levelJumpBtn">Jump to level</span>
+                        </button>
+                        <div class="filter-panel" id="levelJumpPanel">
+                            <div class="filter-panel-section">
+                                <div class="filter-panel-chips">
+                                    <button class="btn small" id="expandLevel2Btn" data-i18n="expandLevel2">Level 2</button>
+                                    <button class="btn small" id="expandLevel3Btn" data-i18n="expandLevel3">Level 3</button>
+                                    <button class="btn small" id="expandLevel4Btn" data-i18n="expandLevel4">Level 4</button>
+                                    <button class="btn small" id="expandEquipmentBtn" data-i18n="expandEquipment">Equipment</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn small" id="addPlantBtn" title="Add plant" aria-label="Add plant">
+                        <svg class="icon-default" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                        <svg class="icon-dark-slate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"><path d="M12 3 19 7 19 17 12 21 5 17 5 7 Z M12 9v6M9 12h6"/></svg>
+                        <span data-i18n="addPlant">Add plant</span>
+                    </button>
+                    <button class="btn small" id="selectModeBtn" title="Select" aria-label="Select">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                        <span data-i18n="selectMode">Select</span>
+                    </button>
+                    <button class="btn small ghost-danger" id="bulkDeleteBtn" style="display:none;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16Z"/></svg>
+                        <span id="bulkDeleteBtnLabel"></span>
+                    </button>
+                </div>
+            </div>
+
             <input type="file" id="importFileInput" accept=".xlsx,.xls">
-            <input type="file" id="logoFileInput" accept="image/png,image/jpeg">
             <input type="file" id="templateCheckFileInput" accept=".xlsx,.xls">
             <input type="file" id="materialTemplateCheckFileInput" accept=".xlsx,.xls">
             <input type="file" id="flTemplateCheckFileInput" accept=".xlsx,.xls">
@@ -4430,90 +4693,6 @@
         </div>
 
         <div id="tcFileList" style="display:none; margin-bottom:8px;"></div>
-
-        <div class="tree-actions-row glass">
-            <div class="tree-actions-left">
-                <button class="btn small icon-only" id="undoBtn" title="Undo (Ctrl+Z)" aria-label="Undo" disabled data-module-section="MODULE_HISTORY">
-                    <svg class="icon-default" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 14 4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
-                    <svg class="icon-dark-slate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"><path d="M9 14 4 9l5-5M4 9h11l3 3v4l-3 3h-5"/></svg>
-                </button>
-                <button class="btn small icon-only" id="redoBtn" title="Redo (Ctrl+Shift+Z)" aria-label="Redo" disabled>
-                    <svg class="icon-default" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m15 14 5-5-5-5M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg>
-                    <svg class="icon-dark-slate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"><path d="m15 14 5-5-5-5M20 9H9l-3 3v4l3 3h4"/></svg>
-                </button>
-                <button class="btn small" id="expandAllBtn" data-i18n="expandAll">Expand all</button>
-                <button class="btn small" id="collapseAllBtn" data-i18n="collapseAll">Collapse all</button>
-                <!-- Jump to Level Panel Project. Reuses the exact dropdown pattern/CSS
-                     classes the Filter menu already uses (.filter-menu/.filter-menu-btn/
-                     .filter-panel/etc.) -- see filterMenuBtn/filterPanel for the
-                     toggle-open/outside-click-close JS this borrows. Deliberately separate
-                     from Expand All/Collapse All above, not replacing them. Originally
-                     built as 10 buttons (5 Expand + 5 Collapse), but since every button is
-                     an absolute reset, "Collapse Level N" and "Expand Level N" always landed
-                     on the exact same result -- so the 5 Collapse buttons were removed as
-                     redundant. Just 5 buttons now: Level 1-4 and Equipment, each jumping the
-                     tree straight to that depth. -->
-                <div class="filter-menu" id="levelJumpMenu">
-                    <button class="btn small filter-menu-btn" id="levelJumpMenuBtn" aria-haspopup="true" aria-expanded="false">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-                        <span data-i18n="levelJumpBtn">Jump to level</span>
-                    </button>
-                    <div class="filter-panel" id="levelJumpPanel">
-                        <div class="filter-panel-section">
-                            <div class="filter-panel-chips">
-                                <button class="btn small" id="expandLevel2Btn" data-i18n="expandLevel2">Level 2</button>
-                                <button class="btn small" id="expandLevel3Btn" data-i18n="expandLevel3">Level 3</button>
-                                <button class="btn small" id="expandLevel4Btn" data-i18n="expandLevel4">Level 4</button>
-                                <button class="btn small" id="expandEquipmentBtn" data-i18n="expandEquipment">Equipment</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <button class="btn small" id="addPlantBtn">
-                    <svg class="icon-default" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-                    <svg class="icon-dark-slate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"><path d="M12 3 19 7 19 17 12 21 5 17 5 7 Z M12 9v6M9 12h6"/></svg>
-                    <span data-i18n="addPlant">Add plant</span>
-                </button>
-                <!-- Multi-Select Delete Project, Step 1: toggles select mode on the tree.
-                     While active, rows show a checkbox instead of their normal per-row
-                     Edit/Delete/Add buttons. Bulk delete button (Step 3) will appear here
-                     too, once something's checked. -->
-                <button class="btn small" id="selectModeBtn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-                    <span data-i18n="selectMode">Select</span>
-                </button>
-                <!-- Multi-Select Delete Project, Step 3: bulk delete button. Hidden by
-                     default (inline style, matching the guard in
-                     tcUpdateBulkDeleteButton() below) -- only shown once select mode is
-                     active AND at least one node is checked. Label text (with the live
-                     "(N)" count) is set entirely in JS via t('deleteSelected', {n}),
-                     not data-i18n, since data-i18n's applyStaticI18n() only does static
-                     textContent with no variable substitution. No click handler yet --
-                     that's Step 4. -->
-                <button class="btn small ghost-danger" id="bulkDeleteBtn" style="display:none;">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16Z"/></svg>
-                    <span id="bulkDeleteBtnLabel"></span>
-                </button>
-            </div>
-            <div class="danger-zone" data-module-section="MODULE_IMPORT">
-                <div class="danger-zone-label">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
-                    <span data-i18n="dangerZone">Danger Zone</span>
-                </div>
-                <div class="danger-zone-actions">
-                    <button class="btn small ghost-danger" id="resetImportBtn">
-                        <svg class="icon-default" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/></svg>
-                        <svg class="icon-dark-slate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"><path d="M7 3h10l4 4v10l-4 4H7l-4-4V7Z M9 10h4l-1.5-1.5M13 14H9l1.5 1.5"/></svg>
-                        <span data-i18n="resetImport">Reset to Last Import</span>
-                    </button>
-                    <button class="btn small ghost-danger" id="resetBlankBtn">
-                        <svg class="icon-default" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6L18 18M18 6L6 18"/></svg>
-                        <svg class="icon-dark-slate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"><path d="M12 3 20 12 12 21 4 12 Z M9 9l6 6M15 9l-6 6"/></svg>
-                        <span data-i18n="resetBlank">Reset to Blank</span>
-                    </button>
-                </div>
-            </div>
-        </div>
 
         <div class="tree-panel glass" data-module-section="MODULE_RENDER">
             <div class="visible-legend" id="visibleLegend" style="display:none;"></div>
@@ -5111,9 +5290,7 @@
                 ],
                 dependencies: ['MODULE_TREE', 'MODULE_SEARCH', 'MODULE_GLOBALS', 'MODULE_UTILITIES'],
                 usedBy: ['MODULE_STARTUP', 'MODULE_IMPORT', 'MODULE_DRAG_DROP'],
-                htmlElements: ['#treeScroll', '#treeSpacer', '#emptyState', '#statsRow', '#resetImportBtn',
-                    '#resetBlankBtn'
-                ],
+                htmlElements: ['#treeScroll', '#treeSpacer', '#emptyState', '#statsRow', '#visibleLegend'],
                 version: '1.0',
                 status: 'Stable',
                 lineRange: 'After MODULE_TREE'
@@ -5135,13 +5312,11 @@
             MODULE_IMPORT: {
                 id: 'MODULE_IMPORT',
                 name: 'Excel Import Engine',
-                purpose: 'Imports Excel files, builds the tree, and provides the reset actions (Danger Zone).',
+                purpose: 'Imports Excel files, builds the tree, and provides the reset actions.',
                 functions: ['doImportFile', 'initImportReset'],
                 dependencies: ['MODULE_PARSER', 'MODULE_TREE', 'MODULE_RENDER', 'MODULE_DIALOGS', 'MODULE_HISTORY'],
                 usedBy: ['MODULE_STARTUP'],
-                htmlElements: ['#importBtn', '#importFileInput', '#addPlantBtn', '#resetImportBtn', '#resetBlankBtn',
-                    '.danger-zone'
-                ],
+                htmlElements: ['#importBtn', '#importFileInput', '#addPlantBtn', '#resetImportBtn', '#resetBlankBtn'],
                 version: '1.0',
                 status: 'Stable',
                 lineRange: 'After MODULE_SEARCH'
@@ -5299,27 +5474,13 @@
                 status: 'Stable',
                 lineRange: 'After MODULE_WIZARD'
             },
-            MODULE_LOGO: {
-                id: 'MODULE_LOGO',
-                name: 'Logo Upload Manager',
-                purpose: 'Handles company logo upload, display, and removal.',
-                functions: ['loadLogo', 'initLogoUpload'],
-                dependencies: ['MODULE_UTILITIES', 'MODULE_DIALOGS', 'MODULE_STORAGE'],
-                usedBy: ['MODULE_STARTUP'],
-                htmlElements: ['#logoSlot', '#logoImg', '#logoPlaceholderIcon', '#logoUploadBtn', '#logoRemoveBtn',
-                    '#logoFileInput'
-                ],
-                version: '1.0',
-                status: 'Stable',
-                lineRange: 'After MODULE_DIALOGS'
-            },
             MODULE_STORAGE: {
                 id: 'MODULE_STORAGE',
                 name: 'Persistence Layer',
                 purpose: 'Saves and loads application state from localStorage.',
                 functions: ['saveTree', 'saveBackup', 'loadTree', 'loadBackup'],
                 dependencies: [],
-                usedBy: ['MODULE_THEME', 'MODULE_LANGUAGE', 'MODULE_TREE', 'MODULE_HISTORY', 'MODULE_LOGO',
+                usedBy: ['MODULE_THEME', 'MODULE_LANGUAGE', 'MODULE_TREE', 'MODULE_HISTORY',
                     'MODULE_COMPARE'
                 ],
                 htmlElements: [],
@@ -7215,7 +7376,6 @@
                 'MODULE_HISTORY',
                 'MODULE_WIZARD',
                 'MODULE_DIALOGS',
-                'MODULE_LOGO',
                 'MODULE_REGRESSION',
                 'MODULE_DEVELOPER'
             ];
@@ -7405,8 +7565,7 @@
 
         const I18N = {
             en: {
-                eyebrow: 'Master Data Explorer',
-                companyName: 'Qaiwan Steel Factory',
+                companyName: 'QSK Master Data Explorer',
                 searchPlaceholder: 'Search by name, description, or ID…',
                 chipPlant: 'Plant',
                 chipFL: 'F.L',
@@ -7455,6 +7614,12 @@
                 materialRows: 'Material rows',
                 uniqueMaterials: 'Unique materials',
                 bomCount: 'BOM count',
+                visLegendNodes: 'Nodes',
+                visLegendFls: 'F.Ls',
+                visLegendEquip: 'Equip',
+                visLegendMaterial: 'Material',
+                visLegendUniqueMat: 'Unique mat.',
+                visLegendBom: 'BOM',
                 visibleLabel: 'visible',
                 typePlant: 'Plant',
                 typeFL: 'Functional Location',
@@ -7736,8 +7901,7 @@
                 regClear: 'Clear Results',
             },
             ar: {
-                eyebrow: 'مستكشف البيانات الرئيسية',
-                companyName: 'مصنع قيوان للصلب',
+                companyName: 'QSK مستكشف البيانات الرئيسية',
                 searchPlaceholder: 'ابحث بالاسم أو الوصف أو المعرف…',
                 chipPlant: 'المصنع',
                 chipFL: 'F.L',
@@ -7776,6 +7940,12 @@
                 materialRows: 'صفوف المواد',
                 uniqueMaterials: 'مواد فريدة',
                 bomCount: 'عدد قوائم المواد',
+                visLegendNodes: 'عقد',
+                visLegendFls: 'مواقع وظيفية',
+                visLegendEquip: 'معدات',
+                visLegendMaterial: 'مواد',
+                visLegendUniqueMat: 'مواد فريدة',
+                visLegendBom: 'قوائم مواد',
                 visibleLabel: 'مرئي',
                 typePlant: 'مصنع',
                 typeFL: 'موقع وظيفي',
@@ -8055,8 +8225,7 @@
                 regClear: 'مسح النتائج',
             },
             ckb: {
-                eyebrow: 'گەڕیدەی داتای سەرەکی',
-                companyName: 'کارگەی پۆڵای قەیوان',
+                companyName: 'QSK گەڕیدەی داتای سەرەکی',
                 searchPlaceholder: 'بگەڕێ بەپێی ناو، وەسف، یان ناسنامە…',
                 chipPlant: 'کارگە',
                 chipFL: 'F.L',
@@ -8095,6 +8264,12 @@
                 materialRows: 'ڕیزی ماددەکان',
                 uniqueMaterials: 'ماددە جیاوازەکان',
                 bomCount: 'ژمارەی لیستی ماددە',
+                visLegendNodes: 'گرێکان',
+                visLegendFls: 'شوێنە فەنکشنەکان',
+                visLegendEquip: 'ئامێرەکان',
+                visLegendMaterial: 'ماددەکان',
+                visLegendUniqueMat: 'ماددە جیاوازەکان',
+                visLegendBom: 'لیستی ماددە',
                 visibleLabel: 'بینراو',
                 typePlant: 'کارگە',
                 typeFL: 'شوێنی فەنکشن',
@@ -8414,13 +8589,44 @@
 
         // Wires up the language switcher control.
         function initLangSwitch() {
-            document.getElementById('langSwitch').addEventListener('click', (e) => {
-                const btn = e.target.closest('button[data-lang]');
-                if (btn) setLocale(btn.dataset.lang);
-            });
+            const langEl = document.getElementById('langSwitch');
+            if (langEl) {
+                langEl.addEventListener('click', (e) => {
+                    const btn = e.target.closest('button[data-lang]');
+                    if (btn) setLocale(btn.dataset.lang);
+                });
+            }
             let saved = 'en';
             try { saved = localStorage.getItem(LS_LANG_KEY) || 'en'; } catch (e) {}
             setLocale(saved);
+        }
+
+        // Listen for messages from parent window (QSF Settings)
+        window.addEventListener('message', (e) => {
+            if (e.origin !== window.location.origin || e.data?.source !== 'qsf-settings') return;
+            switch (e.data.type) {
+                case 'SET_THEME':
+                    if (typeof setTheme === 'function' && typeof e.data.theme === 'string') {
+                        setTheme(e.data.theme);
+                    }
+                    break;
+                case 'SET_DENSITY':
+                    if (typeof setDensity === 'function' && typeof e.data.density === 'string') {
+                        setDensity(e.data.density);
+                    }
+                    break;
+                case 'SET_LOCALE':
+                    if (typeof setLocale === 'function' && typeof e.data.locale === 'string') {
+                        setLocale(e.data.locale);
+                    }
+                    break;
+            }
+        });
+
+        // ============ SECTION: Viewport Breakpoint Helper ============
+        const MOBILE_BREAKPOINT_PX = 760;
+        function isMobileViewport() {
+            return window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT_PX}px)`).matches;
         }
 
         // ============ SECTION: Theme ============
@@ -8440,6 +8646,17 @@
             try { localStorage.setItem(LS_THEME_KEY, theme); } catch (e) {}
             const btn = document.getElementById('themeToggle');
             if (btn) btn.textContent = theme.includes('light') ? '\u2600\ufe0f Light' : '\u{1f319} Dark';
+
+            let style = 'glassy';
+            if (theme.startsWith('claude')) style = 'claude';
+            else if (theme.startsWith('dark-slate')) style = 'dark-slate';
+            else if (['warm-sand', 'purple', 'mono', 'teal', 'qsf', 'wide'].includes(theme)) style = theme;
+            else if (theme === 'dark' || theme === 'light') style = 'glassy';
+
+            const items = document.querySelectorAll('.theme-dropdown-item');
+            items.forEach(item => {
+                item.classList.toggle('active', item.dataset.themeStyle === style);
+            });
         }
 
         // Flips between dark and light within whatever style is currently active.
@@ -8462,7 +8679,8 @@
 
         // Wires up the theme toggle button's click handler.
         function initThemeToggle() {
-            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+            const btn = document.getElementById('themeToggle');
+            if (btn) btn.addEventListener('click', toggleTheme);
         }
 
         // Returns 'light' or 'dark' regardless of which style (glassy/claude) is active.
@@ -8476,6 +8694,7 @@
             const dropBtn  = document.getElementById('themeDropdownBtn');
             const dropMenu = document.getElementById('themeDropdownMenu');
             const dropLbl  = document.getElementById('themeDropdownLabel');
+            if (!dropBtn || !dropMenu) return;
             const items    = dropMenu.querySelectorAll('.theme-dropdown-item');
 
             function openMenu() {
@@ -8501,7 +8720,7 @@
                 item.addEventListener('click', () => {
                     const style = item.dataset.themeStyle;
                     const mode  = getCurrentMode();
-                    const COLOR_THEMES = ['dark-slate', 'warm-sand', 'purple', 'mono', 'teal', 'wide'];
+                    const COLOR_THEMES = ['dark-slate', 'warm-sand', 'purple', 'mono', 'teal', 'qsf', 'wide'];
 
                     if (style === 'glassy') {
                         setTheme(mode === 'light' ? 'light' : 'dark');
@@ -8514,7 +8733,7 @@
                     }
 
                     items.forEach(i => i.classList.toggle('active', i === item));
-                    dropLbl.textContent = item.textContent.replace('● ', '');
+                    if (dropLbl) dropLbl.textContent = item.textContent.replace('● ', '');
                     closeMenu();
                 });
             });
@@ -8552,7 +8771,8 @@
 
         // Wires up the density toggle button's click handler.
         function initDensityToggle() {
-            document.getElementById('densityToggleBtn').addEventListener('click', toggleDensity);
+            const btn = document.getElementById('densityToggleBtn');
+            if (btn) btn.addEventListener('click', toggleDensity);
         }
 
         // Wires up the ribbon's Home/Tools tabs: clicking a tab shows its panel and hides the rest.
@@ -8590,7 +8810,6 @@
         // ============ SECTION: State Management ============
         const LS_TREE_KEY = 'qsk_tree_current_v2';
         const LS_BACKUP_KEY = 'qsk_tree_backup_v2';
-        const LS_LOGO_KEY = 'qsk_logo_v2';
         const LS_LANG_KEY = 'qsk_lang_v2';
         const LS_HISTORY_KEY = 'qsk_diag_history_v2';
         const LS_BASELINE_KEY = 'qsk_baseline_v2';
@@ -10939,16 +11158,15 @@
             if (!AppState.ui.visibleStatsCache) AppState.ui.visibleStatsCache = computeVisibleStats();
             const vstats = AppState.ui.visibleStatsCache;
             const items = [
-                { key: 'totalNodes', label: t('totalNodes'), cls: '' },
-                { key: 'fls', label: t('fls'), cls: 'teal' },
-                { key: 'equipment', label: t('equipmentStat'), cls: 'amber' },
-                { key: 'materialRows', label: t('materialRows'), cls: 'violet' },
-                { key: 'uniqueMaterialIds', label: t('uniqueMaterials'), cls: 'violet' },
-                { key: 'bomCount', label: t('bomCount'), cls: 'accent' },
+                { key: 'totalNodes', label: t('visLegendNodes'), cls: '' },
+                { key: 'fls', label: t('visLegendFls'), cls: 'teal' },
+                { key: 'equipment', label: t('visLegendEquip'), cls: 'amber' },
+                { key: 'materialRows', label: t('visLegendMaterial'), cls: 'violet' },
+                { key: 'uniqueMaterialIds', label: t('visLegendUniqueMat'), cls: 'violet' },
+                { key: 'bomCount', label: t('visLegendBom'), cls: 'accent' },
             ];
-            const label = escapeHtml(t('visibleLabel'));
             legend.innerHTML = items.map(i =>
-                `<span class="visible-legend-item ${i.cls}">${escapeHtml(i.label)} <b id="visLegend-${i.key}">${(vstats[i.key] || 0).toLocaleString()}</b> ${label}</span>`
+                `<span class="visible-legend-item ${i.cls}">${escapeHtml(i.label)} <b id="visLegend-${i.key}">${(vstats[i.key] || 0).toLocaleString()}</b></span>`
             ).join('<span class="visible-legend-sep">&middot;</span>');
         }
 
@@ -11310,7 +11528,8 @@
                 <button class="icon-btn tc-confirm" data-action="tc-confirm" tabindex="-1" title="Add this into the tree"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 12l5 5L20 6"/></svg></button>
                 <button class="icon-btn tc-discard" data-action="tc-discard" tabindex="-1" title="Discard this, don't add it"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 6l12 12M18 6 6 18"/></svg></button>` : isEdited ? `
                 <button class="icon-btn tc-confirm-edit" data-action="tc-confirm-edit" tabindex="-1" title="Apply this edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 12l5 5L20 6"/></svg></button>
-                <button class="icon-btn tc-discard-edit" data-action="tc-discard-edit" tabindex="-1" title="Ignore this edit, keep as-is"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 6l12 12M18 6 6 18"/></svg></button>` : `
+                <button class="icon-btn tc-discard-edit" data-action="tc-discard-edit" tabindex="-1" title="Ignore this edit, keep as-is"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 6l12 12M18 6 6 18"/></svg></button>` : isMobileViewport() ? `
+                <button class="icon-btn" data-action="row-menu" tabindex="-1" title="More" aria-label="More actions"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg></button>` : `
                 ${canAddChild ? `<button class="icon-btn add" data-action="add" tabindex="-1" title="Add child" style="width:auto;padding:0 8px;font-size:11px;font-weight:600;">Add</button>` : ''}
                 <button class="icon-btn" data-action="edit" tabindex="-1" title="Edit (F2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
                 <button class="icon-btn danger" data-action="delete" tabindex="-1" title="Delete (Del)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16Z"/></svg></button>`}
@@ -11368,7 +11587,8 @@
             if (node._tcPendingRename) rowClasses.push('tc-pending-rename');
             if (tcRowIsAlt(absIndex)) rowClasses.push('tc-alt');
             const top = absIndex * ROW_H;
-            const indent = depth * 22 + 10;
+            const indentStep = isMobileViewport() ? 12 : 22;
+            const indent = depth * indentStep + 10;
             const expandedAttr = !entry.isLeaf ? `aria-expanded="${entry.expanded}"` : '';
             return `
             <div class="${rowClasses.join(' ')}" style="top:${top}px; padding-inline-start:${indent}px;"
@@ -11613,6 +11833,78 @@
             });
         }
 
+        // ============ SECTION: Mobile Row Action Menu ============
+        let activeRowMenu = null;
+        function closeRowActionMenu() {
+            if (activeRowMenu) {
+                activeRowMenu.remove();
+                activeRowMenu = null;
+            }
+            document.removeEventListener('click', onRowMenuDocClick, true);
+            document.removeEventListener('keydown', onRowMenuDocKeyDown, true);
+        }
+        function onRowMenuDocClick(e) {
+            if (activeRowMenu && !activeRowMenu.contains(e.target)) {
+                closeRowActionMenu();
+            }
+        }
+        function onRowMenuDocKeyDown(e) {
+            if (e.key === 'Escape') {
+                closeRowActionMenu();
+            }
+        }
+        function openRowActionMenu(node, anchorEl) {
+            closeRowActionMenu();
+            if (!node || !anchorEl) return;
+            const canAddChild = node.type !== 'material';
+            const menu = document.createElement('div');
+            menu.className = 'row-action-menu';
+            menu.id = 'rowActionMenu';
+            menu.setAttribute('role', 'menu');
+            
+            menu.innerHTML = `
+                ${canAddChild ? `<button class="row-action-item" data-action="menu-add" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M12 5v14M5 12h14"/></svg><span>Add child</span></button>` : ''}
+                <button class="row-action-item" data-action="menu-edit" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg><span>Edit</span></button>
+                <button class="row-action-item danger" data-action="menu-delete" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16Z"/></svg><span>Delete</span></button>
+            `;
+
+            menu.addEventListener('click', (e) => {
+                const item = e.target.closest('[data-action]');
+                if (!item) return;
+                const act = item.dataset.action;
+                closeRowActionMenu();
+                if (act === 'menu-add') {
+                    triggerAdd(node);
+                } else if (act === 'menu-edit') {
+                    triggerEdit(node);
+                } else if (act === 'menu-delete') {
+                    triggerDelete(node);
+                }
+            });
+
+            document.body.appendChild(menu);
+            activeRowMenu = menu;
+
+            const rect = anchorEl.getBoundingClientRect();
+            const menuWidth = 150;
+            let left = rect.right - menuWidth;
+            if (left < 10) left = 10;
+            if (left + menuWidth > window.innerWidth - 10) left = window.innerWidth - menuWidth - 10;
+
+            let top = rect.bottom + 4;
+            const menuHeight = canAddChild ? 124 : 84;
+            if (top + menuHeight > window.innerHeight - 10) {
+                top = Math.max(10, rect.top - menuHeight - 4);
+            }
+            menu.style.top = top + 'px';
+            menu.style.left = left + 'px';
+
+            setTimeout(() => {
+                document.addEventListener('click', onRowMenuDocClick, true);
+                document.addEventListener('keydown', onRowMenuDocKeyDown, true);
+            }, 10);
+        }
+
         // ============ SECTION: Drag & Drop ============
         // Wires up drag-and-drop and click interactions for the tree view.
         function initTreeInteractions() {
@@ -11686,10 +11978,19 @@
                 if (!row) return;
                 const node = AppState.tree.nodesById.get(row.dataset.id);
                 if (!node) return;
-                if (!actionBtn) { renderViewport();
-                    focusRowElement(); return; }
+                if (!actionBtn) {
+                    if (isMobileViewport() && node.type !== 'root') {
+                        triggerEdit(node);
+                        return;
+                    }
+                    renderViewport();
+                    focusRowElement();
+                    return;
+                }
                 const action = actionBtn.dataset.action;
-                if (action === 'toggle') { if (node.type === 'material') return;
+                if (action === 'row-menu') {
+                    openRowActionMenu(node, actionBtn);
+                } else if (action === 'toggle') { if (node.type === 'material') return;
                     toggleNodeExpansion(node.id);
                     renderViewport(); } else if (action === 'add') { triggerAdd(node); } else if (action ===
                     'edit') { triggerEdit(
@@ -14062,68 +14363,6 @@
         }
 
         // ============ SECTION: Diagnostics Helpers ============
-        // ============ SECTION: Logo Upload ============
-        // Loads the saved company logo from localStorage and displays it, or shows the placeholder icon.
-        function loadLogo() {
-            try {
-                const dataUrl = localStorage.getItem(LS_LOGO_KEY);
-                const placeholder = document.getElementById('logoPlaceholderIcon');
-                const img = document.getElementById('logoImg');
-                const removeBtn = document.getElementById('logoRemoveBtn');
-                if (dataUrl) { img.src = dataUrl;
-                    img.style.display = 'block';
-                    placeholder.style.display = 'none';
-                    removeBtn.style.display = 'flex'; } else { img.style.display = 'none';
-                    placeholder.style.display = 'block';
-                    removeBtn.style.display = 'none'; }
-            } catch (e) {}
-        }
-
-        // Wires up logo upload/remove: file picker, image validation, and localStorage persistence.
-        function initLogoUpload() {
-            const slot = document.getElementById('logoSlot');
-            const uploadBtn = document.getElementById('logoUploadBtn');
-            const removeBtn = document.getElementById('logoRemoveBtn');
-            const input = document.getElementById('logoFileInput');
-            const openPicker = (e) => { e.stopPropagation();
-                input.value = '';
-                input.click(); };
-            uploadBtn.addEventListener('click', openPicker);
-            slot.addEventListener('click', openPicker);
-            removeBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                openConfirm(t('confirmLogoRemove'), () => {
-                    try { localStorage.removeItem(LS_LOGO_KEY); } catch (e) {}
-                    document.getElementById('logoImg').style.display = 'none';
-                    document.getElementById('logoPlaceholderIcon').style.display = 'block';
-                    document.getElementById('logoRemoveBtn').style.display = 'none';
-                    showToast(t('logoRemovedToast'));
-                });
-            });
-            input.addEventListener('change', () => {
-                const file = input.files && input.files[0];
-                if (!file) return;
-                if (!/^image\/(png|jpe?g)$/i.test(file.type)) { showToast(t('logoTypeErrorToast'), 'error'); return; }
-                const reader = new FileReader();
-                reader.onload = () => {
-                    const dataUrl = reader.result;
-                    try { localStorage.setItem(LS_LOGO_KEY, dataUrl); } catch (e) { showToast(t(
-                            'logoTooLargeToast'),
-                            'error'); }
-                    const img = document.getElementById('logoImg');
-                    const placeholder = document.getElementById('logoPlaceholderIcon');
-                    const removeBtn = document.getElementById('logoRemoveBtn');
-                    img.src = dataUrl;
-                    img.style.display = 'block';
-                    placeholder.style.display = 'none';
-                    removeBtn.style.display = 'flex';
-                    showToast(t('logoUpdatedToast'));
-                };
-                reader.onerror = () => showToast(t('logoReadErrorToast'), 'error');
-                reader.readAsDataURL(file);
-            });
-        }
-
         // ============ SECTION: Compare Feature ============
         // Loads the saved baseline tree snapshot (used for Compare) from localStorage.
         function loadBaseline() {
@@ -24470,10 +24709,7 @@
             let savedTree = null;
 
             try { initTheme(); } catch (e) { console.error('initTheme', e); }
-            try { initThemeToggle(); } catch (e) { console.error('initThemeToggle', e); }
-            try { initThemeSwitcher(); } catch (e) { console.error('initThemeSwitcher', e); }
             try { initDensity(); } catch (e) { console.error('initDensity', e); }
-            try { initDensityToggle(); } catch (e) { console.error('initDensityToggle', e); }
             try { initRibbonTabs(); } catch (e) { console.error('initRibbonTabs', e); }
             try {
                 savedTree = loadTree();
@@ -24489,8 +24725,6 @@
                 }
             } catch (e) { console.error('expanded init', e); }
             try { initLangSwitch(); } catch (e) { console.error('initLangSwitch', e); }
-            try { loadLogo(); } catch (e) { console.error('loadLogo', e); }
-            try { initLogoUpload(); } catch (e) { console.error('initLogoUpload', e); }
             try { initTreeInteractions(); } catch (e) { console.error('initTreeInteractions', e); }
             try { initKeyboardNav(); } catch (e) { console.error('initKeyboardNav', e); }
             try { initSearch(); } catch (e) { console.error('initSearch', e); }
@@ -24523,6 +24757,14 @@
             markSessionActive();
             startAutosave();
             window.addEventListener('beforeunload', markSessionClean);
+
+            let resizeTimer = null;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(() => {
+                    renderViewport();
+                }, 150);
+            });
 
             // Add hidden status bar for dev mode
             if (!document.querySelector('.dev-status')) {

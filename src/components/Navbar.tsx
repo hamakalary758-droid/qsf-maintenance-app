@@ -15,6 +15,47 @@ interface NavbarProps {
   onToggleQskView: () => void;
 }
 
+const LS_LOGO_KEY = 'qsf_qsk_logo';
+const LS_QSK_THEME_KEY = 'qsk_theme_v2';
+const LS_QSK_DENSITY_KEY = 'qsk_density_v1';
+const LS_QSK_LANG_KEY = 'qsk_lang_v2';
+
+const PAIRED_STYLES = ['glassy', 'claude', 'dark-slate'];
+
+const FIXED_THEME_NAMES: Record<string, string> = {
+  'warm-sand': 'Warm Sand',
+  'purple': 'Purple',
+  'mono': 'Mono',
+  'teal': 'Teal',
+  'qsf': 'QSF',
+};
+
+const QSK_STYLES = [
+  { id: 'glassy', label: 'Glassy' },
+  { id: 'claude', label: 'Claude' },
+  { id: 'dark-slate', label: 'Dark Slate' },
+  { id: 'warm-sand', label: 'Warm Sand' },
+  { id: 'purple', label: 'Purple' },
+  { id: 'mono', label: 'Mono' },
+  { id: 'teal', label: 'Teal' },
+  { id: 'qsf', label: 'QSF' },
+];
+
+function getStyleFromQskTheme(theme: string): string {
+  if (!theme || theme === 'dark' || theme === 'light') return 'glassy';
+  if (theme.startsWith('claude')) return 'claude';
+  if (theme.startsWith('dark-slate')) return 'dark-slate';
+  if (['warm-sand', 'purple', 'mono', 'teal', 'qsf'].includes(theme)) return theme;
+  return 'glassy';
+}
+
+function getQskThemeString(style: string, isDark: boolean): string {
+  if (style === 'glassy') return isDark ? 'dark' : 'light';
+  if (style === 'claude') return isDark ? 'claude-dark' : 'claude-light';
+  if (style === 'dark-slate') return isDark ? 'dark-slate' : 'dark-slate-light';
+  return style; // fixed themes: 'warm-sand', 'purple', 'mono', 'teal', 'qsf'
+}
+
 export const Navbar: React.FC<NavbarProps> = ({
   activeTab,
   onSelectTab,
@@ -26,6 +67,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   isQskView,
   onToggleQskView
 }) => {
+  const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
   const [syncInfo, setSyncInfo] = useState<SyncStatusInfo>({
     state: typeof navigator !== 'undefined' && navigator.onLine ? 'online' : 'offline',
     pendingCount: 0,
@@ -38,6 +81,94 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [geminiApiKey, setGeminiApiKey] = useState<string>('');
   const [showApiKey, setShowApiKey] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const [qskStyle, setQskStyle] = useState<string>(() => {
+    try {
+      const stored = localStorage.getItem(LS_QSK_THEME_KEY) || 'dark';
+      return getStyleFromQskTheme(stored);
+    } catch {
+      return 'glassy';
+    }
+  });
+
+  const [qskDensity, setQskDensity] = useState<'wide' | 'tight'>(() => {
+    try {
+      const stored = localStorage.getItem(LS_QSK_DENSITY_KEY);
+      return stored === 'tight' ? 'tight' : 'wide';
+    } catch {
+      return 'wide';
+    }
+  });
+
+  const [qskLang, setQskLang] = useState<'en' | 'ar' | 'ckb'>(() => {
+    try {
+      const stored = localStorage.getItem(LS_QSK_LANG_KEY);
+      if (stored === 'ar' || stored === 'ckb' || stored === 'en') return stored;
+    } catch {
+      // ignore
+    }
+    return 'en';
+  });
+
+  const sendToQskIframe = (data: { type: string; [key: string]: any }) => {
+    const message = { source: 'qsf-settings', ...data };
+    const iframes = document.querySelectorAll('iframe');
+    iframes.forEach((iframe) => {
+      try {
+        iframe.contentWindow?.postMessage(message, window.location.origin);
+      } catch {
+        // ignore
+      }
+    });
+  };
+
+  const handleToggleTheme = () => {
+    const nextIsDark = theme !== 'dark';
+    onToggleTheme();
+
+    if (PAIRED_STYLES.includes(qskStyle)) {
+      const themeName = getQskThemeString(qskStyle, nextIsDark);
+      try {
+        localStorage.setItem(LS_QSK_THEME_KEY, themeName);
+      } catch {
+        // ignore
+      }
+      sendToQskIframe({ type: 'SET_THEME', theme: themeName });
+    }
+  };
+
+  const handleQskStyleChange = (newStyle: string) => {
+    setQskStyle(newStyle);
+    const isDark = theme === 'dark';
+    const themeName = getQskThemeString(newStyle, isDark);
+    try {
+      localStorage.setItem(LS_QSK_THEME_KEY, themeName);
+    } catch {
+      // ignore
+    }
+    sendToQskIframe({ type: 'SET_THEME', theme: themeName });
+  };
+
+  const handleToggleDensity = () => {
+    const nextDensity = qskDensity === 'tight' ? 'wide' : 'tight';
+    setQskDensity(nextDensity);
+    try {
+      localStorage.setItem(LS_QSK_DENSITY_KEY, nextDensity);
+    } catch {
+      // ignore
+    }
+    sendToQskIframe({ type: 'SET_DENSITY', density: nextDensity });
+  };
+
+  const handleLanguageChange = (newLang: 'en' | 'ar' | 'ckb') => {
+    setQskLang(newLang);
+    try {
+      localStorage.setItem(LS_QSK_LANG_KEY, newLang);
+    } catch {
+      // ignore
+    }
+    sendToQskIframe({ type: 'SET_LOCALE', locale: newLang });
+  };
 
   const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
   const overdueActionsCount = useMemo(() => {
@@ -63,7 +194,45 @@ export const Navbar: React.FC<NavbarProps> = ({
     } catch {
       // ignore
     }
+    try {
+      const savedLogo = localStorage.getItem(LS_LOGO_KEY);
+      if (savedLogo) {
+        setLogoDataUrl(savedLogo);
+      }
+    } catch {
+      // ignore
+    }
   }, []);
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.match(/^image\/(png|jpe?g)$/i)) {
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      try {
+        localStorage.setItem(LS_LOGO_KEY, result);
+        setLogoDataUrl(result);
+      } catch {
+        // ignore
+      }
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const handleRemoveLogo = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      localStorage.removeItem(LS_LOGO_KEY);
+    } catch {
+      // ignore
+    }
+    setLogoDataUrl(null);
+  };
 
   const handleApiKeyChange = (newVal: string) => {
     setGeminiApiKey(newVal);
@@ -77,6 +246,23 @@ export const Navbar: React.FC<NavbarProps> = ({
       // ignore
     }
   };
+
+  useEffect(() => {
+    if (isSettingsOpen) {
+      try {
+        const storedTheme = localStorage.getItem(LS_QSK_THEME_KEY) || 'dark';
+        setQskStyle(getStyleFromQskTheme(storedTheme));
+        const storedDensity = localStorage.getItem(LS_QSK_DENSITY_KEY);
+        setQskDensity(storedDensity === 'tight' ? 'tight' : 'wide');
+        const storedLang = localStorage.getItem(LS_QSK_LANG_KEY);
+        if (storedLang === 'ar' || storedLang === 'ckb' || storedLang === 'en') {
+          setQskLang(storedLang);
+        }
+      } catch {
+        // ignore
+      }
+    }
+  }, [isSettingsOpen]);
 
   useEffect(() => {
     const unsubscribe = subscribeToSyncStatus((info) => {
@@ -205,8 +391,39 @@ export const Navbar: React.FC<NavbarProps> = ({
         
         {/* Brand */}
         <div className="flex items-center space-x-2.5">
-          <div className="w-7 h-7 bg-sky-500/20 text-sky-400 rounded-lg border border-sky-500/30 flex items-center justify-center shadow-xs shrink-0">
-            <Wrench className="w-3.5 h-3.5" />
+          <input
+            type="file"
+            ref={logoInputRef}
+            onChange={handleLogoUpload}
+            accept="image/png,image/jpeg"
+            className="hidden"
+            aria-label="Upload company logo"
+          />
+          <div
+            onClick={() => logoInputRef.current?.click()}
+            title={logoDataUrl ? 'Click to change logo' : 'Click to upload company logo'}
+            className="relative group h-7 min-w-[28px] max-w-[84px] bg-sky-500/20 text-sky-400 rounded-lg border border-sky-500/30 flex items-center justify-center shadow-xs shrink-0 cursor-pointer overflow-visible transition-all hover:border-sky-400/60 p-0.5"
+          >
+            {logoDataUrl ? (
+              <>
+                <img
+                  src={logoDataUrl}
+                  alt="Company logo"
+                  className="h-full w-auto max-w-full object-contain rounded"
+                />
+                <button
+                  type="button"
+                  onClick={handleRemoveLogo}
+                  title="Remove logo"
+                  aria-label="Remove logo"
+                  className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-rose-600 hover:bg-rose-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md z-10"
+                >
+                  <X className="w-2.5 h-2.5" />
+                </button>
+              </>
+            ) : (
+              <Wrench className="w-3.5 h-3.5 transition-transform group-hover:scale-110" />
+            )}
           </div>
           <h1 className="font-semibold text-sm text-white">
             {isQskView ? 'QSK master data explorer' : 'QSF maintenance'}
@@ -284,8 +501,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-1 py-1">
                   Appearance
                 </div>
+
+                {/* Dark Mode Row */}
                 <div
-                  onClick={onToggleTheme}
+                  onClick={handleToggleTheme}
                   className="flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-colors"
                 >
                   <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
@@ -304,7 +523,88 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </div>
                 </div>
 
-                {/* 2. Divider */}
+                {/* Fixed theme hint */}
+                {FIXED_THEME_NAMES[qskStyle] && (
+                  <div className="text-[10px] text-amber-600 dark:text-amber-400 px-2 pb-1 leading-tight">
+                    QSK is on a fixed theme ({FIXED_THEME_NAMES[qskStyle]}) and won&apos;t change
+                  </div>
+                )}
+
+                {/* Density Row */}
+                <div
+                  onClick={handleToggleDensity}
+                  className="flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-colors"
+                >
+                  <div className="flex flex-col">
+                    <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                      Density
+                    </span>
+                    <span className="text-[10px] text-slate-400 dark:text-slate-500">
+                      {qskDensity === 'tight' ? 'Tight spacing' : 'Wide spacing'}
+                    </span>
+                  </div>
+                  <div
+                    className={`w-9 h-5 rounded-full transition-colors relative p-0.5 flex items-center ${
+                      qskDensity === 'tight' ? 'bg-sky-500' : 'bg-slate-300 dark:bg-slate-700'
+                    }`}
+                  >
+                    <div
+                      className={`w-4 h-4 bg-white rounded-full transition-transform shadow-xs ${
+                        qskDensity === 'tight' ? 'translate-x-4' : 'translate-x-0'
+                      }`}
+                    />
+                  </div>
+                </div>
+
+                {/* 2. QSK Color Theme */}
+                <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-700">
+                  <div className="flex items-center justify-between px-1 py-1">
+                    <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                      QSK color theme
+                    </span>
+                    <div className="relative">
+                      <select
+                        value={qskStyle}
+                        onChange={(e) => handleQskStyleChange(e.target.value)}
+                        className="text-xs bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 pr-6 focus:outline-none focus:ring-1.5 focus:ring-sky-500 appearance-none font-medium cursor-pointer"
+                      >
+                        {QSK_STYLES.map((style) => (
+                          <option key={style.id} value={style.id}>
+                            {style.label}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="w-3 h-3 text-slate-400 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. Language */}
+                <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-700">
+                  <div className="flex items-center justify-between px-1 py-1">
+                    <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                      Language
+                    </span>
+                    <div className="flex items-center space-x-1 bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700">
+                      {(['en', 'ar', 'ckb'] as const).map((lang) => (
+                        <button
+                          key={lang}
+                          type="button"
+                          onClick={() => handleLanguageChange(lang)}
+                          className={`px-2 py-0.5 text-[11px] font-semibold rounded-md transition-all ${
+                            qskLang === lang
+                              ? 'bg-sky-500 text-white shadow-xs'
+                              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                          }`}
+                        >
+                          {lang.toUpperCase()}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 4. Divider */}
                 <div className="my-2 border-t border-slate-200 dark:border-slate-700" />
 
                 {/* 3. Gemini API Key */}
@@ -416,32 +716,34 @@ export const Navbar: React.FC<NavbarProps> = ({
       </div>
 
       {/* Main Tab Navigation Bar */}
-      <div className="bg-slate-950/80 backdrop-blur-md border-t border-slate-800/80 px-4">
-        <div className="max-w-7xl mx-auto flex items-center space-x-1 overflow-x-auto py-1 scrollbar-none">
-          {[
-            { id: 'new-report' as const, label: 'New Field Report', icon: Plus },
-            { id: 'history' as const, label: `Report History (${reportCount})`, icon: History },
-            { id: 'dashboard' as const, label: 'Dashboard', icon: BarChart3 }
-          ].map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => onSelectTab(tab.id)}
-                className={`flex items-center space-x-1.5 px-3 py-2 text-xs font-semibold rounded-lg whitespace-nowrap transition-all ${
-                  isActive
-                    ? 'bg-sky-500 text-white shadow-sm'
-                    : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
+      {!isQskView && (
+        <div className="bg-slate-950/80 backdrop-blur-md border-t border-slate-800/80 px-4">
+          <div className="max-w-7xl mx-auto flex items-center space-x-1 overflow-x-auto py-1 scrollbar-none">
+            {[
+              { id: 'new-report' as const, label: 'New Field Report', icon: Plus },
+              { id: 'history' as const, label: `Report History (${reportCount})`, icon: History },
+              { id: 'dashboard' as const, label: 'Dashboard', icon: BarChart3 }
+            ].map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => onSelectTab(tab.id)}
+                  className={`flex items-center space-x-1.5 px-3 py-2 text-xs font-semibold rounded-lg whitespace-nowrap transition-all ${
+                    isActive
+                      ? 'bg-sky-500 text-white shadow-sm'
+                      : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Sync Status & Retry Modal */}
       {isSyncModalOpen && (
