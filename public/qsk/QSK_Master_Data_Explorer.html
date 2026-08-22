@@ -540,6 +540,27 @@
     }
 
     /* ================================================================
+       THEME: Warm Sand (Dark)
+       Dark counterpart to Warm Sand — same tan/amber hue, inverted for dark mode.
+       data-theme="warm-sand-dark" triggers this theme.
+       ================================================================ */
+    :root[data-theme="warm-sand-dark"] {
+        /* App surface colours */
+        --body-bg:            #1c1712;
+        --body-bg-pattern:    none;
+        --panel:              #251e18;
+        --panel-border:       #3d3228;
+        --text-0:             #f5efe4;
+        --text-1:             #c9bca8;
+        --text-2:             #8c7d68;
+        --accent:             #e5b24b;
+        --accent-dim:         rgba(229, 178, 75, 0.18);
+        --accent-ring:        rgba(229, 178, 75, 0.55);
+        --scrollbar-thumb:    #3d3228;
+        --scrollbar-thumb-hover: #544537;
+    }
+
+    /* ================================================================
        THEME: Purple Accent
        Deep purple color skin with violet accent.
        data-theme="purple" triggers this theme.
@@ -558,6 +579,27 @@
         --accent-ring:        rgba(167, 139, 250, 0.55);
         --scrollbar-thumb:    #2d2440;
         --scrollbar-thumb-hover: #3d3460;
+    }
+
+    /* ================================================================
+       THEME: Purple Accent — light
+       Light counterpart to Purple — soft lavender/violet tinted surfaces, crisp dark violet text.
+       data-theme="purple-light" triggers this theme.
+       ================================================================ */
+    :root[data-theme="purple-light"] {
+        /* App surface colours */
+        --body-bg:            #f5f2fc;
+        --body-bg-pattern:    none;
+        --panel:              #ffffff;
+        --panel-border:       #ded5f0;
+        --text-0:             #1b1330;
+        --text-1:             #524470;
+        --text-2:             #8475a3;
+        --accent:             #7c3aed;
+        --accent-dim:         rgba(124, 58, 237, 0.18);
+        --accent-ring:        rgba(124, 58, 237, 0.55);
+        --scrollbar-thumb:    #d8cde8;
+        --scrollbar-thumb-hover: #baa8d4;
     }
 
     /* ================================================================
@@ -582,6 +624,27 @@
     }
 
     /* ================================================================
+       THEME: Minimal Mono (Dark)
+       Dark counterpart to Minimal Mono — true pure dark grayscale, minimal white/gray accents.
+       data-theme="mono-dark" triggers this theme.
+       ================================================================ */
+    :root[data-theme="mono-dark"] {
+        /* App surface colours */
+        --body-bg:            #121212;
+        --body-bg-pattern:    none;
+        --panel:              #1a1a1a;
+        --panel-border:       #2c2c2c;
+        --text-0:             #f0f0f0;
+        --text-1:             #a0a0a0;
+        --text-2:             #666666;
+        --accent:             #f0f0f0;
+        --accent-dim:         rgba(255, 255, 255, 0.12);
+        --accent-ring:        rgba(255, 255, 255, 0.40);
+        --scrollbar-thumb:    #2c2c2c;
+        --scrollbar-thumb-hover: #444444;
+    }
+
+    /* ================================================================
        THEME: Teal Forest
        Dark app with deep teal and green accent.
        data-theme="teal" triggers this theme.
@@ -600,6 +663,27 @@
         --accent-ring:        rgba(45, 212, 191, 0.55);
         --scrollbar-thumb:    #163530;
         --scrollbar-thumb-hover: #204840;
+    }
+
+    /* ================================================================
+       THEME: Teal Forest — light
+       Light counterpart to Teal Forest — soft mint/teal-tinted surfaces, deep dark forest teal text.
+       data-theme="teal-light" triggers this theme.
+       ================================================================ */
+    :root[data-theme="teal-light"] {
+        /* App surface colours */
+        --body-bg:            #f0f8f6;
+        --body-bg-pattern:    none;
+        --panel:              #ffffff;
+        --panel-border:       #c8e4dd;
+        --text-0:             #0a2622;
+        --text-1:             #1f544c;
+        --text-2:             #4a7d74;
+        --accent:             #0d9488;
+        --accent-dim:         rgba(13, 148, 136, 0.16);
+        --accent-ring:        rgba(13, 148, 136, 0.50);
+        --scrollbar-thumb:    #c8e4dd;
+        --scrollbar-thumb-hover: #a1cfc3;
     }
 
     /* ================================================================
@@ -664,6 +748,69 @@
     }
 
     /* ================================================================
+       THEME: QSF (Dark)
+       Dark counterpart to QSF plant theme — slate chrome, sky accent, emerald/amber/rose signals.
+       data-theme="qsf-dark" triggers this theme.
+       ================================================================ */
+    :root[data-theme="qsf-dark"] {
+        /* App surface colours — slate dark chrome */
+        --bg-0:               #0f172a;
+        --bg-1:               #1e293b;
+        --bg-2:               #334155;
+        --panel:              rgba(30, 41, 59, 0.85);
+        --panel-solid:        #1e293b;
+        --panel-border:       rgba(148, 163, 184, 0.15);
+        --panel-border-strong: rgba(148, 163, 184, 0.25);
+        --text-0:             #f8fafc;
+        --text-1:             #cbd5e1;
+        --text-2:             #94a3b8;
+        --accent:             #0ea5e9;
+        --accent-2:           #38bdf8;
+        --accent-dim:         rgba(14, 165, 233, 0.15);
+        --accent-ring:        rgba(14, 165, 233, 0.45);
+        --accent-glow:        rgba(14, 165, 233, 0.30);
+        --steel:              #38bdf8;
+        --steel-dim:          rgba(56, 189, 248, 0.15);
+        --steel-glow:         rgba(56, 189, 248, 0.30);
+        --teal:               #10b981;
+        --teal-dim:           rgba(16, 185, 129, 0.15);
+        --teal-glow:          rgba(16, 185, 129, 0.30);
+        --amber:              #f59e0b;
+        --amber-dim:          rgba(245, 158, 11, 0.15);
+        --amber-glow:         rgba(245, 158, 11, 0.30);
+        --violet:             #a855f7;
+        --violet-dim:         rgba(168, 85, 247, 0.15);
+        --violet-glow:        rgba(168, 85, 247, 0.30);
+        --danger:             #f43f5e;
+        --danger-dim:         rgba(244, 63, 94, 0.15);
+        --danger-glow:        rgba(244, 63, 94, 0.30);
+        --shadow-lg:          0 20px 60px -20px rgba(0, 0, 0, 0.55), 0 4px 16px rgba(0, 0, 0, 0.35);
+        --shadow-sm:          0 2px 10px rgba(0, 0, 0, 0.25);
+        --body-bg:            radial-gradient(1200px 700px at 12% -10%, rgba(14, 165, 233, 0.10), transparent 60%),
+            radial-gradient(1000px 600px at 110% 10%, rgba(16, 185, 129, 0.08), transparent 55%),
+            linear-gradient(180deg, var(--bg-0), var(--bg-1) 45%, var(--bg-2));
+        --body-bg-pattern:    linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
+        --scrollbar-thumb:    #334155;
+        --scrollbar-thumb-hover: #475569;
+        --toast-bg:           var(--panel-solid);
+        --toast-border:       var(--panel-border-strong);
+        --select-bg:          var(--bg-2);
+        --select-text:        var(--text-0);
+        --select-border:      var(--panel-border);
+        --dev-panel-bg:       rgba(15, 23, 42, 0.95);
+        --dev-panel-border:   rgba(14, 165, 233, 0.25);
+        --dev-text:           #cbd5e1;
+        --dev-highlight:      #0ea5e9;
+        --hl-fl-bg:           rgba(14, 165, 233, 0.18);
+        --hl-fl-text:         #7dd3fc;
+        --hl-equip-bg:        rgba(16, 185, 129, 0.18);
+        --hl-equip-text:      #6ee7b7;
+        --hl-mat-bg:          rgba(244, 63, 94, 0.18);
+        --hl-mat-text:        #fda4af;
+    }
+
+    /* ================================================================
        THEME: Wide + Labels
        Same dark slate palette, alternate variant.
        data-theme="wide" triggers this theme.
@@ -681,7 +828,28 @@
         --accent-dim:         rgba(79, 142, 247, 0.18);
         --accent-ring:        rgba(79, 142, 247, 0.55);
         --scrollbar-thumb:    #2d3347;
-        --scrollbar-thumb-hover: #3d4560;
+        --scrollbar-thumb-hover: #3d3460;
+    }
+
+    /* ================================================================
+       THEME: Wide + Labels — light
+       Light counterpart to Wide — muted mid-gray slate surfaces with blue accent.
+       data-theme="wide-light" triggers this theme.
+       ================================================================ */
+    :root[data-theme="wide-light"] {
+        /* App surface colours — same slate family as dark-slate-light */
+        --body-bg:            #c4c9d4;
+        --body-bg-pattern:    none;
+        --panel:              #d8dce4;
+        --panel-border:       #aab0bf;
+        --text-0:             #1c2130;
+        --text-1:             #4a5063;
+        --text-2:             #6b7284;
+        --accent:             #3b74d1;
+        --accent-dim:         rgba(59, 116, 209, 0.16);
+        --accent-ring:        rgba(59, 116, 209, 0.45);
+        --scrollbar-thumb:    rgba(28, 33, 48, 0.20);
+        --scrollbar-thumb-hover: rgba(28, 33, 48, 0.32);
     }
 
     * {
@@ -2666,8 +2834,12 @@
     }
 
     /* ================================================================
-       MOBILE EDIT SHEET: Scoped specifically to #editModalOverlay at <=760px
-       Transforms the standard desktop modal into a touch-friendly bottom sheet.
+       MOBILE BOTTOM SHEETS: Scoped to <=760px
+       Transforms modals and dropdown panels into touch-friendly bottom sheets:
+       - Edit Modal (#editModalOverlay)
+       - Filter & Level Jump Panels (.filter-panel / #filterPanel, #levelJumpPanel)
+       - SAP Validation Report (#sapValidationOverlay)
+       - Readable Report Stage Picker (#stagePickerOverlay)
        ================================================================ */
     @keyframes slideUpSheet {
         from {
@@ -2681,11 +2853,16 @@
     }
 
     @media (max-width: 760px) {
-        #editModalOverlay {
+        /* Shared Modal Bottom Sheet Behavior */
+        #editModalOverlay,
+        #sapValidationOverlay,
+        #stagePickerOverlay {
             align-items: flex-end;
             padding: 0;
         }
-        #editModalOverlay .modal {
+        #editModalOverlay .modal,
+        #sapValidationOverlay .modal,
+        #stagePickerOverlay .modal {
             width: 100%;
             max-width: none;
             max-height: 92vh;
@@ -2696,11 +2873,30 @@
             overflow-y: auto;
             animation: none;
             box-sizing: border-box;
+            border-bottom: none;
+            box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.45);
         }
-        #editModalOverlay.open .modal {
+        #editModalOverlay.open .modal,
+        #sapValidationOverlay.open .modal,
+        #stagePickerOverlay.open .modal {
             animation: slideUpSheet 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
-        #editModalOverlay .modal-actions {
+        #editModalOverlay .modal::before,
+        #sapValidationOverlay .modal::before,
+        #stagePickerOverlay .modal::before {
+            content: '';
+            display: block;
+            width: 36px;
+            height: 4px;
+            background: var(--panel-border-strong);
+            border-radius: 2px;
+            margin: -4px auto 14px;
+        }
+
+        /* Action Row / Sticky Footers */
+        #editModalOverlay .modal-actions,
+        #sapValidationOverlay .modal-actions,
+        #stagePickerOverlay .modal-actions {
             position: sticky;
             bottom: 0;
             background: var(--panel-solid);
@@ -2712,7 +2908,8 @@
             display: flex;
             gap: 10px;
         }
-        #editModalOverlay .modal-actions .btn {
+        #editModalOverlay .modal-actions .btn,
+        #stagePickerOverlay .modal-actions .btn {
             flex: 1;
             min-height: 44px;
             padding: 12px 14px;
@@ -2721,6 +2918,8 @@
             align-items: center;
             justify-content: center;
         }
+
+        /* Edit Modal Form Fields */
         #editModalOverlay .field {
             margin-bottom: 18px;
         }
@@ -2741,6 +2940,95 @@
             font-size: 16px;
             min-height: 44px;
             padding: 10px 12px;
+        }
+
+        /* Task 2: Stage Picker Touch Targets */
+        #stagePickerOverlay .btn {
+            min-height: 44px;
+            padding: 12px 14px;
+            font-size: 13.5px;
+            border-radius: 10px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            box-sizing: border-box;
+        }
+
+        /* Task 2: SAP Validation Dialog Mobile Styling */
+        #sapValidationOverlay #validationResults > div:first-child {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        #sapValidationOverlay .validation-scroll {
+            max-height: 40vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        #sapValidationOverlay #completenessList {
+            max-height: 200px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        #sapValidationOverlay .validation-issue {
+            padding: 10px 12px;
+            min-height: 44px;
+            box-sizing: border-box;
+        }
+        #sapValidationOverlay .validation-issue .fix-btn,
+        #sapValidationOverlay .validation-issue .dict-btn {
+            min-height: 36px;
+            padding: 6px 12px;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+        }
+        #sapValidationOverlay .validation-export-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            width: 100%;
+        }
+        #sapValidationOverlay .validation-export-buttons .btn {
+            min-height: 44px;
+            padding: 10px 8px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        #sapValidationOverlay #validationResults > div:last-of-type {
+            position: sticky;
+            bottom: 0;
+            background: var(--panel-solid);
+            padding-top: 12px;
+            margin-top: 12px;
+            border-top: 1px solid var(--panel-border);
+            padding-bottom: max(16px, env(safe-area-inset-bottom));
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        #sapValidationOverlay #validationResults > div:last-of-type > div:last-child {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+        }
+        #sapValidationOverlay #vAutoFixBtn,
+        #sapValidationOverlay #vCloseBtn {
+            flex: 1;
+            min-height: 44px;
+            padding: 12px 14px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
         }
     }
 
@@ -3536,6 +3824,76 @@
     }
     .filter-panel-clear:hover {
         color: var(--danger);
+    }
+    @media (max-width: 760px) {
+        /* Task 1: Filter & Jump to Level Panels as Mobile Bottom Sheets */
+        .filter-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            top: auto;
+            width: 100%;
+            max-width: none;
+            min-width: 0;
+            max-height: 85vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            border-radius: 16px 16px 0 0;
+            margin: 0;
+            padding: 20px 18px;
+            padding-bottom: max(20px, env(safe-area-inset-bottom));
+            box-sizing: border-box;
+            z-index: 99999;
+            border-bottom: none;
+            box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.45);
+        }
+        .filter-panel::before {
+            content: '';
+            display: block;
+            width: 36px;
+            height: 4px;
+            background: var(--panel-border-strong);
+            border-radius: 2px;
+            margin: -4px auto 14px;
+        }
+        .filter-panel.open {
+            display: block;
+            animation: slideUpSheet 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        .filter-panel-chips {
+            gap: 8px;
+        }
+        .filter-panel-chips .chip,
+        .filter-panel-chips .btn,
+        .filter-panel-chips button {
+            min-height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            padding: 10px 14px;
+            font-size: 13px;
+            border-radius: 10px;
+        }
+        #levelJumpPanel .filter-panel-chips .btn {
+            flex: 1 1 calc(50% - 8px);
+        }
+        .filter-panel-clear {
+            width: 100%;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            padding: 12px 14px;
+            font-size: 13.5px;
+            font-weight: 600;
+            margin-top: 14px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--panel-border);
+        }
     }
     #conditionChips .chip.active[data-condition="invalid"],
     #conditionChips .chip.active[data-condition="invalidIds"],
@@ -8629,8 +8987,62 @@
             return window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT_PX}px)`).matches;
         }
 
+        // Moves a mobile bottom-sheet panel to be a direct child of <body> so it
+        // escapes any backdrop-filter/transform ancestor that would otherwise break
+        // its `position: fixed` anchoring to the real viewport. No-op on desktop,
+        // where the panel stays as a normal anchored dropdown in its original spot.
+        function mobilePortalOpen(panel) {
+            if (!isMobileViewport()) return;
+            if (panel.dataset.portaled === 'true') return; // already moved
+            panel._portalParent = panel.parentNode;
+            panel._portalNextSibling = panel.nextSibling;
+            document.body.appendChild(panel);
+            panel.dataset.portaled = 'true';
+        }
+
+        function mobilePortalClose(panel) {
+            if (panel.dataset.portaled !== 'true') return;
+            if (panel._portalParent) {
+                panel._portalParent.insertBefore(panel, panel._portalNextSibling || null);
+            }
+            delete panel.dataset.portaled;
+            panel._portalParent = null;
+            panel._portalNextSibling = null;
+        }
+
         // ============ SECTION: Theme ============
         const LS_THEME_KEY = 'qsk_theme_v2';
+
+        const THEME_FAMILIES = {
+            glassy:       { dark: 'dark',            light: 'light' },
+            claude:       { dark: 'claude-dark',      light: 'claude-light' },
+            'dark-slate': { dark: 'dark-slate',       light: 'dark-slate-light' },
+            'warm-sand':  { dark: 'warm-sand-dark',   light: 'warm-sand' },
+            purple:       { dark: 'purple',           light: 'purple-light' },
+            mono:         { dark: 'mono-dark',        light: 'mono' },
+            teal:         { dark: 'teal',             light: 'teal-light' },
+            qsf:          { dark: 'qsf-dark',         light: 'qsf' },
+            wide:         { dark: 'wide',             light: 'wide-light' },
+        };
+
+        function getThemeFamily(theme) {
+            if (!theme) return 'glassy';
+            for (const [family, config] of Object.entries(THEME_FAMILIES)) {
+                if (config.dark === theme || config.light === theme || family === theme) {
+                    return family;
+                }
+            }
+            return 'glassy';
+        }
+
+        function getThemeMode(theme) {
+            if (!theme) return 'dark';
+            for (const config of Object.values(THEME_FAMILIES)) {
+                if (config.light === theme) return 'light';
+                if (config.dark === theme) return 'dark';
+            }
+            return theme.includes('light') ? 'light' : 'dark';
+        }
 
         // Loads the saved theme preference (or defaults to dark) and applies it on startup.
         function initTheme() {
@@ -8640,18 +9052,14 @@
         }
 
         // Applies a theme to the document and persists it to localStorage.
-        // Accepts 'dark', 'light', 'claude-dark', or 'claude-light'.
         function setTheme(theme) {
             document.documentElement.setAttribute('data-theme', theme);
             try { localStorage.setItem(LS_THEME_KEY, theme); } catch (e) {}
+            const mode = getThemeMode(theme);
             const btn = document.getElementById('themeToggle');
-            if (btn) btn.textContent = theme.includes('light') ? '\u2600\ufe0f Light' : '\u{1f319} Dark';
+            if (btn) btn.textContent = mode === 'light' ? '\u2600\ufe0f Light' : '\u{1f319} Dark';
 
-            let style = 'glassy';
-            if (theme.startsWith('claude')) style = 'claude';
-            else if (theme.startsWith('dark-slate')) style = 'dark-slate';
-            else if (['warm-sand', 'purple', 'mono', 'teal', 'qsf', 'wide'].includes(theme)) style = theme;
-            else if (theme === 'dark' || theme === 'light') style = 'glassy';
+            const style = getThemeFamily(theme);
 
             const items = document.querySelectorAll('.theme-dropdown-item');
             items.forEach(item => {
@@ -8660,20 +9068,12 @@
         }
 
         // Flips between dark and light within whatever style is currently active.
-        // Glassy: dark <-> light. Claude: claude-dark <-> claude-light.
-        // Dark Slate: dark-slate <-> dark-slate-light.
         function toggleTheme() {
             const current = document.documentElement.getAttribute('data-theme') || 'dark';
-            const isClaude = current.startsWith('claude');
-            const isDarkSlate = current.startsWith('dark-slate');
-            let next;
-            if (isDarkSlate) {
-                next = current.includes('light') ? 'dark-slate' : 'dark-slate-light';
-            } else {
-                next = current.includes('light')
-                    ? (isClaude ? 'claude-dark' : 'dark')
-                    : (isClaude ? 'claude-light' : 'light');
-            }
+            const family = getThemeFamily(current);
+            const currentMode = getThemeMode(current);
+            const targetMode = currentMode === 'light' ? 'dark' : 'light';
+            const next = THEME_FAMILIES[family] ? THEME_FAMILIES[family][targetMode] : (targetMode === 'light' ? 'light' : 'dark');
             setTheme(next);
         }
 
@@ -8683,10 +9083,10 @@
             if (btn) btn.addEventListener('click', toggleTheme);
         }
 
-        // Returns 'light' or 'dark' regardless of which style (glassy/claude) is active.
+        // Returns 'light' or 'dark' based on the active theme in THEME_FAMILIES.
         function getCurrentMode() {
             const theme = document.documentElement.getAttribute('data-theme') || 'dark';
-            return theme.includes('light') ? 'light' : 'dark';
+            return getThemeMode(theme);
         }
 
         // Wires up the Theme dropdown (replaces old Glassy/Claude buttons).
@@ -8720,17 +9120,10 @@
                 item.addEventListener('click', () => {
                     const style = item.dataset.themeStyle;
                     const mode  = getCurrentMode();
-                    const COLOR_THEMES = ['dark-slate', 'warm-sand', 'purple', 'mono', 'teal', 'qsf', 'wide'];
-
-                    if (style === 'glassy') {
-                        setTheme(mode === 'light' ? 'light' : 'dark');
-                    } else if (style === 'claude') {
-                        setTheme(mode === 'light' ? 'claude-light' : 'claude-dark');
-                    } else if (style === 'dark-slate') {
-                        setTheme(mode === 'light' ? 'dark-slate-light' : 'dark-slate');
-                    } else if (COLOR_THEMES.includes(style)) {
-                        setTheme(style);
-                    }
+                    const targetTheme = THEME_FAMILIES[style]
+                        ? (mode === 'light' ? THEME_FAMILIES[style].light : THEME_FAMILIES[style].dark)
+                        : (mode === 'light' ? 'light' : 'dark');
+                    setTheme(targetTheme);
 
                     items.forEach(i => i.classList.toggle('active', i === item));
                     if (dropLbl) dropLbl.textContent = item.textContent.replace('● ', '');
@@ -12178,12 +12571,14 @@
                 e.stopPropagation();
                 const isOpen = filterPanel.classList.toggle('open');
                 filterMenuBtn.setAttribute('aria-expanded', String(isOpen));
+                if (isOpen) mobilePortalOpen(filterPanel); else mobilePortalClose(filterPanel);
             });
             document.addEventListener('click', (e) => {
                 if (!filterPanel.classList.contains('open')) return;
                 if (e.target.closest('#filterPanel') || e.target.closest('#filterMenuBtn')) return;
                 filterPanel.classList.remove('open');
                 filterMenuBtn.setAttribute('aria-expanded', 'false');
+                mobilePortalClose(filterPanel);
             });
 
             typeChips.addEventListener('click', (e) => {
@@ -12294,12 +12689,14 @@
                 e.stopPropagation();
                 const isOpen = levelJumpPanel.classList.toggle('open');
                 levelJumpMenuBtn.setAttribute('aria-expanded', String(isOpen));
+                if (isOpen) mobilePortalOpen(levelJumpPanel); else mobilePortalClose(levelJumpPanel);
             });
             document.addEventListener('click', (e) => {
                 if (!levelJumpPanel.classList.contains('open')) return;
                 if (e.target.closest('#levelJumpPanel') || e.target.closest('#levelJumpMenuBtn')) return;
                 levelJumpPanel.classList.remove('open');
                 levelJumpMenuBtn.setAttribute('aria-expanded', 'false');
+                mobilePortalClose(levelJumpPanel);
             });
 
             // Level 1 button was removed: it's an absolute reset that clears
@@ -24761,6 +25158,11 @@
             let resizeTimer = null;
             window.addEventListener('resize', () => {
                 clearTimeout(resizeTimer);
+                if (!isMobileViewport()) {
+                    document.querySelectorAll('.filter-panel[data-portaled="true"]').forEach(el => {
+                        mobilePortalClose(el);
+                    });
+                }
                 resizeTimer = setTimeout(() => {
                     renderViewport();
                 }, 150);

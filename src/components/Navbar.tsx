@@ -20,15 +20,17 @@ const LS_QSK_THEME_KEY = 'qsk_theme_v2';
 const LS_QSK_DENSITY_KEY = 'qsk_density_v1';
 const LS_QSK_LANG_KEY = 'qsk_lang_v2';
 
-const PAIRED_STYLES = ['glassy', 'claude', 'dark-slate'];
-
-const FIXED_THEME_NAMES: Record<string, string> = {
-  'warm-sand': 'Warm Sand',
-  'purple': 'Purple',
-  'mono': 'Mono',
-  'teal': 'Teal',
-  'qsf': 'QSF',
-};
+const PAIRED_STYLES = [
+  'glassy',
+  'claude',
+  'dark-slate',
+  'warm-sand',
+  'purple',
+  'mono',
+  'teal',
+  'qsf',
+  'wide',
+];
 
 const QSK_STYLES = [
   { id: 'glassy', label: 'Glassy' },
@@ -39,21 +41,34 @@ const QSK_STYLES = [
   { id: 'mono', label: 'Mono' },
   { id: 'teal', label: 'Teal' },
   { id: 'qsf', label: 'QSF' },
+  { id: 'wide', label: 'Wide' },
 ];
 
+const QSK_THEME_FAMILIES: Record<string, { dark: string; light: string }> = {
+  glassy: { dark: 'dark', light: 'light' },
+  claude: { dark: 'claude-dark', light: 'claude-light' },
+  'dark-slate': { dark: 'dark-slate', light: 'dark-slate-light' },
+  'warm-sand': { dark: 'warm-sand-dark', light: 'warm-sand' },
+  purple: { dark: 'purple', light: 'purple-light' },
+  mono: { dark: 'mono-dark', light: 'mono' },
+  teal: { dark: 'teal', light: 'teal-light' },
+  qsf: { dark: 'qsf-dark', light: 'qsf' },
+  wide: { dark: 'wide', light: 'wide-light' },
+};
+
 function getStyleFromQskTheme(theme: string): string {
-  if (!theme || theme === 'dark' || theme === 'light') return 'glassy';
-  if (theme.startsWith('claude')) return 'claude';
-  if (theme.startsWith('dark-slate')) return 'dark-slate';
-  if (['warm-sand', 'purple', 'mono', 'teal', 'qsf'].includes(theme)) return theme;
+  if (!theme) return 'glassy';
+  for (const [style, family] of Object.entries(QSK_THEME_FAMILIES)) {
+    if (family.dark === theme || family.light === theme || style === theme) {
+      return style;
+    }
+  }
   return 'glassy';
 }
 
 function getQskThemeString(style: string, isDark: boolean): string {
-  if (style === 'glassy') return isDark ? 'dark' : 'light';
-  if (style === 'claude') return isDark ? 'claude-dark' : 'claude-light';
-  if (style === 'dark-slate') return isDark ? 'dark-slate' : 'dark-slate-light';
-  return style; // fixed themes: 'warm-sand', 'purple', 'mono', 'teal', 'qsf'
+  const family = QSK_THEME_FAMILIES[style];
+  return family ? (isDark ? family.dark : family.light) : (isDark ? 'dark' : 'light');
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -523,12 +538,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </div>
                 </div>
 
-                {/* Fixed theme hint */}
-                {FIXED_THEME_NAMES[qskStyle] && (
-                  <div className="text-[10px] text-amber-600 dark:text-amber-400 px-2 pb-1 leading-tight">
-                    QSK is on a fixed theme ({FIXED_THEME_NAMES[qskStyle]}) and won&apos;t change
-                  </div>
-                )}
 
                 {/* Density Row */}
                 <div
