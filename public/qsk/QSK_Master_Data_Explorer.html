@@ -2890,6 +2890,7 @@
         #stagePickerOverlay {
             align-items: flex-end;
             padding: 0;
+            padding-bottom: var(--vv-bottom-inset, 0px);
         }
         #editModalOverlay .modal,
         #sapValidationOverlay .modal,
@@ -3863,7 +3864,7 @@
         /* Task 1: Filter & Jump to Level Panels as Mobile Bottom Sheets */
         .filter-panel {
             position: fixed;
-            bottom: 0;
+            bottom: var(--vv-bottom-inset, 0px);
             left: 0;
             right: 0;
             top: auto;
@@ -9040,6 +9041,26 @@
         function isMobileViewport() {
             return window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT_PX}px)`).matches;
         }
+
+        // ============ SECTION: Visual Viewport Bottom Inset (browser toolbar) ============
+        // Tracks how much of the screen's bottom edge is actually covered by the
+        // browser's own UI (address bar / tab bar), which 100dvh/100svh and
+        // `bottom: 0` do not reliably account for on iOS. Exposes the live value
+        // as a CSS custom property so bottom sheets can push themselves up above it.
+        function updateVisualViewportInset() {
+            if (!window.visualViewport) {
+                document.documentElement.style.setProperty('--vv-bottom-inset', '0px');
+                return;
+            }
+            const vv = window.visualViewport;
+            const inset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+            document.documentElement.style.setProperty('--vv-bottom-inset', inset + 'px');
+        }
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', updateVisualViewportInset);
+            window.visualViewport.addEventListener('scroll', updateVisualViewportInset);
+        }
+        updateVisualViewportInset();
 
         // Moves a mobile bottom-sheet panel to be a direct child of <body> so it
         // escapes any backdrop-filter/transform ancestor that would otherwise break
