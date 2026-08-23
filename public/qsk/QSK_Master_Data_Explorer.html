@@ -2874,6 +2874,16 @@
     }
 
     @media (max-width: 760px) {
+        /* Popup stacking fix: ensure these popups always render above the
+           ribbon/tree-actions toolbar (z-index: 400) and header (z-index: 500)
+           on mobile, instead of being covered by them. */
+        #editModalOverlay,
+        #sapValidationOverlay,
+        #stagePickerOverlay,
+        .context-menu {
+            z-index: 1000;
+        }
+
         /* Shared Modal Bottom Sheet Behavior */
         #editModalOverlay,
         #sapValidationOverlay,
