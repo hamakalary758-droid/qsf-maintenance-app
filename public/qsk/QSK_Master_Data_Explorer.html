@@ -885,6 +885,12 @@
         margin: 0 auto;
         padding: 22px 24px 80px;
     }
+    @media (max-width: 760px) {
+        #app {
+            max-width: 100%;
+            padding: 10px 8px 80px;
+        }
+    }
 
     ::selection {
         background: var(--accent-dim);
@@ -1375,6 +1381,14 @@
         flex-wrap: wrap;
         flex: 1 1 320px;
         min-width: 0;
+    }
+    [data-ribbon-panel="templatechecker"] .toolbar-left .btn {
+        flex: 1 1 0;
+        justify-content: center;
+    }
+    [data-ribbon-panel="materialchecker"] .toolbar-left #mcUploadBtn {
+        flex: 1 1 0;
+        justify-content: center;
     }
     .toolbar-right {
         display: flex;
@@ -2675,7 +2689,14 @@
         #tcTabUploadBtn,
         #tcMaterialTabUploadBtn,
         #tcFLTabUploadBtn,
-        #mcUploadBtn {
+        #mcUploadBtn,
+        #undoBtn,
+        #redoBtn,
+        #expandAllBtn,
+        #collapseAllBtn,
+        #levelJumpMenuBtn,
+        #addPlantBtn,
+        #selectModeBtn {
             padding: 8px;
             width: 34px;
             justify-content: center;
@@ -2775,14 +2796,7 @@
             justify-content: center;
         }
         .tree-actions-left > .filter-menu {
-            flex: 1 1 0;
-            width: auto;
-            min-width: 0;
-        }
-        .tree-actions-left .filter-menu-btn {
-            width: 100%;
-            padding: 8px 4px;
-            justify-content: center;
+            flex: 0 0 auto;
         }
         .tree-actions-left > button > svg,
         .tree-actions-left .filter-menu-btn svg {
@@ -2850,6 +2864,13 @@
             opacity: 1;
             transform: translateY(0);
         }
+    }
+
+    #stagePickerOverlay .btn {
+        white-space: normal;
+        text-align: left;
+        align-items: flex-start;
+        line-height: 1.4;
     }
 
     @media (max-width: 760px) {
@@ -2950,7 +2971,9 @@
             border-radius: 10px;
             width: 100%;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
+            white-space: normal;
+            line-height: 1.4;
             box-sizing: border-box;
         }
 
@@ -4818,7 +4841,6 @@
                 <button class="ribbon-tab active" data-ribbon-tab="home" role="tab" aria-selected="true" title="Home" aria-label="Home">&#x1F3E0;<span> Home</span></button>
                 <button class="ribbon-tab" data-ribbon-tab="templatechecker" role="tab" aria-selected="false" title="Template Checker" aria-label="Template Checker">&#x1F9FE;<span> Template Checker</span></button>
                 <button class="ribbon-tab" data-ribbon-tab="materialchecker" role="tab" aria-selected="false" title="Material Checker" aria-label="Material Checker">&#x1F529;<span> Material Checker</span></button>
-                <button class="ribbon-tab" data-ribbon-tab="tools" role="tab" aria-selected="false" title="Tools" aria-label="Tools">&#x1F6E0;<span> Tools</span></button>
             </div>
 
             <!-- HOME: everyday actions -- search/filter, add plant, SAP section, Import & Export -->
@@ -4868,10 +4890,10 @@
                 </div>
 
                 <div class="toolbar-right">
-                    <div class="export-group" data-module-section="MODULE_SAP_VALIDATION">
+                    <div class="export-group" data-module-section="MODULE_SAP_VALIDATION" style="display:none;">
                         <div class="export-group-title">SAP</div>
                         <div class="export-group-buttons">
-                            <button class="btn primary" id="sapValidationBtn" title="SAP Validation" aria-label="SAP Validation" style="background:linear-gradient(155deg, #2563c9, #1d4ed8); border-color:transparent; color:#fff; box-shadow:0 8px 20px -8px rgba(37,99,201,0.55);">
+                            <button class="btn primary" id="sapValidationBtn" title="SAP Validation" aria-label="SAP Validation" style="background:linear-gradient(155deg, #2563c9, #1d4ed8); border-color:transparent; color:#fff; box-shadow:0 8px 20px -8px rgba(37,99,201,0.55); display:none;">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 11 2 2 4-4"/></svg>
                                 <span>SAP Validation</span>
                             </button>
@@ -4895,10 +4917,6 @@
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h6M8 16h4"/></svg>
                                 <span data-i18n="readableReport">Readable Report</span>
                             </button>
-                            <button class="btn small" id="viewDiagnosticsBtn" style="display:none;" title="View last import diagnostics">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5m0 3h.01"/></svg>
-                                <span>View diagnostics</span>
-                            </button>
                             <button class="btn btn-icon-danger" id="resetImportBtn" title="Reset to Last Import" aria-label="Reset to Last Import">
                                 <svg class="icon-default" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/></svg>
                                 <svg class="icon-dark-slate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"><path d="M7 3h10l4 4v10l-4 4H7l-4-4V7Z M9 10h4l-1.5-1.5M13 14H9l1.5 1.5"/></svg>
@@ -4917,6 +4935,10 @@
             <!-- TEMPLATE CHECKER: Equipment (Step 2) + Material (Step 5) upload-check features -->
             <div class="ribbon-panel" data-ribbon-panel="templatechecker">
                 <div class="toolbar-left">
+                    <button class="btn primary" id="tcFLTabUploadBtn" title="Upload a raw SAP Functional Location upload template and see what's new, highlighted right in the tree" aria-label="Check F.L. Template">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                        <span>Check F.L. Template</span>
+                    </button>
                     <button class="btn primary" id="tcTabUploadBtn" title="Upload a raw SAP Equipment upload template and see what's new, highlighted right in the tree" aria-label="Check Equipment Template">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.4-3.4a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z"/></svg>
                         <span>Check Equipment Template</span>
@@ -4924,10 +4946,6 @@
                     <button class="btn primary" id="tcMaterialTabUploadBtn" title="Upload a raw SAP Material BOM upload template and see what's new, highlighted right in the tree" aria-label="Check Material Template">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8v8a2 2 0 0 1-1 1.7l-7 4a2 2 0 0 1-2 0l-7-4A2 2 0 0 1 3 16V8a2 2 0 0 1 1-1.7l7-4a2 2 0 0 1 2 0l7 4A2 2 0 0 1 21 8Z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/></svg>
                         <span>Check Material Template</span>
-                    </button>
-                    <button class="btn primary" id="tcFLTabUploadBtn" title="Upload a raw SAP Functional Location upload template and see what's new, highlighted right in the tree" aria-label="Check F.L. Template">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-                        <span>Check F.L. Template</span>
                     </button>
                 </div>
             </div>
@@ -4957,6 +4975,10 @@
                     <button class="btn small" id="diagnosticsBtn" title="Run built-in diagnostics" aria-label="Run diagnostics">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3h6M10 3v5.3a2 2 0 0 1-.4 1.2L5.5 15.6A2 2 0 0 0 7 19h10a2 2 0 0 0 1.6-3.4L14.4 9.5a2 2 0 0 1-.4-1.2V3"/></svg>
                         <span>Built-in diagnostics</span>
+                    </button>
+                    <button class="btn small" id="viewImportDiagnosticsBtn" title="View diagnostics from your last Excel import" aria-label="View last import diagnostics">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5m0 3h.01"/></svg>
+                        <span>View last import diagnostics</span>
                     </button>
                     <button class="btn small" id="compareBtn" title="Compare baseline vs current tree" aria-label="Compare">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h6v6H4zM14 4h6v6h-6zM14 14h6v6h-6zM4 14h6v6H4z"/></svg>
@@ -8977,6 +8999,27 @@
                     if (typeof setLocale === 'function' && typeof e.data.locale === 'string') {
                         setLocale(e.data.locale);
                     }
+                    break;
+                case 'TRIGGER_SAP_VALIDATION':
+                    document.getElementById('sapValidationBtn')?.click();
+                    break;
+                case 'OPEN_SHORTCUTS':
+                    document.getElementById('shortcutsBtn')?.click();
+                    break;
+                case 'RUN_DIAGNOSTICS':
+                    document.getElementById('diagnosticsBtn')?.click();
+                    break;
+                case 'OPEN_COMPARE':
+                    document.getElementById('compareBtn')?.click();
+                    break;
+                case 'OPEN_DICTIONARY':
+                    document.getElementById('grammarDictBtn')?.click();
+                    break;
+                case 'TOGGLE_REGRESSION_TEST':
+                    document.getElementById('regressionToggleBtn')?.click();
+                    break;
+                case 'TOGGLE_DEV_MODE':
+                    document.getElementById('devToggleBtn')?.click();
                     break;
             }
         });
@@ -14607,8 +14650,6 @@
             AppState.diagnostics.lastImportDiagnostics = { errors, warnings, info: infoItems, timings };
             const container = document.getElementById('importErrorContent');
             const downloadBtn = document.getElementById('importDownloadBtn');
-            const viewBtn = document.getElementById('viewDiagnosticsBtn');
-            viewBtn.style.display = 'inline-flex';
 
             let html = '';
             if (errors && errors.length) {
@@ -14699,10 +14740,12 @@
             document.getElementById('importErrorOverlay').addEventListener('click', (e) => { if (e.target.id ===
                     'importErrorOverlay') e.currentTarget.classList.remove('open'); });
             document.getElementById('importDownloadBtn').addEventListener('click', downloadDiagnostics);
-            document.getElementById('viewDiagnosticsBtn').addEventListener('click', () => {
+            document.getElementById('viewImportDiagnosticsBtn').addEventListener('click', () => {
                 if (AppState.diagnostics.lastImportDiagnostics) {
                     const { errors, warnings, info, timings } = AppState.diagnostics.lastImportDiagnostics;
                     showImportIssues(errors, warnings, info, timings);
+                } else {
+                    showToast('No import diagnostics yet — import an Excel file first.', 'error');
                 }
             });
         }
@@ -22189,7 +22232,6 @@
                     document.getElementById('searchWrap').classList.remove('has-value');
                     renderAll();
                     tcUpdatePendingBar();
-                    document.getElementById('viewDiagnosticsBtn').style.display = 'none';
                     AppState.diagnostics.lastImportDiagnostics = null;
                     showToast(t('resetToast'));
                 });
@@ -22229,7 +22271,6 @@
                     try { localStorage.removeItem(LS_HISTORY_KEY); } catch (e) {}
                     AppState.diagnostics.history = [];
                     AppState.diagnostics.lastImportDiagnostics = null;
-                    document.getElementById('viewDiagnosticsBtn').style.display = 'none';
                     renderAll();
                     tcUpdatePendingBar();
                     showToast('Tree wiped to blank.');

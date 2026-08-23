@@ -621,16 +621,6 @@ export default function App() {
         />
       </main>
 
-      {/* Footer */}
-      <footer className="bg-slate-900 border-t border-slate-800 text-slate-400 py-4 px-4 text-center text-xs">
-        <p className="font-semibold text-slate-300">
-          Shutdown Maintenance Reporter &bull; Mobile Plant Companion
-        </p>
-        <p className="text-[11px] text-slate-500 mt-0.5">
-          Designed for mobile field entry with offline local cache, 5W+1H, 5-Why analysis, photo markup, and Excel/PDF/Word exports.
-        </p>
-      </footer>
-
       {/* Discard Draft Confirmation Modal */}
       {showDiscardModal && (
         <div

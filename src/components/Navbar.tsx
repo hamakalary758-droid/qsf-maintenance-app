@@ -185,6 +185,11 @@ export const Navbar: React.FC<NavbarProps> = ({
     sendToQskIframe({ type: 'SET_LOCALE', locale: newLang });
   };
 
+  const handleQskToolTrigger = (messageType: string) => {
+    sendToQskIframe({ type: messageType });
+    setIsSettingsOpen(false);
+  };
+
   const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
   const overdueActionsCount = useMemo(() => {
     if (!reports || reports.length === 0) return 0;
@@ -612,6 +617,74 @@ export const Navbar: React.FC<NavbarProps> = ({
                     </div>
                   </div>
                 </div>
+
+                {/* QSK tools — only relevant while viewing the QSK app */}
+                {isQskView && (
+                  <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-700">
+                    <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-1 py-1">
+                      QSK tools
+                    </div>
+                    <div className="space-y-0.5">
+                      <button
+                        onClick={() => handleQskToolTrigger('TRIGGER_SAP_VALIDATION')}
+                        className="w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left"
+                      >
+                        <Shield className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                        <span>SAP Validation</span>
+                      </button>
+                      <button
+                        onClick={() => handleQskToolTrigger('OPEN_SHORTCUTS')}
+                        className="w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left"
+                      >
+                        <Key className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                        <span>Keyboard shortcuts</span>
+                      </button>
+                      <button
+                        onClick={() => handleQskToolTrigger('RUN_DIAGNOSTICS')}
+                        className="w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left"
+                      >
+                        <CheckSquare className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                        <span>Built-in diagnostics</span>
+                      </button>
+                      <button
+                        onClick={() => handleQskToolTrigger('OPEN_COMPARE')}
+                        className="w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                        <span>Compare</span>
+                      </button>
+                      <button
+                        onClick={() => handleQskToolTrigger('OPEN_DICTIONARY')}
+                        className="w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left"
+                      >
+                        <BarChart3 className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                        <span>My Dictionary</span>
+                      </button>
+                    </div>
+
+                    <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-700">
+                      <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-1 py-1">
+                        Developer
+                      </div>
+                      <div className="space-y-0.5">
+                        <button
+                          onClick={() => handleQskToolTrigger('TOGGLE_REGRESSION_TEST')}
+                          className="w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left"
+                        >
+                          <CheckSquare className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                          <span>Test</span>
+                        </button>
+                        <button
+                          onClick={() => handleQskToolTrigger('TOGGLE_DEV_MODE')}
+                          className="w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left"
+                        >
+                          <Wrench className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                          <span>Developer Mode</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* 4. Divider */}
                 <div className="my-2 border-t border-slate-200 dark:border-slate-700" />
