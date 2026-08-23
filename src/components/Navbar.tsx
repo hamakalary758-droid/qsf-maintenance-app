@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AppTab, MaintenanceReport } from '../types';
-import { Wrench, Smartphone, History, Shield, CheckSquare, Plus, Wifi, WifiOff, Menu, Bell, Sparkles, RefreshCw, AlertTriangle, CheckCircle2, RotateCcw, X, Key, Eye, EyeOff, BarChart3, ChevronDown } from 'lucide-react';
+import { Wrench, History, Shield, CheckSquare, Plus, Wifi, WifiOff, Menu, Bell, Sparkles, RefreshCw, AlertTriangle, CheckCircle2, RotateCcw, X, Key, Eye, EyeOff, BarChart3, ChevronDown } from 'lucide-react';
 import { subscribeToSyncStatus, processSyncQueue, SyncStatusInfo } from '../offline/syncQueue';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface NavbarProps {
   activeTab: AppTab;
@@ -82,6 +83,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   isQskView,
   onToggleQskView
 }) => {
+  const { locale, setLocale, t } = useLanguage();
   const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const [syncInfo, setSyncInfo] = useState<SyncStatusInfo>({
@@ -113,16 +115,6 @@ export const Navbar: React.FC<NavbarProps> = ({
     } catch {
       return 'wide';
     }
-  });
-
-  const [qskLang, setQskLang] = useState<'en' | 'ar' | 'ckb'>(() => {
-    try {
-      const stored = localStorage.getItem(LS_QSK_LANG_KEY);
-      if (stored === 'ar' || stored === 'ckb' || stored === 'en') return stored;
-    } catch {
-      // ignore
-    }
-    return 'en';
   });
 
   const sendToQskIframe = (data: { type: string; [key: string]: any }) => {
@@ -176,7 +168,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   const handleLanguageChange = (newLang: 'en' | 'ar' | 'ckb') => {
-    setQskLang(newLang);
+    setLocale(newLang);
     try {
       localStorage.setItem(LS_QSK_LANG_KEY, newLang);
     } catch {
@@ -274,10 +266,6 @@ export const Navbar: React.FC<NavbarProps> = ({
         setQskStyle(getStyleFromQskTheme(storedTheme));
         const storedDensity = localStorage.getItem(LS_QSK_DENSITY_KEY);
         setQskDensity(storedDensity === 'tight' ? 'tight' : 'wide');
-        const storedLang = localStorage.getItem(LS_QSK_LANG_KEY);
-        if (storedLang === 'ar' || storedLang === 'ckb' || storedLang === 'en') {
-          setQskLang(storedLang);
-        }
       } catch {
         // ignore
       }
@@ -327,12 +315,12 @@ export const Navbar: React.FC<NavbarProps> = ({
         <button
           onClick={() => setIsSyncModalOpen(true)}
           className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border bg-amber-500/10 text-amber-400 border-amber-500/30 hover:bg-amber-500/20 transition-colors"
-          title="Offline mode - changes saved locally"
+          title={t('nav.offlineTitle')}
         >
           <WifiOff className="w-3 h-3" />
-          <span>Offline</span>
+          <span>{t('nav.offline')}</span>
           {syncInfo.pendingCount > 0 && (
-            <span className="ml-1 px-1.5 py-0.2 bg-amber-500/20 rounded-full text-[9px]">
+            <span className="ms-1 px-1.5 py-0.2 bg-amber-500/20 rounded-full text-[9px]">
               {syncInfo.pendingCount}
             </span>
           )}
@@ -345,10 +333,10 @@ export const Navbar: React.FC<NavbarProps> = ({
         <button
           onClick={() => setIsSyncModalOpen(true)}
           className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border bg-sky-500/10 text-sky-400 border-sky-500/30 animate-pulse"
-          title="Syncing reports with cloud..."
+          title={t('nav.syncingTitle')}
         >
           <RefreshCw className="w-3 h-3 animate-spin" />
-          <span>Syncing</span>
+          <span>{t('nav.syncing')}</span>
         </button>
       );
     }
@@ -358,7 +346,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <button
           onClick={() => setIsSyncModalOpen(true)}
           className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border bg-rose-500/15 text-rose-400 border-rose-500/40 hover:bg-rose-500/25 transition-colors cursor-pointer"
-          title="Sync failed - tap to inspect and retry"
+          title={t('nav.syncFailedTitle')}
         >
           <AlertTriangle className="w-3 h-3 text-rose-400" />
           <span>Sync Failed {syncInfo.failedCount > 1 ? `(${syncInfo.failedCount})` : ''}</span>
@@ -371,7 +359,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <button
           onClick={() => setIsSyncModalOpen(true)}
           className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border bg-amber-500/10 text-amber-400 border-amber-500/30 hover:bg-amber-500/20 transition-colors"
-          title="Pending synchronization"
+          title={t('nav.pendingSyncTitle')}
         >
           <RotateCcw className="w-3 h-3" />
           <span>Pending Sync {syncInfo.pendingCount > 1 ? `(${syncInfo.pendingCount})` : ''}</span>
@@ -383,10 +371,10 @@ export const Navbar: React.FC<NavbarProps> = ({
       <button
         onClick={() => setIsSyncModalOpen(true)}
         className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20 transition-colors"
-        title="Connected and fully synced"
+        title={t('nav.connectedTitle')}
       >
         <Wifi className="w-3 h-3" />
-        <span>Online</span>
+        <span>{t('nav.online')}</span>
       </button>
     );
   };
@@ -417,7 +405,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             onChange={handleLogoUpload}
             accept="image/png,image/jpeg"
             className="hidden"
-            aria-label="Upload company logo"
+            aria-label={t('nav.uploadLogoAria')}
           />
           <div
             onClick={() => logoInputRef.current?.click()}
@@ -428,15 +416,15 @@ export const Navbar: React.FC<NavbarProps> = ({
               <>
                 <img
                   src={logoDataUrl}
-                  alt="Company logo"
+                  alt={t('nav.companyLogoAlt')}
                   className="h-full w-auto max-w-full object-contain rounded"
                 />
                 <button
                   type="button"
                   onClick={handleRemoveLogo}
-                  title="Remove logo"
-                  aria-label="Remove logo"
-                  className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-rose-600 hover:bg-rose-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md z-10"
+                  title={t('nav.removeLogoTitle')}
+                  aria-label={t('nav.removeLogoAria')}
+                  className="absolute -top-1.5 -right-1.5 rtl:-right-auto rtl:-left-1.5 w-4 h-4 bg-rose-600 hover:bg-rose-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md z-10"
                 >
                   <X className="w-2.5 h-2.5" />
                 </button>
@@ -460,7 +448,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             <Bell className="w-[18px] h-[18px]" />
             {overdueActionsCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-rose-500 rounded-full" />
+              <span className="absolute -top-0.5 -right-0.5 rtl:-right-auto rtl:-left-0.5 w-2 h-2 bg-rose-500 rounded-full" />
             )}
           </button>
 
@@ -504,7 +492,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setIsSettingsOpen((prev) => !prev)}
-              aria-label="Menu"
+              aria-label={t('nav.menuAria')}
               aria-expanded={isSettingsOpen}
               className={`p-2 rounded-lg border transition-colors ${
                 isSettingsOpen
@@ -516,7 +504,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
 
             {isSettingsOpen && (
-              <div className="absolute right-0 top-full mt-2 w-72 sm:w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl p-3 z-50 text-slate-900 dark:text-slate-100 animate-in fade-in-50 zoom-in-95 duration-100">
+              <div className="absolute right-0 rtl:right-auto rtl:left-0 top-full mt-2 w-72 sm:w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl p-3 z-50 text-slate-900 dark:text-slate-100 animate-in fade-in-50 zoom-in-95 duration-100">
                 {/* 1. Appearance */}
                 <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-1 py-1">
                   Appearance
@@ -537,7 +525,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   >
                     <div
                       className={`w-4 h-4 bg-white rounded-full transition-transform shadow-xs ${
-                        theme === 'dark' ? 'translate-x-4' : 'translate-x-0'
+                        theme === 'dark' ? 'translate-x-4 rtl:-translate-x-4' : 'translate-x-0'
                       }`}
                     />
                   </div>
@@ -564,7 +552,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   >
                     <div
                       className={`w-4 h-4 bg-white rounded-full transition-transform shadow-xs ${
-                        qskDensity === 'tight' ? 'translate-x-4' : 'translate-x-0'
+                        qskDensity === 'tight' ? 'translate-x-4 rtl:-translate-x-4' : 'translate-x-0'
                       }`}
                     />
                   </div>
@@ -580,7 +568,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       <select
                         value={qskStyle}
                         onChange={(e) => handleQskStyleChange(e.target.value)}
-                        className="text-xs bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 pr-6 focus:outline-none focus:ring-1.5 focus:ring-sky-500 appearance-none font-medium cursor-pointer"
+                        className="text-xs bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 pe-6 focus:outline-none focus:ring-1.5 focus:ring-sky-500 appearance-none font-medium cursor-pointer"
                       >
                         {QSK_STYLES.map((style) => (
                           <option key={style.id} value={style.id}>
@@ -588,7 +576,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                           </option>
                         ))}
                       </select>
-                      <ChevronDown className="w-3 h-3 text-slate-400 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <ChevronDown className="w-3 h-3 text-slate-400 absolute right-1.5 rtl:right-auto rtl:left-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     </div>
                   </div>
                 </div>
@@ -597,7 +585,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-700">
                   <div className="flex items-center justify-between px-1 py-1">
                     <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-                      Language
+                      {t('nav.language')}
                     </span>
                     <div className="flex items-center space-x-1 bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700">
                       {(['en', 'ar', 'ckb'] as const).map((lang) => (
@@ -606,7 +594,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                           type="button"
                           onClick={() => handleLanguageChange(lang)}
                           className={`px-2 py-0.5 text-[11px] font-semibold rounded-md transition-all ${
-                            qskLang === lang
+                            locale === lang
                               ? 'bg-sky-500 text-white shadow-xs'
                               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                           }`}
@@ -627,35 +615,35 @@ export const Navbar: React.FC<NavbarProps> = ({
                     <div className="space-y-0.5">
                       <button
                         onClick={() => handleQskToolTrigger('TRIGGER_SAP_VALIDATION')}
-                        className="w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left"
+                        className="w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left rtl:text-right"
                       >
                         <Shield className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
                         <span>SAP Validation</span>
                       </button>
                       <button
                         onClick={() => handleQskToolTrigger('OPEN_SHORTCUTS')}
-                        className="w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left"
+                        className="w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left rtl:text-right"
                       >
                         <Key className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
                         <span>Keyboard shortcuts</span>
                       </button>
                       <button
                         onClick={() => handleQskToolTrigger('RUN_DIAGNOSTICS')}
-                        className="w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left"
+                        className="w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left rtl:text-right"
                       >
                         <CheckSquare className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
                         <span>Built-in diagnostics</span>
                       </button>
                       <button
                         onClick={() => handleQskToolTrigger('OPEN_COMPARE')}
-                        className="w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left"
+                        className="w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left rtl:text-right"
                       >
                         <RefreshCw className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
                         <span>Compare</span>
                       </button>
                       <button
                         onClick={() => handleQskToolTrigger('OPEN_DICTIONARY')}
-                        className="w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left"
+                        className="w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left rtl:text-right"
                       >
                         <BarChart3 className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
                         <span>My Dictionary</span>
@@ -669,14 +657,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                       <div className="space-y-0.5">
                         <button
                           onClick={() => handleQskToolTrigger('TOGGLE_REGRESSION_TEST')}
-                          className="w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left"
+                          className="w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left rtl:text-right"
                         >
                           <CheckSquare className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
                           <span>Test</span>
                         </button>
                         <button
                           onClick={() => handleQskToolTrigger('TOGGLE_DEV_MODE')}
-                          className="w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left"
+                          className="w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left rtl:text-right"
                         >
                           <Wrench className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
                           <span>Developer Mode</span>
@@ -691,25 +679,25 @@ export const Navbar: React.FC<NavbarProps> = ({
 
                 {/* 3. Gemini API Key */}
                 <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-1 py-1 flex items-center justify-between">
-                  <span>Gemini API Key</span>
+                  <span>{t('nav.geminiApiKey')}</span>
                   <span className="text-[9px] text-purple-600 dark:text-purple-400 font-semibold lowercase">5-Why AI</span>
                 </div>
                 <div className="px-1 py-1 space-y-1.5">
                   <div className="relative flex items-center">
-                    <div className="absolute left-2.5 text-slate-400 pointer-events-none">
+                    <div className="absolute left-2.5 rtl:left-auto rtl:right-2.5 text-slate-400 pointer-events-none">
                       <Key className="w-3.5 h-3.5" />
                     </div>
                     <input
                       type={showApiKey ? 'text' : 'password'}
                       value={geminiApiKey}
                       onChange={(e) => handleApiKeyChange(e.target.value)}
-                      placeholder="Enter Gemini API key..."
-                      className="w-full pl-8 pr-8 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-1.5 focus:ring-purple-500 focus:border-purple-500 font-mono"
+                      placeholder={t('nav.geminiApiKeyPlaceholder')}
+                      className="w-full ps-8 pe-8 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-1.5 focus:ring-purple-500 focus:border-purple-500 font-mono"
                     />
                     <button
                       type="button"
                       onClick={() => setShowApiKey((prev) => !prev)}
-                      className="absolute right-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors p-0.5"
+                      className="absolute right-2 rtl:right-auto rtl:left-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors p-0.5"
                       title={showApiKey ? 'Hide API key' : 'Show API key'}
                     >
                       {showApiKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
@@ -732,10 +720,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                     onAutoFill();
                     setIsSettingsOpen(false);
                   }}
-                  className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/50 border border-amber-200 dark:border-amber-800 transition-colors text-left"
+                  className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/50 border border-amber-200 dark:border-amber-800 transition-colors text-left rtl:text-right"
                 >
                   <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                  <span>Auto-Fill Test Sample</span>
+                  <span>{t('nav.autoFillTest')}</span>
                 </button>
 
                 {/* 6. Divider */}
@@ -743,37 +731,22 @@ export const Navbar: React.FC<NavbarProps> = ({
 
                 {/* 7. App Details */}
                 <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-1 py-1">
-                  App details
+                  {t('nav.appDetails')}
                 </div>
                 <div className="space-y-0.5">
-                  <button
-                    onClick={() => {
-                      onSelectTab('mockups');
-                      setIsSettingsOpen(false);
-                    }}
-                    className={`w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-colors text-left ${
-                      activeTab === 'mockups'
-                        ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 font-semibold'
-                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    <Smartphone className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
-                    <span>Phase 1 Mockups</span>
-                  </button>
-
                   <button
                     onClick={() => {
                       onSelectTab('setup-guide');
                       setIsSettingsOpen(false);
                     }}
-                    className={`w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-colors text-left ${
+                    className={`w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-colors text-left rtl:text-right ${
                       activeTab === 'setup-guide'
                         ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 font-semibold'
                         : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                     }`}
                   >
                     <Shield className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
-                    <span>Phase 2 Safety Net</span>
+                    <span>{t('nav.safetyNet')}</span>
                   </button>
 
                   <button
@@ -781,14 +754,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                       onSelectTab('phase-checklist');
                       setIsSettingsOpen(false);
                     }}
-                    className={`w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-colors text-left ${
+                    className={`w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-colors text-left rtl:text-right ${
                       activeTab === 'phase-checklist'
                         ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 font-semibold'
                         : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                     }`}
                   >
                     <CheckSquare className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
-                    <span>23-Step Blueprint</span>
+                    <span>{t('nav.blueprint')}</span>
                   </button>
                 </div>
               </div>
@@ -802,9 +775,9 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="bg-slate-950/80 backdrop-blur-md border-t border-slate-800/80 px-4">
           <div className="max-w-7xl mx-auto flex items-center space-x-1 overflow-x-auto py-1 scrollbar-none">
             {[
-              { id: 'new-report' as const, label: 'New Field Report', icon: Plus },
-              { id: 'history' as const, label: `Report History (${reportCount})`, icon: History },
-              { id: 'dashboard' as const, label: 'Dashboard', icon: BarChart3 }
+              { id: 'new-report' as const, label: t('nav.newFieldReport'), icon: Plus },
+              { id: 'history' as const, label: `${t('history.title')} (${reportCount})`, icon: History },
+              { id: 'dashboard' as const, label: t('nav.dashboard'), icon: BarChart3 }
             ].map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -837,8 +810,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <RefreshCw className={`w-4 h-4 ${syncInfo.state === 'syncing' ? 'animate-spin' : ''}`} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-sm">IndexedDB & Cloud Sync Status</h3>
-                  <span className="text-[11px] text-slate-500 dark:text-slate-400">Offline-First Local Storage Engine</span>
+                  <h3 className="font-bold text-sm">{t('nav.storageStatusTitle')}</h3>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400">{t('nav.storageEngineSubtitle')}</span>
                 </div>
               </div>
               <button
@@ -851,14 +824,14 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             <div className="space-y-3 text-xs mb-5">
               <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/70 dark:border-slate-700/60">
-                <span className="text-slate-600 dark:text-slate-400">Network State:</span>
+                <span className="text-slate-600 dark:text-slate-400">{t('nav.networkState')}</span>
                 <span className={`font-bold ${syncInfo.isOnline ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
                   {syncInfo.isOnline ? 'Connected (Online)' : 'No Connection (Offline)'}
                 </span>
               </div>
 
               <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/70 dark:border-slate-700/60">
-                <span className="text-slate-600 dark:text-slate-400">Sync Status:</span>
+                <span className="text-slate-600 dark:text-slate-400">{t('nav.syncStatus')}</span>
                 <span className="font-bold capitalize text-slate-800 dark:text-slate-200">
                   {syncInfo.state.replace('_', ' ')}
                 </span>
@@ -899,7 +872,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               {syncInfo.state === 'online' && syncInfo.pendingCount === 0 && (
                 <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl text-emerald-800 dark:text-emerald-200 flex items-center space-x-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                  <span>All reports and photos are synced and up to date.</span>
+                  <span>{t('nav.allSyncedMsg')}</span>
                 </div>
               )}
             </div>
@@ -917,7 +890,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 className="px-4 py-2 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-md flex items-center space-x-1.5 transition-transform active:scale-95"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${syncInfo.state === 'syncing' ? 'animate-spin' : ''}`} />
-                <span>Retry Sync Now</span>
+                <span>{t('nav.retrySyncNow')}</span>
               </button>
             </div>
           </div>

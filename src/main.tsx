@@ -3,13 +3,16 @@ import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 import { initSyncService } from './offline/syncQueue';
+import { LanguageProvider } from './contexts/LanguageContext';
 
 // Initialize offline-first background sync service
 initSyncService();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <LanguageProvider>
+      <App />
+    </LanguageProvider>
   </StrictMode>,
 );
 

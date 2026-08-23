@@ -17,7 +17,6 @@ import { validateReportForFinalization, ValidationError } from './utils/validati
 import { useTheme } from './hooks/useTheme';
 import { Navbar } from './components/Navbar';
 import { PhaseTracker } from './components/PhaseTracker';
-import { MockupsView } from './components/MockupsView';
 import { SetupGuide } from './components/SetupGuide';
 import { ReportHistory } from './components/ReportHistory';
 import { BasicInfoStep } from './components/ReportForm/BasicInfoStep';
@@ -595,9 +594,6 @@ export default function App() {
 
         {/* TAB 3: DASHBOARD */}
         {activeTab === 'dashboard' && <Dashboard reports={reports} />}
-
-        {/* TAB 3: PHASE 1 MOCKUPS */}
-        {activeTab === 'mockups' && <MockupsView />}
 
         {/* TAB 4: PHASE 2 SAFETY NET */}
         {activeTab === 'setup-guide' && <SetupGuide />}

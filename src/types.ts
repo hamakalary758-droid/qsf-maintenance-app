@@ -78,4 +78,4 @@ export interface MaintenanceReport {
   archiveReason?: string;
 }
 
-export type AppTab = 'new-report' | 'history' | 'dashboard' | 'mockups' | 'setup-guide' | 'phase-checklist';
+export type AppTab = 'new-report' | 'history' | 'dashboard' | 'setup-guide' | 'phase-checklist';
