@@ -9033,6 +9033,11 @@
                 case 'TOGGLE_DEV_MODE':
                     document.getElementById('devToggleBtn')?.click();
                     break;
+                case 'SET_VV_BOTTOM_INSET':
+                    if (typeof e.data.inset === 'number') {
+                        document.documentElement.style.setProperty('--vv-bottom-inset', e.data.inset + 'px');
+                    }
+                    break;
             }
         });
 
@@ -9041,26 +9046,6 @@
         function isMobileViewport() {
             return window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT_PX}px)`).matches;
         }
-
-        // ============ SECTION: Visual Viewport Bottom Inset (browser toolbar) ============
-        // Tracks how much of the screen's bottom edge is actually covered by the
-        // browser's own UI (address bar / tab bar), which 100dvh/100svh and
-        // `bottom: 0` do not reliably account for on iOS. Exposes the live value
-        // as a CSS custom property so bottom sheets can push themselves up above it.
-        function updateVisualViewportInset() {
-            if (!window.visualViewport) {
-                document.documentElement.style.setProperty('--vv-bottom-inset', '0px');
-                return;
-            }
-            const vv = window.visualViewport;
-            const inset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
-            document.documentElement.style.setProperty('--vv-bottom-inset', inset + 'px');
-        }
-        if (window.visualViewport) {
-            window.visualViewport.addEventListener('resize', updateVisualViewportInset);
-            window.visualViewport.addEventListener('scroll', updateVisualViewportInset);
-        }
-        updateVisualViewportInset();
 
         // Moves a mobile bottom-sheet panel to be a direct child of <body> so it
         // escapes any backdrop-filter/transform ancestor that would otherwise break

@@ -145,6 +145,34 @@ export default function App() {
     };
   }, []);
 
+  // Forward visual viewport bottom inset from parent window into the QSK iframe
+  useEffect(() => {
+    const sendInset = () => {
+      let inset = 0;
+      if (typeof window !== 'undefined' && window.visualViewport) {
+        const vv = window.visualViewport;
+        inset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      }
+      const iframe = document.getElementById('qsk-content-iframe') as HTMLIFrameElement | null;
+      iframe?.contentWindow?.postMessage(
+        { source: 'qsf-settings', type: 'SET_VV_BOTTOM_INSET', inset },
+        window.location.origin
+      );
+    };
+
+    sendInset();
+
+    if (typeof window !== 'undefined' && window.visualViewport) {
+      const vv = window.visualViewport;
+      vv.addEventListener('resize', sendInset);
+      vv.addEventListener('scroll', sendInset);
+      return () => {
+        vv.removeEventListener('resize', sendInset);
+        vv.removeEventListener('scroll', sendInset);
+      };
+    }
+  }, []);
+
   const handleUpdateReportData = (updates: Partial<MaintenanceReport>) => {
     const updated = { ...reportData, ...updates };
     setReportData(updated);
@@ -610,6 +638,7 @@ export default function App() {
         style={{ display: isQskView ? undefined : 'none' }}
       >
         <iframe
+          id="qsk-content-iframe"
           src="/qsk/QSK_Master_Data_Explorer.html"
           title="QSK Master Data Explorer"
           className="flex-1 w-full border-0"

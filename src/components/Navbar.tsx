@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AppTab, MaintenanceReport } from '../types';
-import { Wrench, History, Shield, CheckSquare, Plus, Wifi, WifiOff, Menu, Bell, Sparkles, RefreshCw, AlertTriangle, CheckCircle2, RotateCcw, X, Key, Eye, EyeOff, BarChart3, ChevronDown } from 'lucide-react';
+import { Wrench, History, Shield, CheckSquare, Plus, Wifi, WifiOff, Menu, Bell, Sparkles, RefreshCw, AlertTriangle, CheckCircle2, RotateCcw, X, Key, Eye, EyeOff, BarChart3, ChevronDown, Sun, Globe, Sparkle, Sliders } from 'lucide-react';
 import { subscribeToSyncStatus, processSyncQueue, SyncStatusInfo } from '../offline/syncQueue';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -94,6 +94,13 @@ export const Navbar: React.FC<NavbarProps> = ({
     isOnline: typeof navigator !== 'undefined' ? navigator.onLine : true
   });
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    appearance: true,
+    languageTheme: false,
+    qskTools: false,
+    aiAssistant: false,
+    more: false
+  });
   const [isSyncModalOpen, setIsSyncModalOpen] = useState<boolean>(false);
   const [geminiApiKey, setGeminiApiKey] = useState<string>('');
   const [showApiKey, setShowApiKey] = useState<boolean>(false);
@@ -261,6 +268,13 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   useEffect(() => {
     if (isSettingsOpen) {
+      setOpenSections({
+        appearance: true,
+        languageTheme: false,
+        qskTools: false,
+        aiAssistant: false,
+        more: false
+      });
       try {
         const storedTheme = localStorage.getItem(LS_QSK_THEME_KEY) || 'dark';
         setQskStyle(getStyleFromQskTheme(storedTheme));
@@ -293,14 +307,32 @@ export const Navbar: React.FC<NavbarProps> = ({
       }
     };
 
+    let qskDoc: Document | null = null;
+
     if (isSettingsOpen) {
       document.addEventListener('mousedown', handleClickOutside);
       document.addEventListener('keydown', handleKeyDown);
+
+      try {
+        const iframe = document.getElementById('qsk-content-iframe') as HTMLIFrameElement | null;
+        qskDoc = iframe?.contentWindow?.document ?? null;
+        if (qskDoc) {
+          qskDoc.addEventListener('mousedown', handleClickOutside);
+        }
+      } catch {
+        // Iframe not yet loaded or inaccessible — outside-click-close on the
+        // main page still works regardless.
+      }
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleKeyDown);
+      try {
+        qskDoc?.removeEventListener('mousedown', handleClickOutside);
+      } catch {
+        // ignore
+      }
     };
   }, [isSettingsOpen]);
 
@@ -504,265 +536,381 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
 
             {isSettingsOpen && (
-              <div className="absolute right-0 rtl:right-auto rtl:left-0 top-full mt-2 w-72 sm:w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl p-3 z-50 text-slate-900 dark:text-slate-100 animate-in fade-in-50 zoom-in-95 duration-100">
-                {/* 1. Appearance */}
-                <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-1 py-1">
-                  Appearance
-                </div>
-
-                {/* Dark Mode Row */}
-                <div
-                  onClick={handleToggleTheme}
-                  className="flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-colors"
-                >
-                  <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-                    Dark mode
-                  </span>
-                  <div
-                    className={`w-9 h-5 rounded-full transition-colors relative p-0.5 flex items-center ${
-                      theme === 'dark' ? 'bg-sky-500' : 'bg-slate-300 dark:bg-slate-700'
-                    }`}
+              <div className="absolute right-0 rtl:right-auto rtl:left-0 top-full mt-2 w-72 sm:w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl p-3 z-50 text-slate-900 dark:text-slate-100 animate-in fade-in-50 zoom-in-95 duration-100 space-y-2">
+                {/* 1. Appearance Accordion */}
+                <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden bg-slate-50/50 dark:bg-slate-800/30">
+                  <button
+                    type="button"
+                    onClick={() => setOpenSections((prev) => ({ ...prev, appearance: !prev.appearance }))}
+                    className="w-full flex items-center justify-between p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors text-left rtl:text-right"
                   >
-                    <div
-                      className={`w-4 h-4 bg-white rounded-full transition-transform shadow-xs ${
-                        theme === 'dark' ? 'translate-x-4 rtl:-translate-x-4' : 'translate-x-0'
-                      }`}
-                    />
-                  </div>
-                </div>
-
-
-                {/* Density Row */}
-                <div
-                  onClick={handleToggleDensity}
-                  className="flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-colors"
-                >
-                  <div className="flex flex-col">
-                    <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-                      Density
-                    </span>
-                    <span className="text-[10px] text-slate-400 dark:text-slate-500">
-                      {qskDensity === 'tight' ? 'Tight spacing' : 'Wide spacing'}
-                    </span>
-                  </div>
-                  <div
-                    className={`w-9 h-5 rounded-full transition-colors relative p-0.5 flex items-center ${
-                      qskDensity === 'tight' ? 'bg-sky-500' : 'bg-slate-300 dark:bg-slate-700'
-                    }`}
-                  >
-                    <div
-                      className={`w-4 h-4 bg-white rounded-full transition-transform shadow-xs ${
-                        qskDensity === 'tight' ? 'translate-x-4 rtl:-translate-x-4' : 'translate-x-0'
-                      }`}
-                    />
-                  </div>
-                </div>
-
-                {/* 2. QSK Color Theme */}
-                <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-700">
-                  <div className="flex items-center justify-between px-1 py-1">
-                    <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-                      QSK color theme
-                    </span>
-                    <div className="relative">
-                      <select
-                        value={qskStyle}
-                        onChange={(e) => handleQskStyleChange(e.target.value)}
-                        className="text-xs bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 pe-6 focus:outline-none focus:ring-1.5 focus:ring-sky-500 appearance-none font-medium cursor-pointer"
-                      >
-                        {QSK_STYLES.map((style) => (
-                          <option key={style.id} value={style.id}>
-                            {style.label}
-                          </option>
-                        ))}
-                      </select>
-                      <ChevronDown className="w-3 h-3 text-slate-400 absolute right-1.5 rtl:right-auto rtl:left-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <div className="flex items-center space-x-2.5 rtl:space-x-reverse">
+                      <div className="p-1 rounded-md bg-sky-500/10 text-sky-600 dark:text-sky-400">
+                        <Sun className="w-3.5 h-3.5" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold text-slate-900 dark:text-slate-100">Appearance</span>
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400">Dark mode, density</span>
+                      </div>
                     </div>
-                  </div>
-                </div>
+                    <ChevronDown
+                      className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
+                        openSections.appearance ? 'rotate-180' : ''
+                      }`}
+                    />
+                  </button>
 
-                {/* 3. Language */}
-                <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-700">
-                  <div className="flex items-center justify-between px-1 py-1">
-                    <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-                      {t('nav.language')}
-                    </span>
-                    <div className="flex items-center space-x-1 bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700">
-                      {(['en', 'ar', 'ckb'] as const).map((lang) => (
-                        <button
-                          key={lang}
-                          type="button"
-                          onClick={() => handleLanguageChange(lang)}
-                          className={`px-2 py-0.5 text-[11px] font-semibold rounded-md transition-all ${
-                            locale === lang
-                              ? 'bg-sky-500 text-white shadow-xs'
-                              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  {openSections.appearance && (
+                    <div className="p-2 pt-0 space-y-1 border-t border-slate-100 dark:border-slate-800/60 mt-1">
+                      {/* Dark Mode Row */}
+                      <div
+                        onClick={handleToggleTheme}
+                        className="flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-colors"
+                      >
+                        <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                          Dark mode
+                        </span>
+                        <div
+                          className={`w-9 h-5 rounded-full transition-colors relative p-0.5 flex items-center ${
+                            theme === 'dark' ? 'bg-sky-500' : 'bg-slate-300 dark:bg-slate-700'
                           }`}
                         >
-                          {lang.toUpperCase()}
-                        </button>
-                      ))}
+                          <div
+                            className={`w-4 h-4 bg-white rounded-full transition-transform shadow-xs ${
+                              theme === 'dark' ? 'translate-x-4 rtl:-translate-x-4' : 'translate-x-0'
+                            }`}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Density Row */}
+                      <div
+                        onClick={handleToggleDensity}
+                        className="flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-colors"
+                      >
+                        <div className="flex flex-col">
+                          <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                            Density
+                          </span>
+                          <span className="text-[10px] text-slate-400 dark:text-slate-500">
+                            {qskDensity === 'tight' ? 'Tight spacing' : 'Wide spacing'}
+                          </span>
+                        </div>
+                        <div
+                          className={`w-9 h-5 rounded-full transition-colors relative p-0.5 flex items-center ${
+                            qskDensity === 'tight' ? 'bg-sky-500' : 'bg-slate-300 dark:bg-slate-700'
+                          }`}
+                        >
+                          <div
+                            className={`w-4 h-4 bg-white rounded-full transition-transform shadow-xs ${
+                              qskDensity === 'tight' ? 'translate-x-4 rtl:-translate-x-4' : 'translate-x-0'
+                            }`}
+                          />
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
 
-                {/* QSK tools — only relevant while viewing the QSK app */}
-                {isQskView && (
-                  <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-700">
-                    <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-1 py-1">
-                      QSK tools
+                {/* 2. Language and Theme Accordion */}
+                <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden bg-slate-50/50 dark:bg-slate-800/30">
+                  <button
+                    type="button"
+                    onClick={() => setOpenSections((prev) => ({ ...prev, languageTheme: !prev.languageTheme }))}
+                    className="w-full flex items-center justify-between p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors text-left rtl:text-right"
+                  >
+                    <div className="flex items-center space-x-2.5 rtl:space-x-reverse">
+                      <div className="p-1 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                        <Globe className="w-3.5 h-3.5" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold text-slate-900 dark:text-slate-100">Language and theme</span>
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400">Language, QSK color</span>
+                      </div>
                     </div>
-                    <div className="space-y-0.5">
-                      <button
-                        onClick={() => handleQskToolTrigger('TRIGGER_SAP_VALIDATION')}
-                        className="w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left rtl:text-right"
-                      >
-                        <Shield className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
-                        <span>SAP Validation</span>
-                      </button>
-                      <button
-                        onClick={() => handleQskToolTrigger('OPEN_SHORTCUTS')}
-                        className="w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left rtl:text-right"
-                      >
-                        <Key className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
-                        <span>Keyboard shortcuts</span>
-                      </button>
-                      <button
-                        onClick={() => handleQskToolTrigger('RUN_DIAGNOSTICS')}
-                        className="w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left rtl:text-right"
-                      >
-                        <CheckSquare className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
-                        <span>Built-in diagnostics</span>
-                      </button>
-                      <button
-                        onClick={() => handleQskToolTrigger('OPEN_COMPARE')}
-                        className="w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left rtl:text-right"
-                      >
-                        <RefreshCw className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
-                        <span>Compare</span>
-                      </button>
-                      <button
-                        onClick={() => handleQskToolTrigger('OPEN_DICTIONARY')}
-                        className="w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left rtl:text-right"
-                      >
-                        <BarChart3 className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
-                        <span>My Dictionary</span>
-                      </button>
-                    </div>
+                    <ChevronDown
+                      className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
+                        openSections.languageTheme ? 'rotate-180' : ''
+                      }`}
+                    />
+                  </button>
 
-                    <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-700">
-                      <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-1 py-1">
-                        Developer
+                  {openSections.languageTheme && (
+                    <div className="p-2 pt-0 space-y-2 border-t border-slate-100 dark:border-slate-800/60 mt-1">
+                      {/* QSK Color Theme */}
+                      <div className="flex items-center justify-between px-1 py-1">
+                        <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                          QSK color theme
+                        </span>
+                        <div className="relative">
+                          <select
+                            value={qskStyle}
+                            onChange={(e) => handleQskStyleChange(e.target.value)}
+                            className="text-xs bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 pe-6 focus:outline-none focus:ring-1.5 focus:ring-sky-500 appearance-none font-medium cursor-pointer"
+                          >
+                            {QSK_STYLES.map((style) => (
+                              <option key={style.id} value={style.id}>
+                                {style.label}
+                              </option>
+                            ))}
+                          </select>
+                          <ChevronDown className="w-3 h-3 text-slate-400 absolute right-1.5 rtl:right-auto rtl:left-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        </div>
                       </div>
-                      <div className="space-y-0.5">
-                        <button
-                          onClick={() => handleQskToolTrigger('TOGGLE_REGRESSION_TEST')}
-                          className="w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left rtl:text-right"
-                        >
-                          <CheckSquare className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
-                          <span>Test</span>
-                        </button>
-                        <button
-                          onClick={() => handleQskToolTrigger('TOGGLE_DEV_MODE')}
-                          className="w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left rtl:text-right"
-                        >
-                          <Wrench className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
-                          <span>Developer Mode</span>
-                        </button>
+
+                      {/* Language Switcher */}
+                      <div className="flex items-center justify-between px-1 py-1 pt-1.5 border-t border-slate-200/60 dark:border-slate-700/60">
+                        <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                          {t('nav.language')}
+                        </span>
+                        <div className="flex items-center space-x-1 rtl:space-x-reverse bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700">
+                          {(['en', 'ar', 'ckb'] as const).map((lang) => (
+                            <button
+                              key={lang}
+                              type="button"
+                              onClick={() => handleLanguageChange(lang)}
+                              className={`px-2 py-0.5 text-[11px] font-semibold rounded-md transition-all ${
+                                locale === lang
+                                  ? 'bg-sky-500 text-white shadow-xs'
+                                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                              }`}
+                            >
+                              {lang.toUpperCase()}
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     </div>
+                  )}
+                </div>
+
+                {/* 3. QSK Tools Accordion (Only in QSK view) */}
+                {isQskView && (
+                  <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden bg-slate-50/50 dark:bg-slate-800/30">
+                    <button
+                      type="button"
+                      onClick={() => setOpenSections((prev) => ({ ...prev, qskTools: !prev.qskTools }))}
+                      className="w-full flex items-center justify-between p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors text-left rtl:text-right"
+                    >
+                      <div className="flex items-center space-x-2.5 rtl:space-x-reverse">
+                        <div className="p-1 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                          <Sliders className="w-3.5 h-3.5" />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-xs font-bold text-slate-900 dark:text-slate-100">QSK tools</span>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400">Only shown in QSK view</span>
+                        </div>
+                      </div>
+                      <ChevronDown
+                        className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
+                          openSections.qskTools ? 'rotate-180' : ''
+                        }`}
+                      />
+                    </button>
+
+                    {openSections.qskTools && (
+                      <div className="p-2 pt-0 space-y-2 border-t border-slate-100 dark:border-slate-800/60 mt-1">
+                        <div className="space-y-0.5 pt-1">
+                          <button
+                            onClick={() => handleQskToolTrigger('TRIGGER_SAP_VALIDATION')}
+                            className="w-full flex items-center space-x-2 rtl:space-x-reverse px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left rtl:text-right"
+                          >
+                            <Shield className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                            <span>SAP Validation</span>
+                          </button>
+                          <button
+                            onClick={() => handleQskToolTrigger('OPEN_SHORTCUTS')}
+                            className="w-full flex items-center space-x-2 rtl:space-x-reverse px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left rtl:text-right"
+                          >
+                            <Key className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                            <span>Keyboard shortcuts</span>
+                          </button>
+                          <button
+                            onClick={() => handleQskToolTrigger('RUN_DIAGNOSTICS')}
+                            className="w-full flex items-center space-x-2 rtl:space-x-reverse px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left rtl:text-right"
+                          >
+                            <CheckSquare className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                            <span>Built-in diagnostics</span>
+                          </button>
+                          <button
+                            onClick={() => handleQskToolTrigger('OPEN_COMPARE')}
+                            className="w-full flex items-center space-x-2 rtl:space-x-reverse px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left rtl:text-right"
+                          >
+                            <RefreshCw className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                            <span>Compare</span>
+                          </button>
+                          <button
+                            onClick={() => handleQskToolTrigger('OPEN_DICTIONARY')}
+                            className="w-full flex items-center space-x-2 rtl:space-x-reverse px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left rtl:text-right"
+                          >
+                            <BarChart3 className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                            <span>My Dictionary</span>
+                          </button>
+                        </div>
+
+                        <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-700">
+                          <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-1 py-1">
+                            Developer
+                          </div>
+                          <div className="space-y-0.5">
+                            <button
+                              onClick={() => handleQskToolTrigger('TOGGLE_REGRESSION_TEST')}
+                              className="w-full flex items-center space-x-2 rtl:space-x-reverse px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left rtl:text-right"
+                            >
+                              <CheckSquare className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                              <span>Test</span>
+                            </button>
+                            <button
+                              onClick={() => handleQskToolTrigger('TOGGLE_DEV_MODE')}
+                              className="w-full flex items-center space-x-2 rtl:space-x-reverse px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left rtl:text-right"
+                            >
+                              <Wrench className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                              <span>Developer Mode</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 
-                {/* 4. Divider */}
-                <div className="my-2 border-t border-slate-200 dark:border-slate-700" />
-
-                {/* 3. Gemini API Key */}
-                <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-1 py-1 flex items-center justify-between">
-                  <span>{t('nav.geminiApiKey')}</span>
-                  <span className="text-[9px] text-purple-600 dark:text-purple-400 font-semibold lowercase">5-Why AI</span>
-                </div>
-                <div className="px-1 py-1 space-y-1.5">
-                  <div className="relative flex items-center">
-                    <div className="absolute left-2.5 rtl:left-auto rtl:right-2.5 text-slate-400 pointer-events-none">
-                      <Key className="w-3.5 h-3.5" />
+                {/* 4. AI Assistant Accordion */}
+                <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden bg-slate-50/50 dark:bg-slate-800/30">
+                  <button
+                    type="button"
+                    onClick={() => setOpenSections((prev) => ({ ...prev, aiAssistant: !prev.aiAssistant }))}
+                    className="w-full flex items-center justify-between p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors text-left rtl:text-right"
+                  >
+                    <div className="flex items-center space-x-2.5 rtl:space-x-reverse">
+                      <div className="p-1 rounded-md bg-purple-500/10 text-purple-600 dark:text-purple-400">
+                        <Sparkle className="w-3.5 h-3.5" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold text-slate-900 dark:text-slate-100">AI assistant</span>
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400">Gemini API key</span>
+                      </div>
                     </div>
-                    <input
-                      type={showApiKey ? 'text' : 'password'}
-                      value={geminiApiKey}
-                      onChange={(e) => handleApiKeyChange(e.target.value)}
-                      placeholder={t('nav.geminiApiKeyPlaceholder')}
-                      className="w-full ps-8 pe-8 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-1.5 focus:ring-purple-500 focus:border-purple-500 font-mono"
+                    <ChevronDown
+                      className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
+                        openSections.aiAssistant ? 'rotate-180' : ''
+                      }`}
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowApiKey((prev) => !prev)}
-                      className="absolute right-2 rtl:right-auto rtl:left-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors p-0.5"
-                      title={showApiKey ? 'Hide API key' : 'Show API key'}
-                    >
-                      {showApiKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                    </button>
-                  </div>
-                  <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-tight">
-                    Used only in your browser to call Gemini's API directly for 5-Why suggestions. Never sent anywhere else.
-                  </p>
-                </div>
-
-                {/* 4. Divider */}
-                <div className="my-2 border-t border-slate-200 dark:border-slate-700" />
-
-                {/* 5. Test Data */}
-                <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-1 py-1">
-                  Test data
-                </div>
-                <button
-                  onClick={() => {
-                    onAutoFill();
-                    setIsSettingsOpen(false);
-                  }}
-                  className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/50 border border-amber-200 dark:border-amber-800 transition-colors text-left rtl:text-right"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                  <span>{t('nav.autoFillTest')}</span>
-                </button>
-
-                {/* 6. Divider */}
-                <div className="my-2 border-t border-slate-200 dark:border-slate-700" />
-
-                {/* 7. App Details */}
-                <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-1 py-1">
-                  {t('nav.appDetails')}
-                </div>
-                <div className="space-y-0.5">
-                  <button
-                    onClick={() => {
-                      onSelectTab('setup-guide');
-                      setIsSettingsOpen(false);
-                    }}
-                    className={`w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-colors text-left rtl:text-right ${
-                      activeTab === 'setup-guide'
-                        ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 font-semibold'
-                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    <Shield className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
-                    <span>{t('nav.safetyNet')}</span>
                   </button>
 
+                  {openSections.aiAssistant && (
+                    <div className="p-2 pt-0 space-y-1.5 border-t border-slate-100 dark:border-slate-800/60 mt-1">
+                      <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-1 py-1 flex items-center justify-between">
+                        <span>{t('nav.geminiApiKey')}</span>
+                        <span className="text-[9px] text-purple-600 dark:text-purple-400 font-semibold lowercase">5-Why AI</span>
+                      </div>
+                      <div className="relative flex items-center">
+                        <div className="absolute left-2.5 rtl:left-auto rtl:right-2.5 text-slate-400 pointer-events-none">
+                          <Key className="w-3.5 h-3.5" />
+                        </div>
+                        <input
+                          type={showApiKey ? 'text' : 'password'}
+                          value={geminiApiKey}
+                          onChange={(e) => handleApiKeyChange(e.target.value)}
+                          placeholder={t('nav.geminiApiKeyPlaceholder')}
+                          className="w-full ps-8 pe-8 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-1.5 focus:ring-purple-500 focus:border-purple-500 font-mono"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowApiKey((prev) => !prev)}
+                          className="absolute right-2 rtl:right-auto rtl:left-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors p-0.5"
+                          title={showApiKey ? 'Hide API key' : 'Show API key'}
+                        >
+                          {showApiKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                      <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-tight px-1 pb-1">
+                        Used only in your browser to call Gemini's API directly for 5-Why suggestions. Never sent anywhere else.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* 5. More Accordion */}
+                <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden bg-slate-50/50 dark:bg-slate-800/30">
                   <button
-                    onClick={() => {
-                      onSelectTab('phase-checklist');
-                      setIsSettingsOpen(false);
-                    }}
-                    className={`w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-colors text-left rtl:text-right ${
-                      activeTab === 'phase-checklist'
-                        ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 font-semibold'
-                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                    }`}
+                    type="button"
+                    onClick={() => setOpenSections((prev) => ({ ...prev, more: !prev.more }))}
+                    className="w-full flex items-center justify-between p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors text-left rtl:text-right"
                   >
-                    <CheckSquare className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
-                    <span>{t('nav.blueprint')}</span>
+                    <div className="flex items-center space-x-2.5 rtl:space-x-reverse">
+                      <div className="p-1 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                        <Sparkles className="w-3.5 h-3.5" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold text-slate-900 dark:text-slate-100">More</span>
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400">Test data, app info</span>
+                      </div>
+                    </div>
+                    <ChevronDown
+                      className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
+                        openSections.more ? 'rotate-180' : ''
+                      }`}
+                    />
                   </button>
+
+                  {openSections.more && (
+                    <div className="p-2 pt-0 space-y-2 border-t border-slate-100 dark:border-slate-800/60 mt-1">
+                      {/* Test Data */}
+                      <div className="pt-1">
+                        <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-1 py-1">
+                          Test data
+                        </div>
+                        <button
+                          onClick={() => {
+                            onAutoFill();
+                            setIsSettingsOpen(false);
+                          }}
+                          className="w-full flex items-center space-x-2 rtl:space-x-reverse px-2.5 py-1.5 rounded-lg text-xs font-semibold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/50 border border-amber-200 dark:border-amber-800 transition-colors text-left rtl:text-right"
+                        >
+                          <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                          <span>{t('nav.autoFillTest')}</span>
+                        </button>
+                      </div>
+
+                      {/* App Details */}
+                      <div className="pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
+                        <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-1 py-1">
+                          {t('nav.appDetails')}
+                        </div>
+                        <div className="space-y-0.5">
+                          <button
+                            onClick={() => {
+                              onSelectTab('setup-guide');
+                              setIsSettingsOpen(false);
+                            }}
+                            className={`w-full flex items-center space-x-2 rtl:space-x-reverse px-2 py-1.5 rounded-lg text-xs font-medium transition-colors text-left rtl:text-right ${
+                              activeTab === 'setup-guide'
+                                ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 font-semibold'
+                                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                            }`}
+                          >
+                            <Shield className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                            <span>{t('nav.safetyNet')}</span>
+                          </button>
+
+                          <button
+                            onClick={() => {
+                              onSelectTab('phase-checklist');
+                              setIsSettingsOpen(false);
+                            }}
+                            className={`w-full flex items-center space-x-2 rtl:space-x-reverse px-2 py-1.5 rounded-lg text-xs font-medium transition-colors text-left rtl:text-right ${
+                              activeTab === 'phase-checklist'
+                                ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 font-semibold'
+                                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                            }`}
+                          >
+                            <CheckSquare className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                            <span>{t('nav.blueprint')}</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
