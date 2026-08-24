@@ -2890,7 +2890,7 @@
         #stagePickerOverlay {
             align-items: flex-end;
             padding: 0;
-            padding-bottom: var(--vv-bottom-inset, 0px);
+            padding-bottom: env(safe-area-inset-bottom, 0px);
         }
         #editModalOverlay .modal,
         #sapValidationOverlay .modal,
@@ -3864,7 +3864,7 @@
         /* Task 1: Filter & Jump to Level Panels as Mobile Bottom Sheets */
         .filter-panel {
             position: fixed;
-            bottom: var(--vv-bottom-inset, 0px);
+            bottom: 0;
             left: 0;
             right: 0;
             top: auto;
@@ -9032,11 +9032,6 @@
                     break;
                 case 'TOGGLE_DEV_MODE':
                     document.getElementById('devToggleBtn')?.click();
-                    break;
-                case 'SET_VV_BOTTOM_INSET':
-                    if (typeof e.data.inset === 'number') {
-                        document.documentElement.style.setProperty('--vv-bottom-inset', e.data.inset + 'px');
-                    }
                     break;
             }
         });
