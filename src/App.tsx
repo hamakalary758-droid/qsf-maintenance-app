@@ -145,6 +145,45 @@ export default function App() {
     };
   }, []);
 
+  const sendInset = () => {
+    let inset = 0;
+    if (typeof window !== 'undefined' && window.visualViewport) {
+      const vv = window.visualViewport;
+      inset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+    }
+    const iframe = document.getElementById('qsk-content-iframe') as HTMLIFrameElement | null;
+    iframe?.contentWindow?.postMessage(
+      { source: 'qsf-settings', type: 'SET_VV_BOTTOM_INSET', inset },
+      window.location.origin
+    );
+  };
+
+  useEffect(() => {
+    const handleMessage = (e: MessageEvent) => {
+      if (e.data?.source === 'qsf-qsk' && e.data?.type === 'QSK_READY') {
+        sendInset();
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    sendInset();
+
+    if (typeof window !== 'undefined' && window.visualViewport) {
+      const vv = window.visualViewport;
+      vv.addEventListener('resize', sendInset);
+      vv.addEventListener('scroll', sendInset);
+      return () => {
+        window.removeEventListener('message', handleMessage);
+        vv.removeEventListener('resize', sendInset);
+        vv.removeEventListener('scroll', sendInset);
+      };
+    }
+
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
+  }, []);
+
   const handleUpdateReportData = (updates: Partial<MaintenanceReport>) => {
     const updated = { ...reportData, ...updates };
     setReportData(updated);
