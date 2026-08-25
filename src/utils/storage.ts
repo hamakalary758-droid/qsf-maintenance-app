@@ -101,7 +101,6 @@ async function getPhotosForReport(reportLocalId: string): Promise<PlantPhoto[]> 
 
     return newPhotos;
   } catch (err) {
-    console.warn(`Failed to rehydrate photos for ${reportLocalId}:`, err);
     return [];
   }
 }
@@ -127,7 +126,7 @@ async function migrateFromLocalStorageIfNeeded() {
       });
     }
   } catch (err) {
-    console.error('Migration error from localStorage:', err);
+    // Silently ignore — non-critical
   }
 }
 
@@ -186,7 +185,7 @@ export const getReportsFromStorage = async (): Promise<MaintenanceReport[]> => {
           await notifySyncListeners();
         }
       } catch (err) {
-        console.warn('Background Supabase refresh failed:', err);
+        // Silently ignore — non-critical
       }
     })();
   }
@@ -223,7 +222,7 @@ export const saveReportToStorage = async (report: MaintenanceReport): Promise<Ma
             createdAt: photo.timestamp || now
           });
         } catch (err) {
-          console.warn('Failed to store photo blob in IndexedDB:', err);
+          // Silently ignore — non-critical
         }
       }
     }
@@ -407,7 +406,6 @@ export const saveDraftToStorage = async (draft: Partial<MaintenanceReport>): Pro
     const { photos, ...textDraft } = draft;
     localStorage.setItem(DRAFT_KEY, JSON.stringify(textDraft));
   } catch (err: any) {
-    console.warn('Failed to save draft to localStorage (quota may be full):', err);
     if (typeof window !== 'undefined') {
       window.dispatchEvent(
         new CustomEvent('draft_storage_warning', {
@@ -451,12 +449,12 @@ export const saveDraftPhotosToStorage = async (draftId: string, photos: PlantPho
             createdAt: photo.timestamp || new Date().toISOString()
           });
         } catch (err) {
-          console.warn('Failed to save draft photo blob:', err);
+          // Silently ignore — non-critical
         }
       }
     }
   } catch (err) {
-    console.warn('saveDraftPhotosToStorage error:', err);
+    // Silently ignore — non-critical
   }
 };
 
@@ -473,7 +471,6 @@ export const getDraftFromStorage = async (): Promise<Partial<MaintenanceReport> 
     }
     return draft;
   } catch (err) {
-    console.warn('getDraftFromStorage error:', err);
     return null;
   }
 };
@@ -482,7 +479,7 @@ export const clearDraftTextOnly = async (): Promise<void> => {
   try {
     localStorage.removeItem(DRAFT_KEY);
   } catch (err) {
-    console.warn('clearDraftTextOnly error:', err);
+    // Silently ignore — non-critical
   }
 };
 
@@ -520,6 +517,6 @@ export const clearDraftFromStorage = async (draftId?: string): Promise<void> => 
       await db.photos.where('reportLocalId').equals(targetId).delete();
     }
   } catch (err) {
-    console.warn('clearDraftFromStorage error:', err);
+    // Silently ignore — non-critical
   }
 };

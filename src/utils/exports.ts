@@ -34,7 +34,6 @@ const photoUrlToDataUri = async (url: string): Promise<string | null> => {
       reader.readAsDataURL(blob);
     });
   } catch (err) {
-    console.warn('Failed to convert photo to data URI for Word export:', err);
     return null;
   }
 };
@@ -326,7 +325,7 @@ export const exportReportToExcel = async (report: MaintenanceReport): Promise<vo
           saveAs(photoBlob, `${getReportIdentifier(report)}_photo${idx + 1}.jpg`);
           await new Promise((r) => setTimeout(r, 300));
         } catch (err) {
-          console.warn(`Failed to export photo #${idx + 1}:`, err);
+          // Silently ignore — non-critical
         }
       }
     }
@@ -636,7 +635,7 @@ export const exportBatchToExcel = async (reports: MaintenanceReport[], shutdownN
             saveAs(photoBlob, `${getReportIdentifier(r)}_photo${idx + 1}.jpg`);
             await new Promise((resolve) => setTimeout(resolve, 300));
           } catch (err) {
-            console.warn(`Failed to export photo #${idx + 1}:`, err);
+            // Silently ignore — non-critical
           }
         }
       }
@@ -679,7 +678,7 @@ const injectLiveStylesheetIntoClone = (clonedDoc: Document) => {
       }
     }
   } catch (err) {
-    console.warn('injectLiveStylesheetIntoClone: could not read document.styleSheets', err);
+    // Silently ignore — non-critical
   }
 
   if (!combinedCss) return;
@@ -740,7 +739,6 @@ const forceInlineBackgroundColors = (clonedElement: HTMLElement) => {
 export const exportReportToPDF = async (elementId: string, filename: string) => {
   const element = document.getElementById(elementId);
   if (!element) {
-    console.error(`Element #${elementId} not found for PDF export.`);
     alert('Report content not found for PDF generation.');
     return;
   }
@@ -903,7 +901,6 @@ export const exportReportToPDF = async (elementId: string, filename: string) => 
 
     pdf.save(`${filename}.pdf`);
   } catch (err) {
-    console.error('Error generating PDF:', err);
     alert('PDF export encountered an issue. Exporting as Word or printing to PDF is recommended.');
   } finally {
     hiddenElements.forEach((el, idx) => {

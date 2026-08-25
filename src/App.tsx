@@ -41,6 +41,7 @@ export default function App() {
   const [draftWarning, setDraftWarning] = useState<string | null>(null);
   const [showDiscardModal, setShowDiscardModal] = useState<boolean>(false);
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
+  const [geminiApiKey, setGeminiApiKey] = useState<string>('');
 
   // Current active form report draft
   const [reportData, setReportData] = useState<Partial<MaintenanceReport>>({
@@ -82,10 +83,10 @@ export default function App() {
 
     // Part 5: Request persistent storage to reduce browser eviction risks under storage pressure
     if (typeof navigator !== 'undefined' && navigator.storage?.persist) {
-      navigator.storage.persist().then((persisted) => {
-        console.log('IndexedDB persistent storage enabled:', persisted);
-      }).catch((err) => {
-        console.warn('Storage persistence request failed:', err);
+      navigator.storage.persist().then(() => {
+        // Persisted storage granted
+      }).catch(() => {
+        // Silently ignore — non-critical
       });
     }
 
@@ -98,7 +99,6 @@ export default function App() {
           setReports(loaded);
         }
       } catch (err) {
-        console.error('Failed to load reports on mount:', err);
         if (isMounted) {
           setErrorMsg("Couldn't load reports from storage. Operating in local mode.");
         }
@@ -115,7 +115,7 @@ export default function App() {
           setReportData(draft);
         }
       } catch (err) {
-        console.warn('Failed to load draft from storage:', err);
+        // Silently ignore — non-critical
       }
     };
 
@@ -264,7 +264,6 @@ export default function App() {
       setCurrentStepIndex(0);
       setActiveTab('history');
     } catch (err) {
-      console.error('Failed to save report to database:', err);
       setErrorMsg("Couldn't save report, check your connection. Your draft is safely saved locally.");
     } finally {
       setIsSaving(false);
@@ -375,7 +374,6 @@ export default function App() {
       const updated = await archiveReportInStorage(id, 'Current User', reason);
       setReports(updated);
     } catch (err) {
-      console.error('Failed to archive report:', err);
       setErrorMsg("Couldn't archive report. Please check your storage connection.");
     }
   };
@@ -386,7 +384,6 @@ export default function App() {
       const updated = await unarchiveReportInStorage(id);
       setReports(updated);
     } catch (err) {
-      console.error('Failed to unarchive report:', err);
       setErrorMsg("Couldn't restore report. Please check your storage connection.");
     }
   };
@@ -394,7 +391,7 @@ export default function App() {
   const formSteps = [
     { title: 'Basic Info', component: <BasicInfoStep reportData={reportData} onChange={handleUpdateReportData} /> },
     { title: '5W + 1H', component: <FiveWOneHStep reportData={reportData} onChange={handleUpdateReportData} /> },
-    { title: '5-Why Analysis', component: <FiveWhyStep reportData={reportData} onChange={handleUpdateReportData} /> },
+    { title: '5-Why Analysis', component: <FiveWhyStep reportData={reportData} onChange={handleUpdateReportData} geminiApiKey={geminiApiKey} /> },
     { title: 'Actions & Parts', component: <ActionsAndPartsStep reportData={reportData} onChange={handleUpdateReportData} /> },
     { title: 'Photos & Markup', component: <PhotoCaptureStep reportData={reportData} onChange={handleUpdateReportData} /> },
     { title: 'Review & Finalize', component: <ReviewScreen reportData={reportData} validationErrors={validationErrors} onEditSection={(idx) => setCurrentStepIndex(idx)} onFinalize={handleFinalizeReport} /> }
@@ -472,6 +469,8 @@ export default function App() {
         onAutoFill={prefillSampleData}
         isQskView={isQskView}
         onToggleQskView={() => setIsQskView(prev => !prev)}
+        geminiApiKey={geminiApiKey}
+        onGeminiApiKeyChange={setGeminiApiKey}
       />
 
       {/* Main Content Area — QSF (normal tabbed content) */}

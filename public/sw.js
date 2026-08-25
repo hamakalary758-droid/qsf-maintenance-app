@@ -1,4 +1,4 @@
-const CACHE_NAME = 'qsf-shell-v1';
+const CACHE_NAME = 'qsf-shell-v2';
 
 const PRECACHE_URLS = [
   '/',
@@ -6,7 +6,13 @@ const PRECACHE_URLS = [
   '/manifest.json',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
-  '/icons/icon-512-maskable.png'
+  '/icons/icon-512-maskable.png',
+  '/qsk/QSK_Master_Data_Explorer.html',
+  '/qsk/grammar-dict.js',
+  '/qsk/qsk-spellcheck-data.js',
+  '/qsk/qsk-spellcheck.js',
+  '/qsk/xlsx.full.min.js',
+  '/qsk/exceljs.min.js'
 ];
 
 // Install event: pre-cache static app shell

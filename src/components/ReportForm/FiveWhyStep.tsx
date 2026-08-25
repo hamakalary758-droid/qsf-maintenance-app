@@ -5,9 +5,10 @@ import { ArrowDown, HelpCircle, Sparkles, AlertTriangle, CheckCircle2, Loader2, 
 interface FiveWhyStepProps {
   reportData: Partial<MaintenanceReport>;
   onChange: (updates: Partial<MaintenanceReport>) => void;
+  geminiApiKey?: string;
 }
 
-export const FiveWhyStep: React.FC<FiveWhyStepProps> = ({ reportData, onChange }) => {
+export const FiveWhyStep: React.FC<FiveWhyStepProps> = ({ reportData, onChange, geminiApiKey = '' }) => {
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [aiSuggestions, setAiSuggestions] = useState<FiveWhy | null>(null);
   const [appliedKeys, setAppliedKeys] = useState<string[]>([]);
@@ -60,13 +61,8 @@ export const FiveWhyStep: React.FC<FiveWhyStepProps> = ({ reportData, onChange }
   const generateAI5Why = async () => {
     setErrorMessage(null);
     
-    // 1. Read key from localStorage
-    let apiKey = '';
-    try {
-      apiKey = localStorage.getItem('qsf_gemini_api_key') || '';
-    } catch {
-      apiKey = '';
-    }
+    // 1. Read key from props (session-only, never persisted)
+    const apiKey = geminiApiKey || '';
 
     // 2. Validate key presence
     if (!apiKey || !apiKey.trim()) {
@@ -197,7 +193,6 @@ WHY5: <Systemic, design, quality, or management root cause>`;
       setAiSuggestions(parsed);
       setAppliedKeys([]);
     } catch (err: any) {
-      console.error('Gemini 5-Why API error:', err);
       setErrorMessage(err?.message || 'Failed to generate 5-Why suggestions. Please check your API key and connection.');
       setAiSuggestions(null);
     } finally {

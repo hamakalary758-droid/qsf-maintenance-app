@@ -4,10 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>QSK Master Data Explorer</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js">
-</script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js">
-</script>
+<script src="xlsx.full.min.js"></script>
+<script src="exceljs.min.js"></script>
 <!-- Grammar/spelling dictionary data, kept as a separate file so it only loads once
      and doesn't bloat this file. Loaded via <script src>, NOT fetch() -- fetch() of a
      local file is blocked by the browser when this HTML is opened by double-click
@@ -2848,8 +2846,8 @@
     }
 
     /* ================================================================
-       MOBILE BOTTOM SHEETS: Scoped to <=760px
-       Transforms modals and dropdown panels into touch-friendly bottom sheets:
+       MOBILE FULL-SCREEN PANELS: Scoped to <=760px
+       Transforms modals and dropdown panels into touch-friendly full-screen views:
        - Edit Modal (#editModalOverlay)
        - Filter & Level Jump Panels (.filter-panel / #filterPanel, #levelJumpPanel)
        - SAP Validation Report (#sapValidationOverlay)
@@ -2864,6 +2862,11 @@
             opacity: 1;
             transform: translateY(0);
         }
+    }
+
+    @keyframes slideInScreen {
+        from { transform: translateX(100%); }
+        to   { transform: translateX(0); }
     }
 
     #stagePickerOverlay .btn {
@@ -2884,60 +2887,101 @@
             z-index: 1000;
         }
 
-        /* Shared Modal Bottom Sheet Behavior */
         #editModalOverlay,
         #sapValidationOverlay,
         #stagePickerOverlay {
-            align-items: flex-end;
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            align-items: stretch;
             padding: 0;
-            padding-bottom: var(--vv-bottom-inset, 0px);
+            background: transparent;
+        }
+        #editModalOverlay.open,
+        #sapValidationOverlay.open,
+        #stagePickerOverlay.open {
+            display: flex;
         }
         #editModalOverlay .modal,
         #sapValidationOverlay .modal,
         #stagePickerOverlay .modal {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
             width: 100%;
             max-width: none;
-            max-height: calc(100svh - 140px);
-            max-height: calc(100dvh - 140px);
-            height: auto;
-            border-radius: 16px 16px 0 0;
+            max-height: none;
+            height: 100%;
+            border-radius: 0;
             margin: 0;
-            padding: 20px 18px 0;
-            overflow-y: auto;
-            animation: none;
-            box-sizing: border-box;
-            border-bottom: none;
-            box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.45);
+            padding: 0;
+            overflow: hidden;
+            box-shadow: none;
+            border: none;
+            background: var(--panel-solid);
         }
         #editModalOverlay.open .modal,
         #sapValidationOverlay.open .modal,
         #stagePickerOverlay.open .modal {
-            animation: slideUpSheet 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+            animation: slideInScreen 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
+        /* Hide the drag handle pill — not needed for full-screen */
         #editModalOverlay .modal::before,
         #sapValidationOverlay .modal::before,
         #stagePickerOverlay .modal::before {
-            content: '';
-            display: block;
-            width: 36px;
-            height: 4px;
-            background: var(--panel-border-strong);
-            border-radius: 2px;
-            margin: -4px auto 14px;
+            display: none;
         }
-
-        /* Action Row / Sticky Footers */
+        /* Modal title area becomes a header bar */
+        #editModalOverlay .modal h2,
+        #sapValidationOverlay .modal h2,
+        #stagePickerOverlay .modal h2 {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: var(--panel-solid);
+            margin: 0;
+            padding: 14px 16px 10px;
+            font-size: 16px;
+            border-bottom: 0.5px solid var(--panel-border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        /* Back chevron button — injected by JS */
+        .mobile-back-btn {
+            background: none;
+            border: none;
+            padding: 0;
+            margin: 0;
+            color: var(--accent);
+            font-size: 22px;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        /* Scrollable body area */
+        #editModalOverlay .modal-body-scroll,
+        #sapValidationOverlay .modal-body-scroll,
+        #stagePickerOverlay .modal-body-scroll {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 16px;
+        }
+        /* Sticky footer with buttons */
         #editModalOverlay .modal-actions,
         #sapValidationOverlay .modal-actions,
         #stagePickerOverlay .modal-actions {
             position: sticky;
             bottom: 0;
             background: var(--panel-solid);
-            padding-top: 12px;
-            margin-top: 12px;
-            border-top: 1px solid var(--panel-border);
-            padding-bottom: max(12px, env(safe-area-inset-bottom), var(--vv-bottom-inset, 0px));
-            z-index: 10;
+            border-top: 0.5px solid var(--panel-border);
+            padding: 12px 16px;
+            padding-bottom: max(12px, env(safe-area-inset-bottom));
             display: flex;
             gap: 10px;
         }
@@ -2945,11 +2989,7 @@
         #stagePickerOverlay .modal-actions .btn {
             flex: 1;
             min-height: 44px;
-            padding: 12px 14px;
             font-size: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
         /* Edit Modal Form Fields */
@@ -3861,73 +3901,101 @@
         color: var(--danger);
     }
     @media (max-width: 760px) {
-        /* Task 1: Filter & Jump to Level Panels as Mobile Bottom Sheets */
         .filter-panel {
             position: fixed;
-            bottom: var(--vv-bottom-inset, 0px);
-            left: 0;
-            right: 0;
-            top: auto;
-            width: 100%;
-            max-width: none;
-            min-width: 0;
-            max-height: 85vh;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            border-radius: 16px 16px 0 0;
-            margin: 0;
-            padding: 20px 18px;
-            padding-bottom: max(20px, env(safe-area-inset-bottom));
-            box-sizing: border-box;
+            top: 60px;
+            left: 8px;
+            right: 8px;
+            max-height: calc(100vh - 90px);
             z-index: 99999;
-            border-bottom: none;
-            box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.45);
-        }
-        .filter-panel::before {
-            content: '';
-            display: block;
-            width: 36px;
-            height: 4px;
-            background: var(--panel-border-strong);
-            border-radius: 2px;
-            margin: -4px auto 14px;
+            background: var(--panel-solid);
+            display: none;
+            flex-direction: column;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            padding: 0;
+            border: 1px solid var(--panel-border);
+            animation: popUp 0.18s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
         }
         .filter-panel.open {
+            display: flex;
+        }
+        .filter-panel-header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: var(--panel-solid);
+            border-bottom: 0.5px solid var(--panel-border);
+            padding: 11px 13px 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-1);
+            flex-shrink: 0;
+        }
+        .filter-panel-body {
+            flex: 1;
+            padding: 11px 13px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .filter-panel-clear {
             display: block;
-            animation: slideUpSheet 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+            width: 100%;
+            text-align: center;
+            padding: 9px 11px;
+            margin: 0;
+            position: sticky;
+            bottom: 0;
+            background: var(--panel-solid);
+            border: none;
+            border-top: 0.5px solid var(--panel-border);
+            color: var(--text-2);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .filter-panel-section {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
         }
         .filter-panel-chips {
-            gap: 8px;
+            gap: 6px;
+            flex-wrap: wrap;
         }
         .filter-panel-chips .chip,
         .filter-panel-chips .btn,
         .filter-panel-chips button {
-            min-height: 44px;
+            min-height: 36px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             box-sizing: border-box;
-            padding: 10px 14px;
-            font-size: 13px;
-            border-radius: 10px;
+            padding: 7px 10px;
+            font-size: 12px;
+            border-radius: 8px;
         }
         #levelJumpPanel .filter-panel-chips .btn {
-            flex: 1 1 calc(50% - 8px);
+            flex: 1 1 calc(50% - 3px);
+            min-height: 38px;
         }
-        .filter-panel-clear {
-            width: 100%;
-            min-height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-sizing: border-box;
-            padding: 12px 14px;
-            font-size: 13.5px;
-            font-weight: 600;
-            margin-top: 14px;
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--panel-border);
+    }
+
+    @keyframes popUp {
+        from {
+            opacity: 0;
+            transform: scale(0.95) translateY(-8px);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
         }
     }
     #conditionChips .chip.active[data-condition="invalid"],
@@ -9051,27 +9119,84 @@
             return window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT_PX}px)`).matches;
         }
 
-        // Moves a mobile bottom-sheet panel to be a direct child of <body> so it
-        // escapes any backdrop-filter/transform ancestor that would otherwise break
-        // its `position: fixed` anchoring to the real viewport. No-op on desktop,
-        // where the panel stays as a normal anchored dropdown in its original spot.
-        function mobilePortalOpen(panel) {
+        // ============ SECTION: Mobile Full-Screen Panels Helper ============
+        function initMobileFullScreenPanels() {
             if (!isMobileViewport()) return;
-            if (panel.dataset.portaled === 'true') return; // already moved
-            panel._portalParent = panel.parentNode;
-            panel._portalNextSibling = panel.nextSibling;
-            document.body.appendChild(panel);
-            panel.dataset.portaled = 'true';
-        }
 
-        function mobilePortalClose(panel) {
-            if (panel.dataset.portaled !== 'true') return;
-            if (panel._portalParent) {
-                panel._portalParent.insertBefore(panel, panel._portalNextSibling || null);
-            }
-            delete panel.dataset.portaled;
-            panel._portalParent = null;
-            panel._portalNextSibling = null;
+            // Edit / SAP / Stage picker modals
+            ['editModalOverlay', 'sapValidationOverlay', 'stagePickerOverlay'].forEach(id => {
+                const overlay = document.getElementById(id);
+                if (!overlay) return;
+                const modal = overlay.querySelector('.modal');
+                if (!modal) return;
+
+                // Inject back button into h2
+                const h2 = modal.querySelector('h2');
+                if (h2 && !h2.querySelector('.mobile-back-btn')) {
+                    const backBtn = document.createElement('button');
+                    backBtn.className = 'mobile-back-btn';
+                    backBtn.innerHTML = '&#8249;';
+                    backBtn.setAttribute('aria-label', 'Close');
+                    backBtn.addEventListener('click', () => overlay.classList.remove('open'));
+                    h2.insertBefore(backBtn, h2.firstChild);
+                }
+
+                // Wrap body content in scroll container
+                if (!modal.querySelector('.modal-body-scroll')) {
+                    const actions = modal.querySelector('.modal-actions');
+                    const scrollWrap = document.createElement('div');
+                    scrollWrap.className = 'modal-body-scroll';
+                    // Move everything except h2 and .modal-actions into the scroll wrapper
+                    const children = Array.from(modal.childNodes).filter(n =>
+                        n !== h2 && n !== actions
+                    );
+                    children.forEach(c => scrollWrap.appendChild(c));
+                    if (actions) {
+                        modal.insertBefore(scrollWrap, actions);
+                    } else {
+                        modal.appendChild(scrollWrap);
+                    }
+                }
+            });
+
+            // Filter panels
+            ['filterPanel', 'levelJumpPanel'].forEach(id => {
+                const panel = document.getElementById(id);
+                if (!panel) return;
+
+                // Inject header with back button if not already there
+                if (!panel.querySelector('.filter-panel-header')) {
+                    const header = document.createElement('div');
+                    header.className = 'filter-panel-header';
+                    const backBtn = document.createElement('button');
+                    backBtn.className = 'mobile-back-btn';
+                    backBtn.innerHTML = '&#8249;';
+                    backBtn.setAttribute('aria-label', 'Close');
+                    backBtn.addEventListener('click', () => panel.classList.remove('open'));
+                    const title = document.createElement('span');
+                    title.textContent = id === 'filterPanel' ? 'Filter' : 'Jump to level';
+                    header.appendChild(backBtn);
+                    header.appendChild(title);
+                    panel.insertBefore(header, panel.firstChild);
+                }
+
+                // Wrap existing panel content in a body div
+                if (!panel.querySelector('.filter-panel-body')) {
+                    const body = document.createElement('div');
+                    body.className = 'filter-panel-body';
+                    const clear = panel.querySelector('.filter-panel-clear');
+                    const children = Array.from(panel.childNodes).filter(n =>
+                        !n.classList?.contains('filter-panel-header') &&
+                        !n.classList?.contains('filter-panel-clear')
+                    );
+                    children.forEach(c => body.appendChild(c));
+                    if (clear) {
+                        panel.insertBefore(body, clear);
+                    } else {
+                        panel.appendChild(body);
+                    }
+                }
+            });
         }
 
         // ============ SECTION: Theme ============
@@ -10157,6 +10282,30 @@
             return { cols, confident, plantCode, method: confident ? 'auto' : 'fallback' };
         }
 
+        // Scans rightward from equipCol to detect additional columns containing equipment or material IDs.
+        function detectEquipmentDepthColumns(grid, equipCol) {
+            if (!grid || equipCol === -1 || equipCol === undefined) return [];
+            const numCols = grid.reduce((m, row) => Math.max(m, row ? row.length : 0), 0);
+            const depthCols = [];
+            for (let c = equipCol + 1; c < numCols; c++) {
+                let count = 0;
+                for (let r = 0; r < grid.length; r++) {
+                    const row = grid[r];
+                    if (!row || row[c] === undefined || row[c] === null) continue;
+                    const v = row[c].toString().trim();
+                    if (v && (isEquipIdPattern(v) || isMatIdPattern(v))) {
+                        count++;
+                    }
+                }
+                if (count > 0) {
+                    depthCols.push(c);
+                } else {
+                    break;
+                }
+            }
+            return depthCols;
+        }
+
         // Finds the description that belongs to an ID cell: the first non-blank cell to its
         // right on the same row that doesn't itself look like another hierarchy/ID code. This
         // replaces relying on a fixed "description column" position, since SAP places the
@@ -10227,6 +10376,7 @@
             let cols, useDynamicDesc;
             if (layout.confident) {
                 cols = layout.cols;
+                cols.equipDepthCols = [cols.equipCol, ...detectEquipmentDepthColumns(grid, cols.equipCol)];
                 useDynamicDesc = true;
             } else {
                 cols = {
@@ -10260,6 +10410,7 @@
                 currentLevel3 = null,
                 currentFL = null,
                 currentEquip = null;
+            let equipStack = [];
             let dataRowsSeen = 0;
             const skippedRows = [],
                 equipMissingDescRows = [],
@@ -10345,6 +10496,15 @@
             function getDeepestLevel(row) {
                 if (cleanVal(row[cols.matCol])) return 'material';
                 if (cleanVal(row[cols.equipCol])) return 'equipment';
+                // Fix #3: cols.equipDepthCols (confident-layout path only) can contain additional
+                // equipment/material depth columns to the right of matCol/equipCol (e.g. Level 3, Level 4...).
+                // A row with data ONLY in one of those columns must not be treated as empty, or it gets
+                // silently dropped by the "if (!deepest) continue;" check right after this function is called.
+                if (cols.equipDepthCols) {
+                    for (let i = 0; i < cols.equipDepthCols.length; i++) {
+                        if (cleanVal(row[cols.equipDepthCols[i]])) return 'equipmentDepth';
+                    }
+                }
                 if (cleanVal(row[cols.flCol])) return 'fl';
                 if (cleanVal(row[cols.level3Col])) return 'level3';
                 if (cleanVal(row[cols.level2Col])) return 'level2';
@@ -10375,7 +10535,8 @@
                     equipDesc = descAt(cols.equipCol, cols.equipDescCol),
                     equipDescForFL = useDynamicDesc ? flDesc : cleanVal(row[cols.equipDescForFLCol]),
                     matDesc = descAt(cols.matCol, cols.matDescCol);
-                if (!plantVal && !level2Val && !level3Val && !flVal && !equipVal && !matVal) continue;
+                const depthColHasVal = cols.equipDepthCols ? cols.equipDepthCols.some(c => cleanVal(row[c])) : false;
+                if (!plantVal && !level2Val && !level3Val && !flVal && !equipVal && !matVal && !depthColHasVal) continue;
                 const deepest = getDeepestLevel(row);
                 if (!deepest) continue;
                 dataRowsSeen++;
@@ -10389,7 +10550,8 @@
                     currentLevel2 = null;
                     currentLevel3 = null;
                     currentFL = null;
-                    currentEquip = null; } else { plantNode = currentPlant; }
+                    currentEquip = null;
+                    equipStack = []; } else { plantNode = currentPlant; }
                 if (!plantNode) { skippedRows.push(rowNum1based); continue; }
 
                 let level2Node = null;
@@ -10400,7 +10562,8 @@
                         currentLevel2 = level2Node;
                         currentLevel3 = null;
                         currentFL = null;
-                        currentEquip = null; } } else { level2Node = currentLevel2; }
+                        currentEquip = null;
+                        equipStack = []; } } else { level2Node = currentLevel2; }
 
                 let level3Node = null;
                 if (level3Val) { if (level3IsNumeric) { const parent = level2Node || plantNode;
@@ -10410,7 +10573,8 @@
                             plantNode, level3Val, level3Desc);
                         currentLevel3 = level3Node;
                         currentFL = null;
-                        currentEquip = null; } } else { level3Node = currentLevel3; }
+                        currentEquip = null;
+                        equipStack = []; } } else { level3Node = currentLevel3; }
 
                 let flNode = null;
                 if (flVal) { if (flIsNumeric) { const parent = level3Node || level2Node || plantNode;
@@ -10419,19 +10583,57 @@
                         level3Node ||
                         level2Node || plantNode, flVal, flDesc);
                         currentFL = flNode;
-                        currentEquip = null; } } else { flNode = currentFL; }
+                        currentEquip = null;
+                        equipStack = []; } } else { flNode = currentFL; }
 
-                if (equipVal) { let parent = flNode || level3Node || level2Node || plantNode; if (parent) { const desc =
-                        equipDesc ||
-                        flDesc || level3Desc || level2Desc || plantDesc || '';
-                        createEquipmentNode(parent, equipVal, desc, rowNum1based, 'H'); } }
-                if (matVal) { let parent = currentEquip || flNode || level3Node || level2Node || plantNode; if (parent) {
-                        const matNode = {
-                            id: genId('mat'), type: 'material', materialId: matVal, materialDescription: matDesc ||
-                                flDesc ||
-                                level3Desc || level2Desc || plantDesc || '', parentId: parent.id
-                        };
-                        parent.children.push(matNode); if (!matDesc) matMissingDescRows.push(rowNum1based); } }
+                if (cols.equipDepthCols) {
+                    for (let d = 0; d < cols.equipDepthCols.length; d++) {
+                        const colIdx = cols.equipDepthCols[d];
+                        const val = cleanVal(row[colIdx]);
+                        if (!val) continue;
+                        const parent = d === 0 ?
+                            (flNode || level3Node || level2Node || plantNode) :
+                            (equipStack[d - 1] || flNode || level3Node || level2Node || plantNode);
+                        if (!parent) continue;
+                        const foundDesc = findDescriptionInRow(row, colIdx, layout.plantCode);
+                        const desc = foundDesc || flDesc || level3Desc || level2Desc || plantDesc || '';
+                        if (isEquipIdPattern(val)) {
+                            const node = createEquipmentNode(parent, val, desc, rowNum1based, 'H');
+                            equipStack[d] = node;
+                            equipStack.length = d + 1;
+                        } else {
+                            const matNode = {
+                                id: genId('mat'),
+                                type: 'material',
+                                materialId: val,
+                                materialDescription: desc,
+                                parentId: parent.id
+                            };
+                            parent.children.push(matNode);
+                            if (!foundDesc) matMissingDescRows.push(rowNum1based);
+                            equipStack.length = d + 1;
+                            equipStack[d] = null;
+                        }
+                    }
+                } else {
+                    if (equipVal) { let parent = flNode || level3Node || level2Node || plantNode; if (parent) { const desc =
+                            equipDesc ||
+                            flDesc || level3Desc || level2Desc || plantDesc || '';
+                            createEquipmentNode(parent, equipVal, desc, rowNum1based, 'H'); } }
+                    if (matVal) { let parent = currentEquip || flNode || level3Node || level2Node || plantNode; if (parent) {
+                            if (isEquipIdPattern(matVal)) {
+                                const desc = matDesc || flDesc || level3Desc || level2Desc || plantDesc || '';
+                                createEquipmentNode(parent, matVal, desc, rowNum1based, 'H');
+                            } else {
+                                const matNode = {
+                                    id: genId('mat'), type: 'material', materialId: matVal, materialDescription: matDesc ||
+                                        flDesc ||
+                                        level3Desc || level2Desc || plantDesc || '', parentId: parent.id
+                                };
+                                parent.children.push(matNode); if (!matDesc) matMissingDescRows.push(rowNum1based);
+                            }
+                        } }
+                }
             }
 
             const t1 = performance.now();
@@ -24387,6 +24589,8 @@
             const overlay = document.getElementById('sapValidationOverlay');
             const closeBtn = document.getElementById('vCloseBtn');
 
+            overlay.classList.remove('open');
+
             btn.addEventListener('click', () => {
                 overlay.classList.add('open');
                 document.getElementById('validationProgress').style.display = 'block';
@@ -25194,6 +25398,7 @@
             try { initEditModal(); } catch (e) { console.error('initEditModal', e); }
             try { initConfirmModal(); } catch (e) { console.error('initConfirmModal', e); }
             try { initStagePicker(); } catch (e) { console.error('initStagePicker', e); }
+            try { initMobileFullScreenPanels(); } catch (e) { console.error('initMobileFullScreenPanels', e); }
             try { initRawWipeConfirm(); } catch (e) { console.error('initRawWipeConfirm', e); }
             try { initPropertiesModal(); } catch (e) { console.error('initPropertiesModal', e); }
             try { initImportErrorModal(); } catch (e) { console.error('initImportErrorModal', e); }
@@ -25220,10 +25425,8 @@
             let resizeTimer = null;
             window.addEventListener('resize', () => {
                 clearTimeout(resizeTimer);
-                if (!isMobileViewport()) {
-                    document.querySelectorAll('.filter-panel[data-portaled="true"]').forEach(el => {
-                        mobilePortalClose(el);
-                    });
+                if (isMobileViewport()) {
+                    initMobileFullScreenPanels();
                 }
                 resizeTimer = setTimeout(() => {
                     renderViewport();

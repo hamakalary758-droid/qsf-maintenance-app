@@ -126,11 +126,11 @@ export async function notifySyncListeners() {
       try {
         listener(status);
       } catch (err) {
-        console.error('Error in sync listener:', err);
+        // Silently ignore — non-critical
       }
     });
   } catch (err) {
-    console.error('Failed to get sync status info:', err);
+    // Silently ignore — non-critical
   }
 }
 
@@ -176,7 +176,6 @@ export async function processSyncQueue(force = false): Promise<void> {
         }
         await db.syncQueue.delete(item.id);
       } catch (err: any) {
-        console.warn(`Failed to sync delete for report ${item.reportLocalId}:`, err);
         await db.syncQueue.update(item.id, {
           attempts: item.attempts + 1,
           lastAttemptAt: new Date().toISOString(),
@@ -237,7 +236,6 @@ export async function processSyncQueue(force = false): Promise<void> {
           await db.syncQueue.delete(queueItem.id);
         }
       } catch (err: any) {
-        console.warn(`Failed to sync report ${offlineRep.localId}:`, err);
         const errorMsg = err?.message || 'Network error during sync';
 
         await db.reports.update(offlineRep.localId, {
@@ -264,7 +262,7 @@ export async function processSyncQueue(force = false): Promise<void> {
       }
     }
   } catch (err) {
-    console.error('Error processing sync queue:', err);
+    // Silently ignore — non-critical
   } finally {
     isCurrentlySyncing = false;
     await notifySyncListeners();

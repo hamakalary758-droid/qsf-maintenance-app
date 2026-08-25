@@ -14,6 +14,8 @@ interface NavbarProps {
   onAutoFill: () => void;
   isQskView: boolean;
   onToggleQskView: () => void;
+  geminiApiKey?: string;
+  onGeminiApiKeyChange?: (key: string) => void;
 }
 
 const LS_LOGO_KEY = 'qsf_qsk_logo';
@@ -81,7 +83,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   onToggleTheme,
   onAutoFill,
   isQskView,
-  onToggleQskView
+  onToggleQskView,
+  geminiApiKey: propGeminiApiKey,
+  onGeminiApiKeyChange
 }) => {
   const { locale, setLocale, t } = useLanguage();
   const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
@@ -102,7 +106,9 @@ export const Navbar: React.FC<NavbarProps> = ({
     more: false
   });
   const [isSyncModalOpen, setIsSyncModalOpen] = useState<boolean>(false);
-  const [geminiApiKey, setGeminiApiKey] = useState<string>('');
+  const [internalGeminiApiKey, setInternalGeminiApiKey] = useState<string>('');
+  const geminiApiKey = propGeminiApiKey !== undefined ? propGeminiApiKey : internalGeminiApiKey;
+  const setGeminiApiKey = onGeminiApiKeyChange || setInternalGeminiApiKey;
   const [showApiKey, setShowApiKey] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -206,14 +212,6 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   useEffect(() => {
     try {
-      const savedKey = localStorage.getItem('qsf_gemini_api_key');
-      if (savedKey) {
-        setGeminiApiKey(savedKey);
-      }
-    } catch {
-      // ignore
-    }
-    try {
       const savedLogo = localStorage.getItem(LS_LOGO_KEY);
       if (savedLogo) {
         setLogoDataUrl(savedLogo);
@@ -255,15 +253,6 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const handleApiKeyChange = (newVal: string) => {
     setGeminiApiKey(newVal);
-    try {
-      if (newVal.trim()) {
-        localStorage.setItem('qsf_gemini_api_key', newVal.trim());
-      } else {
-        localStorage.removeItem('qsf_gemini_api_key');
-      }
-    } catch {
-      // ignore
-    }
   };
 
   useEffect(() => {
@@ -824,7 +813,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                         </button>
                       </div>
                       <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-tight px-1 pb-1">
-                        Used only in your browser to call Gemini's API directly for 5-Why suggestions. Never sent anywhere else.
+                        Used only in your browser to call Gemini's API directly for 5-Why suggestions. Not saved — you'll need to re-enter it each time you reopen the app.
                       </p>
                     </div>
                   )}
