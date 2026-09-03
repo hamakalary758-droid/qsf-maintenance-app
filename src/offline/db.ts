@@ -5,10 +5,18 @@ export interface OfflineReport {
   localId: string;          // client-generated UUID, primary key
   reportNumber: string;     // '' until assigned by Supabase on first sync
   data: MaintenanceReport;  // the full report object as currently defined in types.ts
-  syncStatus: 'draft' | 'pending_sync' | 'syncing' | 'synced' | 'sync_failed';
+  syncStatus: 'draft' | 'pending_sync' | 'syncing' | 'synced' | 'sync_failed' | 'conflict';
   lastSyncError?: string;
+  lastSyncedVersion?: number; // tracks what version we last successfully synced from
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ConflictRecord {
+  localId: string;       // matches OfflineReport.localId
+  serverData: MaintenanceReport;
+  localData: MaintenanceReport;
+  detectedAt: string;
 }
 
 export interface OfflinePhoto {
@@ -33,6 +41,7 @@ export class QSFOfflineDatabase extends Dexie {
   reports!: Table<OfflineReport, string>;
   photos!: Table<OfflinePhoto, string>;
   syncQueue!: Table<SyncQueueItem, string>;
+  conflicts!: Table<ConflictRecord, string>;
 
   constructor() {
     super('qsf_offline_db');
@@ -40,6 +49,12 @@ export class QSFOfflineDatabase extends Dexie {
       reports: 'localId, reportNumber, syncStatus, createdAt, updatedAt',
       photos: 'id, reportLocalId, createdAt',
       syncQueue: 'id, reportLocalId, operation, attempts, lastAttemptAt'
+    });
+    this.version(2).stores({
+      reports: 'localId, reportNumber, syncStatus, createdAt, updatedAt',
+      photos: 'id, reportLocalId, createdAt',
+      syncQueue: 'id, reportLocalId, operation, attempts, lastAttemptAt',
+      conflicts: 'localId, detectedAt'
     });
   }
 }

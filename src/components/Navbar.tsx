@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AppTab, MaintenanceReport } from '../types';
-import { Wrench, History, Shield, CheckSquare, Plus, Wifi, WifiOff, Menu, Bell, Sparkles, RefreshCw, AlertTriangle, CheckCircle2, RotateCcw, X, Key, Eye, EyeOff, BarChart3, ChevronDown, Sun, Globe, Sparkle, Sliders } from 'lucide-react';
+import { Wrench, History, Shield, CheckSquare, Plus, Wifi, WifiOff, Menu, Bell, Sparkles, RefreshCw, AlertTriangle, CheckCircle2, RotateCcw, X, Key, Eye, EyeOff, BarChart3, ChevronDown, Sun, Globe, Sparkle, Sliders, ArrowRight, UploadCloud, FileDown } from 'lucide-react';
 import { subscribeToSyncStatus, processSyncQueue, SyncStatusInfo } from '../offline/syncQueue';
 import { useLanguage } from '../contexts/LanguageContext';
+import { ConflictResolver } from './ConflictResolver';
 
 interface NavbarProps {
   activeTab: AppTab;
@@ -16,6 +17,7 @@ interface NavbarProps {
   onToggleQskView: () => void;
   geminiApiKey?: string;
   onGeminiApiKeyChange?: (key: string) => void;
+  onConflictResolved?: () => void;
 }
 
 const LS_LOGO_KEY = 'qsf_qsk_logo';
@@ -85,16 +87,20 @@ export const Navbar: React.FC<NavbarProps> = ({
   isQskView,
   onToggleQskView,
   geminiApiKey: propGeminiApiKey,
-  onGeminiApiKeyChange
+  onGeminiApiKeyChange,
+  onConflictResolved
 }) => {
   const { locale, setLocale, t } = useLanguage();
   const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
+  const [isConflictModalOpen, setIsConflictModalOpen] = useState<boolean>(false);
   const [syncInfo, setSyncInfo] = useState<SyncStatusInfo>({
     state: typeof navigator !== 'undefined' && navigator.onLine ? 'online' : 'offline',
     pendingCount: 0,
     failedCount: 0,
+    conflictCount: 0,
     failedReports: [],
+    conflictedReports: [],
     isOnline: typeof navigator !== 'undefined' ? navigator.onLine : true
   });
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
@@ -111,6 +117,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const setGeminiApiKey = onGeminiApiKeyChange || setInternalGeminiApiKey;
   const [showApiKey, setShowApiKey] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [rawDiffStatus, setRawDiffStatus] = useState<string>('not set');
 
   const [qskStyle, setQskStyle] = useState<string>(() => {
     try {
@@ -283,6 +290,19 @@ export const Navbar: React.FC<NavbarProps> = ({
   }, []);
 
   useEffect(() => {
+    const handleMessage = (e: MessageEvent) => {
+      if (e.origin !== window.location.origin) return;
+      if (e.data?.source === 'qsf-qsk' && e.data?.type === 'RAWDIFF_STATUS' && typeof e.data?.status === 'string') {
+        setRawDiffStatus(e.data.status);
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
+  }, []);
+
+  useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsSettingsOpen(false);
@@ -331,6 +351,19 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   // Render badge based on exact IndexedDB state
   const renderSyncBadge = () => {
+    if (syncInfo.conflictCount > 0 || syncInfo.state === 'conflict') {
+      return (
+        <button
+          onClick={() => setIsConflictModalOpen(true)}
+          className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border bg-amber-500/20 text-amber-300 border-amber-500/50 hover:bg-amber-500/30 transition-all cursor-pointer animate-pulse"
+          title="Sync conflict detected — Click to review"
+        >
+          <AlertTriangle className="w-3 h-3 text-amber-400" />
+          <span>⚠ {syncInfo.conflictCount} Conflict{syncInfo.conflictCount !== 1 ? 's' : ''}</span>
+        </button>
+      );
+    }
+
     if (!syncInfo.isOnline || syncInfo.state === 'offline') {
       return (
         <button
@@ -472,6 +505,18 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span className="absolute -top-0.5 -right-0.5 rtl:-right-auto rtl:-left-0.5 w-2 h-2 bg-rose-500 rounded-full" />
             )}
           </button>
+
+          {/* Sync Conflict Badge / Action */}
+          {syncInfo.conflictCount > 0 && (
+            <button
+              onClick={() => setIsConflictModalOpen(true)}
+              className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border bg-amber-500/20 text-amber-300 border-amber-500/60 hover:bg-amber-500/30 transition-all cursor-pointer shadow-sm animate-pulse"
+              title="Review sync conflicts"
+            >
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <span>Review Conflict ({syncInfo.conflictCount})</span>
+            </button>
+          )}
 
           {/* QSK view toggle */}
           <button
@@ -735,6 +780,24 @@ export const Navbar: React.FC<NavbarProps> = ({
                             <BarChart3 className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
                             <span>My Dictionary</span>
                           </button>
+                          <button
+                            onClick={() => handleQskToolTrigger('TRIGGER_RAWDIFF_UPLOAD')}
+                            className="w-full flex items-center space-x-2 rtl:space-x-reverse px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left rtl:text-right"
+                          >
+                            <UploadCloud className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                            <span>Upload Old Raw Data</span>
+                          </button>
+                          <button
+                            onClick={() => handleQskToolTrigger('TRIGGER_RAWDIFF_EXPORT')}
+                            className="w-full flex items-center space-x-2 rtl:space-x-reverse px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left rtl:text-right"
+                          >
+                            <FileDown className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                            <span>Export Difference Report</span>
+                          </button>
+                        </div>
+
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400 px-2 pt-0.5">
+                          Old raw file: {rawDiffStatus}
                         </div>
 
                         <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-700">
@@ -985,6 +1048,31 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </div>
               )}
 
+              {syncInfo.conflictCount > 0 && (
+                <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-400 dark:border-amber-600 rounded-xl text-amber-900 dark:text-amber-100 space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                    <span className="font-bold">
+                      {syncInfo.conflictCount} report(s) require conflict resolution
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-amber-700 dark:text-amber-300">
+                    Changes were made remotely while this device was offline. You can compare changes and choose which version to keep.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsSyncModalOpen(false);
+                      setIsConflictModalOpen(true);
+                    }}
+                    className="w-full py-2 px-3 bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs rounded-lg transition-colors flex items-center justify-center space-x-1.5 shadow-sm cursor-pointer"
+                  >
+                    <span>Open Conflict Resolver</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+
               {syncInfo.failedReports.length > 0 && (
                 <div className="space-y-2">
                   <span className="font-bold text-rose-600 dark:text-rose-400 block">
@@ -1033,6 +1121,13 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
       )}
+
+      {/* Conflict Resolver Modal */}
+      <ConflictResolver
+        isOpen={isConflictModalOpen}
+        onClose={() => setIsConflictModalOpen(false)}
+        onResolved={onConflictResolved}
+      />
     </header>
   );
 };

@@ -15,6 +15,8 @@ import {
 } from './utils/storage';
 import { validateReportForFinalization, ValidationError } from './utils/validation';
 import { useTheme } from './hooks/useTheme';
+import { showToast } from './utils/toastBus';
+import { reportsBus } from './utils/reportsBus';
 import { Navbar } from './components/Navbar';
 import { PhaseTracker } from './components/PhaseTracker';
 import { SetupGuide } from './components/SetupGuide';
@@ -115,7 +117,7 @@ export default function App() {
           setReportData(draft);
         }
       } catch (err) {
-        // Silently ignore — non-critical
+        showToast("Couldn't reload your unsaved draft. You can start a fresh report.", 'info');
       }
     };
 
@@ -138,10 +140,19 @@ export default function App() {
     };
     window.addEventListener('draft_storage_warning', handleDraftStorageWarning);
 
+    const unsubscribeReportsBus = reportsBus.subscribe(() => {
+      getReportsFromStorage().then((updated) => {
+        if (isMounted) {
+          setReports(updated);
+        }
+      }).catch(() => {});
+    });
+
     return () => {
       isMounted = false;
       window.removeEventListener('online', handleBrowserOnline);
       window.removeEventListener('draft_storage_warning', handleDraftStorageWarning);
+      unsubscribeReportsBus();
     };
   }, []);
 
@@ -160,6 +171,9 @@ export default function App() {
 
   useEffect(() => {
     const handleMessage = (e: MessageEvent) => {
+      if (e.origin !== window.location.origin) {
+        return; // Ignore messages from any other origin
+      }
       if (e.data?.source === 'qsf-qsk' && e.data?.type === 'QSK_READY') {
         sendInset();
       }
@@ -231,6 +245,7 @@ export default function App() {
       spareParts: reportData.spareParts || [],
       photos: reportData.photos || [],
       status: 'Finalized',
+      version: reportData.version || 1,
       createdAt: reportData.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
@@ -388,13 +403,13 @@ export default function App() {
     }
   };
 
-  const formSteps = [
-    { title: 'Basic Info', component: <BasicInfoStep reportData={reportData} onChange={handleUpdateReportData} /> },
-    { title: '5W + 1H', component: <FiveWOneHStep reportData={reportData} onChange={handleUpdateReportData} /> },
-    { title: '5-Why Analysis', component: <FiveWhyStep reportData={reportData} onChange={handleUpdateReportData} geminiApiKey={geminiApiKey} /> },
-    { title: 'Actions & Parts', component: <ActionsAndPartsStep reportData={reportData} onChange={handleUpdateReportData} /> },
-    { title: 'Photos & Markup', component: <PhotoCaptureStep reportData={reportData} onChange={handleUpdateReportData} /> },
-    { title: 'Review & Finalize', component: <ReviewScreen reportData={reportData} validationErrors={validationErrors} onEditSection={(idx) => setCurrentStepIndex(idx)} onFinalize={handleFinalizeReport} /> }
+  const formStepTitles = [
+    'Basic Info',
+    '5W + 1H',
+    '5-Why Analysis',
+    'Actions & Parts',
+    'Photos & Markup',
+    'Review & Finalize'
   ];
 
   // Quick Demo Auto-Fill for instant field testing
@@ -471,6 +486,14 @@ export default function App() {
         onToggleQskView={() => setIsQskView(prev => !prev)}
         geminiApiKey={geminiApiKey}
         onGeminiApiKeyChange={setGeminiApiKey}
+        onConflictResolved={async () => {
+          try {
+            const updated = await getReportsFromStorage();
+            setReports(updated);
+          } catch (err) {
+            showToast("Conflict was resolved, but refreshing the report list failed. Try reloading the page.", 'error');
+          }
+        }}
       />
 
       {/* Main Content Area — QSF (normal tabbed content) */}
@@ -525,9 +548,9 @@ export default function App() {
               <div className="flex items-center justify-between mb-3 px-1">
                 <div className="flex items-center space-x-2">
                   <span className="font-extrabold text-xs text-sky-600 dark:text-sky-400 uppercase tracking-wider">
-                    {formSteps[currentStepIndex].title}
+                    {formStepTitles[currentStepIndex]}
                   </span>
-                  <span className="text-xs text-slate-400 dark:text-slate-500">({currentStepIndex + 1} of {formSteps.length})</span>
+                  <span className="text-xs text-slate-400 dark:text-slate-500">({currentStepIndex + 1} of {formStepTitles.length})</span>
                 </div>
                 <button
                   type="button"
@@ -542,7 +565,7 @@ export default function App() {
 
               {/* Progress Steps Pills */}
               <div className="grid grid-cols-6 gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
-                {formSteps.map((step, idx) => {
+                {formStepTitles.map((title, idx) => {
                   const isActive = currentStepIndex === idx;
                   const isDone = currentStepIndex > idx;
                   return (
@@ -557,7 +580,7 @@ export default function App() {
                           : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'
                       }`}
                     >
-                      <span className="hidden sm:inline">{step.title}</span>
+                      <span className="hidden sm:inline">{title}</span>
                       <span className="sm:hidden">#{idx + 1}</span>
                     </button>
                   );
@@ -567,7 +590,29 @@ export default function App() {
 
             {/* Active Step Form Component */}
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 sm:p-6 shadow-sm">
-              {formSteps[currentStepIndex].component}
+              {currentStepIndex === 0 && (
+                <BasicInfoStep reportData={reportData} onChange={handleUpdateReportData} />
+              )}
+              {currentStepIndex === 1 && (
+                <FiveWOneHStep reportData={reportData} onChange={handleUpdateReportData} />
+              )}
+              {currentStepIndex === 2 && (
+                <FiveWhyStep reportData={reportData} onChange={handleUpdateReportData} geminiApiKey={geminiApiKey} />
+              )}
+              {currentStepIndex === 3 && (
+                <ActionsAndPartsStep reportData={reportData} onChange={handleUpdateReportData} />
+              )}
+              {currentStepIndex === 4 && (
+                <PhotoCaptureStep reportData={reportData} onChange={handleUpdateReportData} />
+              )}
+              {currentStepIndex === 5 && (
+                <ReviewScreen
+                  reportData={reportData}
+                  validationErrors={validationErrors}
+                  onEditSection={(idx) => setCurrentStepIndex(idx)}
+                  onFinalize={handleFinalizeReport}
+                />
+              )}
             </div>
 
             {/* Wizard Navigation Footer Buttons */}
@@ -585,9 +630,9 @@ export default function App() {
                 Auto-Saved to Local Storage Cache
               </div>
 
-              {currentStepIndex < formSteps.length - 1 ? (
+              {currentStepIndex < formStepTitles.length - 1 ? (
                 <button
-                  onClick={() => setCurrentStepIndex((prev) => Math.min(formSteps.length - 1, prev + 1))}
+                  onClick={() => setCurrentStepIndex((prev) => Math.min(formStepTitles.length - 1, prev + 1))}
                   className="py-2 px-5 bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs rounded-xl shadow-md transition-all active:scale-95 flex items-center space-x-1"
                 >
                   <span>Next Step</span>

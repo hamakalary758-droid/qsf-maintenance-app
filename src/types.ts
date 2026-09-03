@@ -76,6 +76,7 @@ export interface MaintenanceReport {
   archivedAt?: string;
   archivedBy?: string;
   archiveReason?: string;
+  version: number; // increments by 1 on every save. Used for conflict detection.
 }
 
 export type AppTab = 'new-report' | 'history' | 'dashboard' | 'setup-guide' | 'phase-checklist';

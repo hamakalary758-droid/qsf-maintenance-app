@@ -2661,6 +2661,8 @@
         #importBtn span,
         #exportBtn span,
         #readableReportBtn span,
+        #rawDiffUploadOldBtn span,
+        #exportRawDiffReportBtn span,
         #resetImportBtn span,
         #resetBlankBtn span,
         #shortcutsBtn span,
@@ -2767,6 +2769,8 @@
         #importBtn,
         #exportBtn,
         #readableReportBtn,
+        #rawDiffUploadOldBtn,
+        #exportRawDiffReportBtn,
         #resetImportBtn,
         #resetBlankBtn {
             flex: 1 1 0;
@@ -4997,6 +5001,14 @@
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h6M8 16h4"/></svg>
                                 <span data-i18n="readableReport">Readable Report</span>
                             </button>
+                            <button class="btn" id="rawDiffUploadOldBtn" title="Upload an old raw SAP export to compare against your current data" aria-label="Upload Old Raw Data" style="display:none;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+                                <span>Upload Old Raw Data</span>
+                            </button>
+                            <button class="btn" id="exportRawDiffReportBtn" title="Export a highlighted report showing what changed since the old raw data was uploaded" aria-label="Export Difference Report" disabled style="display:none;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h6M8 16h4"/></svg>
+                                <span>Export Difference Report</span>
+                            </button>
                             <button class="btn btn-icon-danger" id="resetImportBtn" title="Reset to Last Import" aria-label="Reset to Last Import">
                                 <svg class="icon-default" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/></svg>
                                 <svg class="icon-dark-slate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"><path d="M7 3h10l4 4v10l-4 4H7l-4-4V7Z M9 10h4l-1.5-1.5M13 14H9l1.5 1.5"/></svg>
@@ -5007,6 +5019,10 @@
                                 <svg class="icon-dark-slate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"><path d="M12 3 20 12 12 21 4 12 Z M9 9l6 6M15 9l-6 6"/></svg>
                                 <span data-i18n="resetBlank">Reset to Blank</span>
                             </button>
+                        </div>
+                        <div id="rawDiffOldStatusWrap" style="display:none; align-items:center; gap:5px; font-size:10px; color:var(--text-2); padding:1px 3px 0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:340px;">
+                            <span>Old Raw:</span>
+                            <span id="rawDiffOldStatus" style="font-weight:600; color:var(--text-1);">not set</span>
                         </div>
                     </div>
                 </div>
@@ -5130,6 +5146,7 @@
             </div>
 
             <input type="file" id="importFileInput" accept=".xlsx,.xls">
+            <input type="file" id="rawDiffOldFileInput" accept=".xlsx,.xls">
             <input type="file" id="templateCheckFileInput" accept=".xlsx,.xls">
             <input type="file" id="materialTemplateCheckFileInput" accept=".xlsx,.xls">
             <input type="file" id="flTemplateCheckFileInput" accept=".xlsx,.xls">
@@ -5824,6 +5841,21 @@
                 status: 'Stable',
                 lineRange: 'After MODULE_EXPORT'
             },
+            MODULE_RAWDIFF: {
+                id: 'MODULE_RAWDIFF',
+                name: 'Raw Diff Baseline Engine',
+                purpose: 'Stores and manages old raw SAP export baseline for difference reporting.',
+                functions: ['initRawDiffUpload', 'loadRawDiffBaseline', 'saveRawDiffBaseline', 'updateRawDiffOldStatus',
+                    'rawDiffMatchKey', 'rawDiffBuildKeyedMap', 'rawDiffParentLabel', 'rawDiffCompute',
+                    'rawDiffNodePrimaryId', 'exportRawDifferenceReport'
+                ],
+                dependencies: ['MODULE_PARSER', 'MODULE_TREE', 'MODULE_UTILITIES', 'MODULE_STORAGE'],
+                usedBy: ['MODULE_STARTUP'],
+                htmlElements: ['#rawDiffUploadOldBtn', '#rawDiffOldFileInput', '#rawDiffOldStatus', '#exportRawDiffReportBtn'],
+                version: '1.0',
+                status: 'Stable',
+                lineRange: 'After MODULE_COMPARE'
+            },
             MODULE_SAP_VALIDATION: {
                 id: 'MODULE_SAP_VALIDATION',
                 name: 'SAP Validation Engine',
@@ -6043,6 +6075,11 @@
             },
             compare: {
                 baselineTree: null,
+            },
+            rawDiff: {
+                oldRawTree: null,        // parsed tree from the old raw file (same shape as AppState.tree.data)
+                oldRawFileName: null,
+                oldRawImportedAt: null   // timestamp
             },
             validation: {
                 lastResult: null,
@@ -7456,6 +7493,14 @@
             moduleId: 'MODULE_COMPARE',
             state: AppState.compare,
             init: () => initCompare(),
+        });
+
+        PluginSystem.register({
+            id: 'rawDiff',
+            name: 'Raw Diff Plugin',
+            moduleId: 'MODULE_RAWDIFF',
+            state: AppState.rawDiff,
+            init: () => initRawDiffUpload(),
         });
 
         PluginSystem.register({
@@ -9083,6 +9128,12 @@
                 case 'TRIGGER_SAP_VALIDATION':
                     document.getElementById('sapValidationBtn')?.click();
                     break;
+                case 'TRIGGER_RAWDIFF_UPLOAD':
+                    document.getElementById('rawDiffUploadOldBtn')?.click();
+                    break;
+                case 'TRIGGER_RAWDIFF_EXPORT':
+                    document.getElementById('exportRawDiffReportBtn')?.click();
+                    break;
                 case 'OPEN_SHORTCUTS':
                     document.getElementById('shortcutsBtn')?.click();
                     break;
@@ -9111,6 +9162,11 @@
 
         if (window.parent && window.parent !== window) {
             window.parent.postMessage({ source: 'qsf-qsk', type: 'QSK_READY' }, window.location.origin);
+            try {
+                if (typeof updateRawDiffOldStatus === 'function') {
+                    updateRawDiffOldStatus();
+                }
+            } catch (e) {}
         }
 
         // ============ SECTION: Viewport Breakpoint Helper ============
@@ -9395,6 +9451,7 @@
         const LS_LANG_KEY = 'qsk_lang_v2';
         const LS_HISTORY_KEY = 'qsk_diag_history_v2';
         const LS_BASELINE_KEY = 'qsk_baseline_v2';
+        const LS_RAWDIFF_BASELINE_KEY = 'qsk_rawdiff_baseline_v1';
         let ROW_H = 42;
         const UNDO_LIMIT = 100;
 
@@ -12340,6 +12397,10 @@
             const hasData = AppState.tree.data && (AppState.tree.data.children || []).length > 0;
             document.getElementById('resetImportBtn').disabled = !AppState.tree.backup || AppState.diagnostics.exportInProgress;
             document.getElementById('resetBlankBtn').disabled = AppState.diagnostics.exportInProgress;
+            const exportRawDiffBtn = document.getElementById('exportRawDiffReportBtn');
+            if (exportRawDiffBtn) {
+                exportRawDiffBtn.disabled = !(AppState.rawDiff && AppState.rawDiff.oldRawTree && (AppState.rawDiff.oldRawTree.children || []).length > 0) || !hasData || AppState.diagnostics.exportInProgress;
+            }
             document.getElementById('treeScroll').style.display = hasData ? 'block' : 'none';
             document.getElementById('emptyState').style.display = hasData ? 'none' : 'flex';
             const visibleLegendEl = document.getElementById('visibleLegend');
@@ -15355,6 +15416,552 @@
                 showToast('Current tree saved as baseline.');
             });
         }
+
+        // ============ SECTION: Raw-vs-Raw Difference Report (Baseline Upload) ============
+        // Loads saved old raw baseline data from localStorage into AppState.rawDiff.
+        function loadRawDiffBaseline() {
+            try {
+                const raw = localStorage.getItem(LS_RAWDIFF_BASELINE_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    AppState.rawDiff.oldRawTree = parsed.oldRawTree || null;
+                    AppState.rawDiff.oldRawFileName = parsed.oldRawFileName || null;
+                    AppState.rawDiff.oldRawImportedAt = parsed.oldRawImportedAt || null;
+                } else {
+                    AppState.rawDiff.oldRawTree = null;
+                    AppState.rawDiff.oldRawFileName = null;
+                    AppState.rawDiff.oldRawImportedAt = null;
+                }
+            } catch (e) {
+                AppState.rawDiff.oldRawTree = null;
+                AppState.rawDiff.oldRawFileName = null;
+                AppState.rawDiff.oldRawImportedAt = null;
+            }
+        }
+
+        // Persists old raw baseline data to localStorage (or removes if null).
+        function saveRawDiffBaseline() {
+            try {
+                if (AppState.rawDiff && AppState.rawDiff.oldRawTree) {
+                    const payload = {
+                        oldRawTree: AppState.rawDiff.oldRawTree,
+                        oldRawFileName: AppState.rawDiff.oldRawFileName,
+                        oldRawImportedAt: AppState.rawDiff.oldRawImportedAt
+                    };
+                    localStorage.setItem(LS_RAWDIFF_BASELINE_KEY, JSON.stringify(payload));
+                } else {
+                    localStorage.removeItem(LS_RAWDIFF_BASELINE_KEY);
+                }
+            } catch (e) {
+                showToast('Could not save old raw baseline.', 'error');
+            }
+        }
+
+        // Updates the old raw baseline status indicator text/state in the UI.
+        function updateRawDiffOldStatus() {
+            const statusEl = document.getElementById('rawDiffOldStatus');
+            const exportDiffBtn = document.getElementById('exportRawDiffReportBtn');
+            const hasOldData = AppState.rawDiff && AppState.rawDiff.oldRawTree && (AppState.rawDiff.oldRawTree.children || []).length > 0;
+            const hasCurrentData = AppState.tree && AppState.tree.data && (AppState.tree.data.children || []).length > 0;
+            if (exportDiffBtn) {
+                exportDiffBtn.disabled = !hasOldData || !hasCurrentData || AppState.diagnostics.exportInProgress;
+            }
+            let statusText = 'not set';
+            if (hasOldData) {
+                const stats = computeStatsForTree(AppState.rawDiff.oldRawTree);
+                const fileName = AppState.rawDiff.oldRawFileName || 'Old raw export';
+                const timeStr = AppState.rawDiff.oldRawImportedAt
+                    ? new Date(AppState.rawDiff.oldRawImportedAt).toLocaleDateString()
+                    : '';
+                statusText = `${fileName} — ${stats.totalNodes.toLocaleString()} nodes${timeStr ? ', ' + timeStr : ''}`;
+                if (statusEl) {
+                    statusEl.textContent = statusText;
+                    statusEl.style.color = 'var(--teal)';
+                    statusEl.title = `${fileName} — ${stats.totalNodes.toLocaleString()} nodes`;
+                }
+            } else {
+                if (statusEl) {
+                    statusEl.textContent = 'not set';
+                    statusEl.style.color = 'var(--text-2)';
+                    statusEl.title = 'No old raw baseline loaded';
+                }
+            }
+
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ source: 'qsf-qsk', type: 'RAWDIFF_STATUS', status: statusText }, window.location.origin);
+            }
+        }
+
+        // Initializes the "Upload Old Raw Data" button and file-picker handlers.
+        function initRawDiffUpload() {
+            loadRawDiffBaseline();
+            updateRawDiffOldStatus();
+
+            const fileInput = document.getElementById('rawDiffOldFileInput');
+            const uploadBtn = document.getElementById('rawDiffUploadOldBtn');
+            const exportDiffBtn = document.getElementById('exportRawDiffReportBtn');
+
+            if (exportDiffBtn) {
+                exportDiffBtn.addEventListener('click', () => {
+                    exportRawDifferenceReport();
+                });
+            }
+
+            if (uploadBtn && fileInput) {
+                uploadBtn.addEventListener('click', () => {
+                    if (AppState.diagnostics.exportInProgress) {
+                        showToast(t('exportInProgressToast'), 'error');
+                        return;
+                    }
+                    fileInput.value = '';
+                    fileInput.click();
+                });
+
+                fileInput.addEventListener('change', () => {
+                    if (AppState.diagnostics.exportInProgress) {
+                        showToast(t('exportInProgressToast'), 'error');
+                        fileInput.value = '';
+                        return;
+                    }
+                    const file = fileInput.files && fileInput.files[0];
+                    if (!file) return;
+
+                    readFileWithProgress(file, {
+                        readingLabel: 'Reading file…',
+                        buildingLabel: 'Parsing old raw tree…',
+                        onData: (data) => {
+                            const workbook = XLSX.read(data, { type: 'array' });
+                            const { root, errors, warnings, info, timings } = parseWorkbookToTree(workbook);
+                            if (errors && errors.length) {
+                                hideLoadingOverlay();
+                                showImportIssues(errors, warnings || [], info || [], timings || {});
+                                return;
+                            }
+                            AppState.rawDiff.oldRawTree = root;
+                            AppState.rawDiff.oldRawFileName = file.name;
+                            AppState.rawDiff.oldRawImportedAt = Date.now();
+                            saveRawDiffBaseline();
+                            updateRawDiffOldStatus();
+                            hideLoadingOverlay();
+                            if (warnings && warnings.length) {
+                                showImportIssues([], warnings, info || [], timings || {});
+                            }
+                            const stats = computeStatsForTree(root);
+                            showToast(`Old raw data loaded (${stats.totalNodes.toLocaleString()} nodes).`);
+                        },
+                        onError: (err) => {
+                            hideLoadingOverlay();
+                            if (err.message === 'File read failed.') {
+                                showToast(t('fileReadErrorToast'), 'error');
+                            } else {
+                                showToast(t('importFailedToast') + (err && err.message ? ': ' + err.message : ''), 'error');
+                            }
+                        }
+                    });
+                });
+            }
+        }
+
+        // Builds an ID-to-node lookup map for an arbitrary tree (used for raw-diff parent resolution).
+        function rawDiffBuildIdMap(tree) {
+            const map = new Map();
+            if (!tree) return map;
+            (function walk(n) {
+                if (n.type === 'root') { if (n.children) n.children.forEach(walk); return; }
+                if (n.id) map.set(n.id, n);
+                if (n.children) n.children.forEach(walk);
+            })(tree);
+            return map;
+        }
+
+        // Resolves the canonical full path code for an F.L. node within an arbitrary tree.
+        function rawDiffFLCode(node, treeIdMap) {
+            if (!node) return '';
+            const idMap = treeIdMap || (AppState.tree && AppState.tree.nodesById);
+            if (idMap && typeof idMap.get === 'function') {
+                const segments = [];
+                let n = node;
+                while (n && n.type === 'fl') {
+                    const raw = n.level4 || n.level3 || n.level2 || '';
+                    const seg = raw ? raw.toString().trim().split('-').pop() : '';
+                    if (seg) segments.unshift(seg);
+                    n = n.parentId ? idMap.get(n.parentId) : null;
+                }
+                const plantCode = (n && n.type === 'plant') ? (n.code || '').toString().trim() : '';
+                if (plantCode) segments.unshift(plantCode);
+                if (segments.length > 0) return segments.join('-');
+            }
+            return tcFLDisplayCode(node) || (node.level4 || node.level3 || node.level2 || '').toString().trim();
+        }
+
+        // Returns the real SAP business identity for a node, used to match the SAME
+        // real-world item across two independently-imported raw files (where internal
+        // genId() IDs are never stable, since they're regenerated on every import).
+        function rawDiffMatchKey(node, treeIdMap) {
+            if (!node) return null;
+            if (node.type === 'plant') {
+                const code = (node.code || '').toString().trim();
+                return code ? 'plant:' + code : null;
+            }
+            if (node.type === 'fl') {
+                const code = (rawDiffFLCode(node, treeIdMap) || '').toString().trim();
+                return code ? 'fl:' + code : null;
+            }
+            if (node.type === 'equipment') {
+                const eqId = (node.equipmentId || '').toString().trim();
+                return eqId ? 'equipment:' + eqId : null;
+            }
+            if (node.type === 'material') {
+                const matId = (node.materialId || '').toString().trim();
+                return matId ? 'material:' + matId : null;
+            }
+            return null;
+        }
+
+        // Builds a business-identity-to-node lookup map for an arbitrary tree.
+        function rawDiffBuildKeyedMap(tree, treeIdMap) {
+            const map = new Map();
+            if (!tree) return map;
+            const idMap = treeIdMap || rawDiffBuildIdMap(tree);
+            (function walk(n) {
+                if (n.type === 'root') { if (n.children) n.children.forEach(walk); return; }
+                const key = rawDiffMatchKey(n, idMap);
+                if (key) map.set(key, n);
+                if (n.children) n.children.forEach(walk);
+            })(tree);
+            return map;
+        }
+
+        // Like the existing nodeParentLabel(), but resolves parent-of-node by walking
+        // the SAME tree the node came from (via node.parentId -> a lookup built from
+        // that specific tree), not by business-key map -- parentId still refers to the
+        // internal id within its own tree, that part doesn't change.
+        function rawDiffParentLabel(node, treeIdMap) {
+            if (!node || !node.parentId) return '(top level)';
+            if (!treeIdMap || typeof treeIdMap.get !== 'function') return '(top level)';
+            const parent = treeIdMap.get(node.parentId);
+            if (!parent) return '(top level)';
+            if (parent.type === 'root') return '(top level)';
+            if (parent.type === 'plant') return `Plant ${parent.code || ''}`.trim();
+            if (parent.type === 'fl') {
+                const flTitle = rawDiffFLCode(parent, treeIdMap) || '(unnamed FL)';
+                return `F.L. ${flTitle}`.trim();
+            }
+            if (parent.type === 'equipment') {
+                const id = parent.equipmentId || '';
+                const desc = parent.equipmentDescription || '';
+                return desc ? `Equipment ${id} — ${desc}`.trim() : `Equipment ${id}`.trim();
+            }
+            if (parent.type === 'material') {
+                const id = parent.materialId || '';
+                const desc = parent.materialDescription || '';
+                return desc ? `Material ${id} — ${desc}`.trim() : `Material ${id}`.trim();
+            }
+            return '(unknown)';
+        }
+
+        // Compares the OLD raw tree (AppState.rawDiff.oldRawTree) against the NEW/current
+        // tree (AppState.tree.data), matched by real SAP business identity (see
+        // rawDiffMatchKey), and classifies every item into one of: new / edited / deleted /
+        // unchanged. This is intentionally separate from the existing diffNodes()/computeDiff()
+        // (Compare feature), which matches by internal id and serves a different purpose
+        // (session-local edit tracking) -- see the ADR for why they can't share matching logic.
+        function rawDiffCompute() {
+            const oldTree = AppState.rawDiff && AppState.rawDiff.oldRawTree;
+            const newTree = AppState.tree && AppState.tree.data;
+            if (!oldTree || !oldTree.children || !oldTree.children.length ||
+                !newTree || !newTree.children || !newTree.children.length) {
+                return { added: [], edited: [], deleted: [], unchanged: [], ready: false };
+            }
+
+            const oldIdMap = rawDiffBuildIdMap(oldTree);
+            const newIdMap = rawDiffBuildIdMap(newTree);
+            const oldKeyMap = rawDiffBuildKeyedMap(oldTree, oldIdMap);
+            const newKeyMap = rawDiffBuildKeyedMap(newTree, newIdMap);
+
+            const added = [], edited = [], deleted = [], unchanged = [];
+
+            for (const [key, newNode] of newKeyMap) {
+                if (!oldKeyMap.has(key)) {
+                    added.push(newNode);
+                    continue;
+                }
+                const oldNode = oldKeyMap.get(key);
+                const changes = [];
+
+                // Hierarchy/place change
+                // Resolve each side's actual parent node, then compare by business identity
+                // (match key), not by rendered label text -- a parent's description changing
+                // must NOT cause every child underneath it to be falsely flagged as "moved."
+                const oldParentNode = oldNode.parentId ? oldIdMap.get(oldNode.parentId) : null;
+                const newParentNode = newNode.parentId ? newIdMap.get(newNode.parentId) : null;
+                const oldParentKey = oldParentNode ? rawDiffMatchKey(oldParentNode, oldIdMap) : null;
+                const newParentKey = newParentNode ? rawDiffMatchKey(newParentNode, newIdMap) : null;
+
+                const reallyMoved = oldParentKey !== newParentKey;
+                if (reallyMoved) {
+                    changes.push({
+                        field: 'placedUnder',
+                        old: rawDiffParentLabel(oldNode, oldIdMap),
+                        new: rawDiffParentLabel(newNode, newIdMap)
+                    });
+                }
+
+                // Description change -- applies generically to whichever description field
+                // this node type uses (flDescription / equipmentDescription / materialDescription),
+                // same field-per-type pattern as the existing DIFF_FIELD_LABELS / diffNodes().
+                const descField = newNode.type === 'fl' ? 'flDescription'
+                    : newNode.type === 'equipment' ? 'equipmentDescription'
+                    : newNode.type === 'material' ? 'materialDescription'
+                    : null;
+                if (descField) {
+                    const a = (oldNode[descField] || '').toString();
+                    const b = (newNode[descField] || '').toString();
+                    if (a !== b) changes.push({ field: descField, old: a, new: b });
+                }
+
+                if (changes.length > 0) {
+                    edited.push({ node: newNode, oldNode, changes });
+                } else {
+                    unchanged.push(newNode);
+                }
+            }
+
+            for (const [key, oldNode] of oldKeyMap) {
+                if (!newKeyMap.has(key)) deleted.push(oldNode);
+            }
+
+            return { added, edited, deleted, unchanged, ready: true };
+        }
+
+        // Like nodePrimaryId(), but safe to call on nodes from ANY tree (old raw or
+        // new/current) by taking that tree's own id-map explicitly, instead of always
+        // walking the live AppState.tree.nodesById the way nodePrimaryId()'s F.L.
+        // branch (via tcFLDisplayCode) does.
+        function rawDiffNodePrimaryId(node, treeIdMap) {
+            if (!node) return '(no ID)';
+            if (node.type === 'equipment') return node.equipmentId || '(no ID)';
+            if (node.type === 'material') return node.materialId || '(no ID)';
+            if (node.type === 'plant') return node.code || '(no ID)';
+            if (node.type === 'fl') return rawDiffFLCode(node, treeIdMap) || '(no ID)';
+            return '(no ID)';
+        }
+
+        // Exports a dedicated Excel Difference Report comparing the uploaded old raw
+        // SAP baseline against the current live tree data.
+        async function exportRawDifferenceReport() {
+            if (AppState.diagnostics.exportInProgress) {
+                showToast(t('exportInProgressToast'), 'error');
+                return;
+            }
+            if (!AppState.rawDiff || !AppState.rawDiff.oldRawTree || !AppState.rawDiff.oldRawTree.children || AppState.rawDiff.oldRawTree.children.length === 0) {
+                showToast('Upload an old raw file first to generate a Difference Report.', 'error');
+                return;
+            }
+            if (!AppState.tree || !AppState.tree.data || !AppState.tree.data.children || AppState.tree.data.children.length === 0) {
+                showToast(t('exportNothingToast'), 'error');
+                return;
+            }
+            if (typeof ExcelJS === 'undefined') {
+                showToast('ExcelJS library is not loaded. Please check your internet connection.', 'error');
+                return;
+            }
+            const diff = rawDiffCompute();
+            if (!diff || !diff.ready) {
+                showToast('Unable to compute differences between raw datasets.', 'error');
+                return;
+            }
+
+            AppState.diagnostics.exportInProgress = true;
+            renderAll();
+            showLoadingOverlay('Building your Difference Report…');
+            await new Promise(resolve => setTimeout(resolve, 30));
+
+            try {
+                const workbook = new ExcelJS.Workbook();
+                workbook.creator = 'QSK Master Data Explorer';
+                workbook.created = new Date();
+
+                const headerStyle = {
+                    font: { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } },
+                    fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF3366CC' } },
+                    alignment: { horizontal: 'center', vertical: 'middle', wrapText: true },
+                    border: {
+                        top: { style: 'thin', color: { argb: 'FF888888' } },
+                        bottom: { style: 'thin', color: { argb: 'FF888888' } },
+                        left: { style: 'thin', color: { argb: 'FF888888' } },
+                        right: { style: 'thin', color: { argb: 'FF888888' } }
+                    }
+                };
+                const dataStyle = {
+                    font: { name: 'Calibri', size: 11 },
+                    alignment: { vertical: 'middle', wrapText: true },
+                    border: {
+                        top: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+                        bottom: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+                        left: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+                        right: { style: 'thin', color: { argb: 'FFCCCCCC' } }
+                    }
+                };
+
+                const oldIdMap = rawDiffBuildIdMap(AppState.rawDiff.oldRawTree);
+                const newIdMap = rawDiffBuildIdMap(AppState.tree.data);
+
+                // ---- Sheet 1: Master Data Report (Full tree with raw diff highlighting) ----
+                const visibleSet = getExportVisibleSet();
+                const maxEquipDepth = scanMaxEquipmentDepth(visibleSet);
+                const rows = await buildFlatRows(visibleSet); // [header, ...dataRows]; rows.nodeIds[i] is the node id for rows[i+1]
+
+                const treeSheet = workbook.addWorksheet('Master Data Report', { properties: { tabColor: { argb: 'FF3366CC' } } });
+                treeSheet.addRows(rows);
+                treeSheet.getRow(1).eachCell((cell) => { cell.style = headerStyle; });
+
+                const addedKeySet = new Set(diff.added.map(n => rawDiffMatchKey(n, newIdMap)));
+                const editedKeySet = new Set(diff.edited.map(({ node }) => rawDiffMatchKey(node, newIdMap)));
+
+                for (let i = 2; i <= rows.length; i++) {
+                    const r = treeSheet.getRow(i);
+                    r.eachCell((cell) => { cell.style = deepClone(dataStyle); });
+
+                    const nodeId = rows.nodeIds[i - 2];
+                    const node = nodeId ? AppState.tree.nodesById.get(nodeId) : null;
+                    let colour = 'FFFFFFFF';
+                    if (node) {
+                        const key = rawDiffMatchKey(node, newIdMap);
+                        if (key && addedKeySet.has(key)) colour = 'FFE6FFE6';       // light green -- new
+                        else if (key && editedKeySet.has(key)) colour = 'FFFFF0E6'; // light orange -- edited
+                    }
+
+                    const nodeTypeCol = rows[0].length; // Node Type is always the last column
+                    for (let c = 1; c < nodeTypeCol; c++) {
+                        r.getCell(c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: colour } };
+                    }
+
+                    if (i % 200 === 0) {
+                        await new Promise(resolve => setTimeout(resolve, 0));
+                    }
+                }
+
+                buildExportColWidths(maxEquipDepth).forEach((w, idx) => {
+                    treeSheet.getColumn(idx + 1).width = w;
+                });
+
+                // ---- Sheet 2: New Added ----
+                const newAddedSheet = workbook.addWorksheet('New Added', { properties: { tabColor: { argb: 'FF2DD4BF' } } });
+                newAddedSheet.addRow(['Node Type', 'Code / ID', 'Description', 'Placed Under']).eachCell((cell) => { cell.style = headerStyle; });
+                if (diff.added.length === 0) {
+                    newAddedSheet.addRow(['No new items compared to the old raw data.']);
+                } else {
+                    diff.added.forEach(n => {
+                        const r = newAddedSheet.addRow([
+                            nodeTypeLabel(n),
+                            rawDiffNodePrimaryId(n, newIdMap),
+                            nodePrimaryDescription(n),
+                            rawDiffParentLabel(n, newIdMap)
+                        ]);
+                        r.eachCell((cell) => { cell.style = dataStyle; });
+                    });
+                }
+                newAddedSheet.getColumn(1).width = 20;
+                newAddedSheet.getColumn(2).width = 20;
+                newAddedSheet.getColumn(3).width = 34;
+                newAddedSheet.getColumn(4).width = 46;
+
+                // ---- Sheet 3: Edited ----
+                const editedSheet = workbook.addWorksheet('Edited', { properties: { tabColor: { argb: 'FFF5A623' } } });
+                editedSheet.addRow(['Node Type', 'Code / ID', 'Description', 'Change Made']).eachCell((cell) => { cell.style = headerStyle; });
+                if (diff.edited.length === 0) {
+                    editedSheet.addRow(['No edits compared to the old raw data.']);
+                } else {
+                    diff.edited.forEach(({ node, changes }) => {
+                        (changes || []).forEach(change => {
+                            const r = editedSheet.addRow([
+                                nodeTypeLabel(node),
+                                rawDiffNodePrimaryId(node, newIdMap),
+                                nodePrimaryDescription(node),
+                                describeChange(change)
+                            ]);
+                            r.eachCell((cell) => { cell.style = dataStyle; });
+                        });
+                    });
+                }
+                editedSheet.getColumn(1).width = 20;
+                editedSheet.getColumn(2).width = 20;
+                editedSheet.getColumn(3).width = 34;
+                editedSheet.getColumn(4).width = 64;
+
+                // ---- Sheet 4: Deleted ----
+                const deletedSheet = workbook.addWorksheet('Deleted', { properties: { tabColor: { argb: 'FFE0526C' } } });
+                deletedSheet.addRow(['Node Type', 'Code / ID', 'Description', 'Was Placed Under']).eachCell((cell) => { cell.style = headerStyle; });
+                if (diff.deleted.length === 0) {
+                    deletedSheet.addRow(['Nothing missing compared to the old raw data.']);
+                } else {
+                    diff.deleted.forEach(n => {
+                        const r = deletedSheet.addRow([
+                            nodeTypeLabel(n),
+                            rawDiffNodePrimaryId(n, oldIdMap),
+                            nodePrimaryDescription(n),
+                            rawDiffParentLabel(n, oldIdMap)
+                        ]);
+                        r.eachCell((cell) => { cell.style = dataStyle; });
+                    });
+                }
+                deletedSheet.getColumn(1).width = 20;
+                deletedSheet.getColumn(2).width = 20;
+                deletedSheet.getColumn(3).width = 34;
+                deletedSheet.getColumn(4).width = 46;
+
+                // ---- Sheet 5: Summary ----
+                const summarySheet = workbook.addWorksheet('Summary', { properties: { tabColor: { argb: 'FF66CC66' } } });
+                summarySheet.addRow(['Raw Data Difference Report']);
+                summarySheet.mergeCells('A1:B1');
+                summarySheet.getCell('A1').font = { size: 16, bold: true };
+                summarySheet.addRow([]);
+
+                summarySheet.addRow(['Report Info:']).getCell(1).font = { bold: true, size: 13 };
+                summarySheet.addRow(['Generated:', new Date().toLocaleString()]);
+                summarySheet.addRow(['Old Raw File:', AppState.rawDiff.oldRawFileName || '(unknown)']);
+                const newFileName = (AppState.stage && AppState.stage.rawSnapshot && AppState.stage.rawSnapshot.sourceFileName) || '(current tree)';
+                summarySheet.addRow(['New Raw File:', newFileName]);
+                summarySheet.addRow([]);
+
+                const totalIndividualChanges = diff.edited.reduce((sum, item) => sum + (item.changes ? item.changes.length : 0), 0);
+                summarySheet.addRow(['Change Totals:']).getCell(1).font = { bold: true, size: 13 };
+                summarySheet.addRow(['New items:', diff.added.length]);
+                summarySheet.addRow(['Edited items:', `${diff.edited.length} (${totalIndividualChanges} total change${totalIndividualChanges === 1 ? '' : 's'})`]);
+                summarySheet.addRow(['Deleted items:', diff.deleted.length]);
+                summarySheet.addRow(['Unchanged items:', diff.unchanged.length]);
+                summarySheet.addRow([]);
+
+                summarySheet.addRow(['Note:']).getCell(1).font = { bold: true, size: 12 };
+                summarySheet.addRow(['Functional Locations are matched by their code. If a Functional Location\'s code itself was changed between the old and new raw data, it cannot be matched to its old version — it will appear once in \'Deleted\' (under its old code) and once in \'New Added\' (under its new code), rather than as a single edit. This is a known limitation, not an error.']);
+                summarySheet.getColumn(1).width = 24;
+                summarySheet.getColumn(2).width = 70;
+
+                const stamp = new Date().toISOString().slice(0, 10);
+                const buffer = await workbook.xlsx.writeBuffer();
+                const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Raw_Difference_Report_${stamp}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showToast('Difference Report exported successfully!');
+            } catch (e) {
+                console.error(e);
+                showToast(t('exportFailedToast', { msg: e.message }) || ('Export failed: ' + e.message), 'error');
+            } finally {
+                AppState.diagnostics.exportInProgress = false;
+                hideLoadingOverlay();
+                renderAll();
+            }
+        }
+
+        // Temporary debug hook for verification before Step 3 wires the Excel export
+        window.__rawDiffDebugCompute = rawDiffCompute;
 
         // ============ SECTION: Import (doImportFile) ============
         window.doImportFile = function(file) {
@@ -22383,7 +22990,7 @@
             const originalTree = AppState.tree.data;
             const savedSearchState = AppState.search.state;
             const tempTree = { id: 'root', type: 'root', children: [deepClone(node)] };
-            const buttonsToDisable = ['exportBtn', 'readableReportBtn', 'importBtn', 'resetImportBtn', 'resetBlankBtn'];
+            const buttonsToDisable = ['exportBtn', 'readableReportBtn', 'rawDiffUploadOldBtn', 'exportRawDiffReportBtn', 'importBtn', 'resetImportBtn', 'resetBlankBtn'];
             buttonsToDisable.forEach(id => { const el = document.getElementById(id); if (el) el.disabled = true; });
             AppState.tree.data = tempTree;
             AppState.search.state = null;
@@ -25406,6 +26013,7 @@
             try { initShortcutsModal(); } catch (e) { console.error('initShortcutsModal', e); }
             try { initGrammarDictModal(); } catch (e) { console.error('initGrammarDictModal', e); }
             try { initImportReset(); } catch (e) { console.error('initImportReset', e); }
+            try { initRawDiffUpload(); } catch (e) { console.error('initRawDiffUpload', e); }
             try { initUndoRedo(); } catch (e) { console.error('initUndoRedo', e); }
             try { initContextMenu(); } catch (e) { console.error('initContextMenu', e); }
             try { initWizard(); } catch (e) { console.error('initWizard', e); }

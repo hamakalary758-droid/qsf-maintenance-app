@@ -2,9 +2,16 @@ import { MaintenanceReport, PlantPhoto } from '../types';
 import { db, OfflineReport, OfflinePhoto } from '../offline/db';
 import { processSyncQueue, notifySyncListeners } from '../offline/syncQueue';
 import { supabase, isSupabaseConfigured } from '../supabase/config';
+import { showToast } from './toastBus';
+import { notifyReportsChanged } from './reportsBus';
 
 const DRAFT_KEY = 'shutdown_maintenance_draft_v1';
 const LOCAL_REPORTS_KEY = 'shutdown_maintenance_reports_local_v1';
+
+// Track repeated cloud refresh failures so we only notify when persistent
+let consecutiveCloudFetchFailures = 0;
+let lastCloudFetchToastTime = 0;
+let isBackgroundRefreshInFlight = false;
 
 // Generate collision-safe report ID using crypto.randomUUID()
 export function generateReportId(): string {
@@ -66,7 +73,8 @@ function mapRowToReport(row: any): MaintenanceReport {
     isArchived: Boolean(row.is_archived),
     archivedAt: row.archived_at || undefined,
     archivedBy: row.archived_by || undefined,
-    archiveReason: row.archive_reason || undefined
+    archiveReason: row.archive_reason || undefined,
+    version: row.version || 1
   };
 }
 
@@ -126,7 +134,7 @@ async function migrateFromLocalStorageIfNeeded() {
       });
     }
   } catch (err) {
-    // Silently ignore — non-critical
+    showToast("Some older saved reports could not be loaded. Please contact support if reports are missing.", 'error');
   }
 }
 
@@ -158,34 +166,62 @@ export const getReportsFromStorage = async (): Promise<MaintenanceReport[]> => {
   if (typeof navigator !== 'undefined' && navigator.onLine && isSupabaseConfigured) {
     // Non-blocking background fetch & sync
     (async () => {
+      if (isBackgroundRefreshInFlight) return;
+      isBackgroundRefreshInFlight = true;
       try {
-        await processSyncQueue(false);
+        try {
+          await processSyncQueue(false);
 
-        const { data, error } = await supabase
-          .from('reports')
-          .select('*')
-          .order('updated_at', { ascending: false });
+          const { data, error } = await supabase
+            .from('reports')
+            .select('*')
+            .order('updated_at', { ascending: false });
 
-        if (!error && data) {
-          for (const row of data) {
-            const existing = await db.reports.get(row.id);
-            // If report doesn't exist locally or is already marked synced, update local copy
-            if (!existing || existing.syncStatus === 'synced') {
-              const mapped = mapRowToReport(row);
-              await db.reports.put({
-                localId: row.id,
-                reportNumber: row.report_number || '',
-                data: mapped,
-                syncStatus: 'synced',
-                createdAt: row.created_at || new Date().toISOString(),
-                updatedAt: row.updated_at || new Date().toISOString()
-              });
-            }
+          if (error) {
+            throw error;
           }
-          await notifySyncListeners();
+
+          if (data) {
+            consecutiveCloudFetchFailures = 0;
+            let hasModifiedRows = false;
+            for (const row of data) {
+              const existing = await db.reports.get(row.id);
+
+              const existingUpdatedAt = existing?.data?.updatedAt ? new Date(existing.data.updatedAt).getTime() : 0;
+              const incomingUpdatedAt = row.updated_at ? new Date(row.updated_at).getTime() : 0;
+
+              const isNew = !existing;
+              const isGenuinelyNewer = existing && existing.syncStatus === 'synced' && incomingUpdatedAt > existingUpdatedAt;
+
+              if (isNew || isGenuinelyNewer) {
+                const mapped = mapRowToReport(row);
+                await db.reports.put({
+                  localId: row.id,
+                  reportNumber: row.report_number || '',
+                  data: mapped,
+                  syncStatus: 'synced',
+                  lastSyncedVersion: row.version || 1,
+                  createdAt: row.created_at || new Date().toISOString(),
+                  updatedAt: row.updated_at || new Date().toISOString()
+                });
+                hasModifiedRows = true;
+              }
+            }
+            if (hasModifiedRows) {
+              notifyReportsChanged();
+            }
+            await notifySyncListeners();
+          }
+        } catch (err) {
+          consecutiveCloudFetchFailures++;
+          const now = Date.now();
+          if (consecutiveCloudFetchFailures >= 3 && now - lastCloudFetchToastTime > 30000) {
+            lastCloudFetchToastTime = now;
+            showToast("Couldn't refresh reports from the cloud. Showing your local copy.", 'info');
+          }
         }
-      } catch (err) {
-        // Silently ignore — non-critical
+      } finally {
+        isBackgroundRefreshInFlight = false;
       }
     })();
   }
@@ -198,67 +234,78 @@ export const getReportsFromStorage = async (): Promise<MaintenanceReport[]> => {
  * Never blocks the UI waiting for network response.
  */
 export const saveReportToStorage = async (report: MaintenanceReport): Promise<MaintenanceReport[]> => {
-  const localId = report.id || generateReportId();
-  const now = new Date().toISOString();
+  try {
+    const localId = report.id || generateReportId();
+    const now = new Date().toISOString();
 
-  const cleanReport: MaintenanceReport = {
-    ...report,
-    id: localId,
-    updatedAt: now
-  };
+    const existing = await db.reports.get(localId);
+    const currentVersion = report.version || existing?.data?.version || 1;
+    const nextVersion = existing ? currentVersion + 1 : (report.version || 1);
 
-  // 1. Store photos in IndexedDB as Blobs
-  if (report.photos && report.photos.length > 0) {
-    for (const photo of report.photos) {
-      if (photo.url) {
-        try {
-          const blob = await urlToBlob(photo.url);
-          const photoId = photo.id || (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function' ? 'ph-' + crypto.randomUUID() : 'ph-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6));
-          await db.photos.put({
-            id: photoId,
-            reportLocalId: localId,
-            blob,
-            caption: photo.caption || '',
-            createdAt: photo.timestamp || now
-          });
-        } catch (err) {
-          // Silently ignore — non-critical
+    const cleanReport: MaintenanceReport = {
+      ...report,
+      id: localId,
+      version: nextVersion,
+      updatedAt: now
+    };
+
+    // 1. Store photos in IndexedDB as Blobs
+    if (report.photos && report.photos.length > 0) {
+      for (const photo of report.photos) {
+        if (photo.url) {
+          try {
+            const blob = await urlToBlob(photo.url);
+            const photoId = photo.id || (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function' ? 'ph-' + crypto.randomUUID() : 'ph-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6));
+            await db.photos.put({
+              id: photoId,
+              reportLocalId: localId,
+              blob,
+              caption: photo.caption || '',
+              createdAt: photo.timestamp || now
+            });
+          } catch (err) {
+            showToast("Couldn't save one of the photos for this report. Please check it after saving.", 'error');
+          }
         }
       }
     }
+
+    // 2. Save report record in IndexedDB
+    const offlineRecord: OfflineReport = {
+      localId,
+      reportNumber: cleanReport.reportNumber || '',
+      data: cleanReport,
+      syncStatus: 'pending_sync',
+      lastSyncedVersion: existing?.lastSyncedVersion,
+      createdAt: cleanReport.createdAt || now,
+      updatedAt: now
+    };
+
+    await db.reports.put(offlineRecord);
+
+    // 3. Add to sync queue for background processing
+    await db.syncQueue.put({
+      id: 'sq-' + localId,
+      reportLocalId: localId,
+      operation: 'create',
+      attempts: 0,
+      lastAttemptAt: undefined,
+      lastError: undefined
+    });
+
+    await notifySyncListeners();
+
+    // 4. Trigger background sync immediately without awaiting
+    setTimeout(() => {
+      processSyncQueue(true);
+    }, 100);
+
+    // 5. Return updated list from local IndexedDB
+    return await getReportsFromStorage();
+  } catch (err) {
+    showToast("This report could not be saved. Please try again — do not close the app.", 'error');
+    throw err;
   }
-
-  // 2. Save report record in IndexedDB
-  const offlineRecord: OfflineReport = {
-    localId,
-    reportNumber: cleanReport.reportNumber || '',
-    data: cleanReport,
-    syncStatus: 'pending_sync',
-    createdAt: cleanReport.createdAt || now,
-    updatedAt: now
-  };
-
-  await db.reports.put(offlineRecord);
-
-  // 3. Add to sync queue for background processing
-  await db.syncQueue.put({
-    id: 'sq-' + localId,
-    reportLocalId: localId,
-    operation: 'create',
-    attempts: 0,
-    lastAttemptAt: undefined,
-    lastError: undefined
-  });
-
-  await notifySyncListeners();
-
-  // 4. Trigger background sync immediately without awaiting
-  setTimeout(() => {
-    processSyncQueue(true);
-  }, 100);
-
-  // 5. Return updated list from local IndexedDB
-  return await getReportsFromStorage();
 };
 
 /**
@@ -270,12 +317,14 @@ export const archiveReportInStorage = async (id: string, archivedBy: string = 'C
   const existing = await db.reports.get(id);
 
   if (existing) {
+    const nextVersion = (existing.data?.version || 1) + 1;
     const updatedData: MaintenanceReport = {
       ...existing.data,
       isArchived: true,
       archivedAt: now,
       archivedBy: archivedBy,
       archiveReason: reason || '',
+      version: nextVersion,
       updatedAt: now
     };
 
@@ -314,12 +363,14 @@ export const unarchiveReportInStorage = async (id: string): Promise<MaintenanceR
   const existing = await db.reports.get(id);
 
   if (existing) {
+    const nextVersion = (existing.data?.version || 1) + 1;
     const updatedData: MaintenanceReport = {
       ...existing.data,
       isArchived: false,
       archivedAt: undefined,
       archivedBy: undefined,
       archiveReason: undefined,
+      version: nextVersion,
       updatedAt: now
     };
 
@@ -449,7 +500,7 @@ export const saveDraftPhotosToStorage = async (draftId: string, photos: PlantPho
             createdAt: photo.timestamp || new Date().toISOString()
           });
         } catch (err) {
-          // Silently ignore — non-critical
+          showToast("Couldn't save a draft photo. It may not be there when you come back.", 'error');
         }
       }
     }
