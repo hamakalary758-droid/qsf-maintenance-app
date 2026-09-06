@@ -522,19 +522,57 @@
        data-theme="warm-sand" triggers this theme.
        ================================================================ */
     :root[data-theme="warm-sand"] {
-        /* App surface colours */
+        --bg-0:               #f5efe4;
+        --bg-1:               #ede4d3;
+        --bg-2:               #e0d4bc;
         --body-bg:            #f5efe4;
         --body-bg-pattern:    none;
         --panel:              #fffaf3;
+        --panel-solid:        #fffaf3;
         --panel-border:       #e0d4bc;
+        --panel-border-strong: #b8a484;
         --text-0:             #2c2318;
         --text-1:             #6b5940;
         --text-2:             #a08c6e;
         --accent:             #c9972f;
+        --accent-2:           #a67a1f;
         --accent-dim:         rgba(201, 151, 47, 0.18);
         --accent-ring:        rgba(201, 151, 47, 0.55);
+        --accent-glow:        rgba(201, 151, 47, 0.22);
+        --steel:              #3d6f96;
+        --steel-dim:          rgba(61, 111, 150, 0.12);
+        --steel-glow:         rgba(61, 111, 150, 0.22);
+        --teal:               #2d7a63;
+        --teal-dim:           rgba(45, 122, 99, 0.12);
+        --teal-glow:          rgba(45, 122, 99, 0.22);
+        --amber:              #a6741f;
+        --amber-dim:          rgba(166, 116, 31, 0.12);
+        --amber-glow:         rgba(166, 116, 31, 0.22);
+        --violet:             #7a5a9e;
+        --violet-dim:         rgba(122, 90, 158, 0.12);
+        --violet-glow:        rgba(122, 90, 158, 0.22);
+        --danger:             #a13c34;
+        --danger-dim:         rgba(161, 60, 52, 0.12);
+        --danger-glow:        rgba(161, 60, 52, 0.22);
+        --shadow-lg:          0 20px 60px -20px rgba(44, 35, 24, 0.20), 0 4px 16px rgba(44, 35, 24, 0.08);
+        --shadow-sm:          0 2px 10px rgba(44, 35, 24, 0.08);
         --scrollbar-thumb:    #d4c4a8;
         --scrollbar-thumb-hover: #b8a484;
+        --toast-bg:           #fffaf3;
+        --toast-border:       #b8a484;
+        --select-bg:          #fffaf3;
+        --select-text:        #2c2318;
+        --select-border:      #e0d4bc;
+        --dev-panel-bg:       rgba(255, 250, 243, 0.95);
+        --dev-panel-border:   rgba(201, 151, 47, 0.28);
+        --dev-text:           #6b5940;
+        --dev-highlight:      #c9972f;
+        --hl-fl-bg:           rgba(61, 111, 150, 0.14);
+        --hl-fl-text:         #2c5674;
+        --hl-equip-bg:        rgba(45, 122, 99, 0.14);
+        --hl-equip-text:      #205a48;
+        --hl-mat-bg:          rgba(161, 60, 52, 0.14);
+        --hl-mat-text:        #7c2d27;
     }
 
     /* ================================================================
@@ -543,19 +581,57 @@
        data-theme="warm-sand-dark" triggers this theme.
        ================================================================ */
     :root[data-theme="warm-sand-dark"] {
-        /* App surface colours */
+        --bg-0:               #1c1712;
+        --bg-1:               #251e18;
+        --bg-2:               #2f261e;
         --body-bg:            #1c1712;
         --body-bg-pattern:    none;
         --panel:              #251e18;
+        --panel-solid:        #251e18;
         --panel-border:       #3d3228;
+        --panel-border-strong: #544537;
         --text-0:             #f5efe4;
         --text-1:             #c9bca8;
         --text-2:             #8c7d68;
         --accent:             #e5b24b;
+        --accent-2:           #f0c069;
         --accent-dim:         rgba(229, 178, 75, 0.18);
         --accent-ring:        rgba(229, 178, 75, 0.55);
+        --accent-glow:        rgba(229, 178, 75, 0.35);
+        --steel:              #7ba3c9;
+        --steel-dim:          rgba(123, 163, 201, 0.16);
+        --steel-glow:         rgba(123, 163, 201, 0.30);
+        --teal:               #4fa88f;
+        --teal-dim:           rgba(79, 168, 143, 0.16);
+        --teal-glow:          rgba(79, 168, 143, 0.30);
+        --amber:              #e5b24b;
+        --amber-dim:          rgba(229, 178, 75, 0.16);
+        --amber-glow:         rgba(229, 178, 75, 0.30);
+        --violet:             #b399d9;
+        --violet-dim:         rgba(179, 153, 217, 0.16);
+        --violet-glow:        rgba(179, 153, 217, 0.30);
+        --danger:             #d9707a;
+        --danger-dim:         rgba(217, 112, 122, 0.16);
+        --danger-glow:        rgba(217, 112, 122, 0.30);
+        --shadow-lg:          0 20px 60px -20px rgba(0, 0, 0, 0.55), 0 4px 16px rgba(0, 0, 0, 0.35);
+        --shadow-sm:          0 2px 10px rgba(0, 0, 0, 0.30);
         --scrollbar-thumb:    #3d3228;
         --scrollbar-thumb-hover: #544537;
+        --toast-bg:           #251e18;
+        --toast-border:       #544537;
+        --select-bg:          #2f261e;
+        --select-text:        #f5efe4;
+        --select-border:      #3d3228;
+        --dev-panel-bg:       rgba(28, 23, 18, 0.95);
+        --dev-panel-border:   rgba(229, 178, 75, 0.25);
+        --dev-text:           #c9bca8;
+        --dev-highlight:      #e5b24b;
+        --hl-fl-bg:           rgba(123, 163, 201, 0.18);
+        --hl-fl-text:         #a8cbe8;
+        --hl-equip-bg:        rgba(79, 168, 143, 0.18);
+        --hl-equip-text:      #8fd4bd;
+        --hl-mat-bg:          rgba(217, 112, 122, 0.18);
+        --hl-mat-text:        #f0a3aa;
     }
 
     /* ================================================================
@@ -564,19 +640,57 @@
        data-theme="purple" triggers this theme.
        ================================================================ */
     :root[data-theme="purple"] {
-        /* App surface colours */
+        --bg-0:               #110d1e;
+        --bg-1:               #19132e;
+        --bg-2:               #221a3d;
         --body-bg:            #110d1e;
         --body-bg-pattern:    none;
         --panel:              #19132e;
+        --panel-solid:        #19132e;
         --panel-border:       #2d2440;
+        --panel-border-strong: #3d3460;
         --text-0:             #ede8ff;
         --text-1:             #9b8ec4;
         --text-2:             #5c5080;
         --accent:             #a78bfa;
+        --accent-2:           #c4b0fc;
         --accent-dim:         rgba(167, 139, 250, 0.18);
         --accent-ring:        rgba(167, 139, 250, 0.55);
+        --accent-glow:        rgba(167, 139, 250, 0.35);
+        --steel:              #7fa8f0;
+        --steel-dim:          rgba(127, 168, 240, 0.16);
+        --steel-glow:         rgba(127, 168, 240, 0.30);
+        --teal:               #4fd1c5;
+        --teal-dim:           rgba(79, 209, 197, 0.16);
+        --teal-glow:          rgba(79, 209, 197, 0.30);
+        --amber:              #e0ab4f;
+        --amber-dim:          rgba(224, 171, 79, 0.16);
+        --amber-glow:         rgba(224, 171, 79, 0.30);
+        --violet:             #a78bfa;
+        --violet-dim:         rgba(167, 139, 250, 0.16);
+        --violet-glow:        rgba(167, 139, 250, 0.30);
+        --danger:             #f0708a;
+        --danger-dim:         rgba(240, 112, 138, 0.16);
+        --danger-glow:        rgba(240, 112, 138, 0.30);
+        --shadow-lg:          0 20px 60px -20px rgba(0, 0, 0, 0.55), 0 4px 16px rgba(0, 0, 0, 0.35);
+        --shadow-sm:          0 2px 10px rgba(0, 0, 0, 0.30);
         --scrollbar-thumb:    #2d2440;
         --scrollbar-thumb-hover: #3d3460;
+        --toast-bg:           #19132e;
+        --toast-border:       #3d3460;
+        --select-bg:          #221a3d;
+        --select-text:        #ede8ff;
+        --select-border:      #2d2440;
+        --dev-panel-bg:       rgba(17, 13, 30, 0.95);
+        --dev-panel-border:   rgba(167, 139, 250, 0.25);
+        --dev-text:           #9b8ec4;
+        --dev-highlight:      #a78bfa;
+        --hl-fl-bg:           rgba(127, 168, 240, 0.18);
+        --hl-fl-text:         #b8cdf7;
+        --hl-equip-bg:        rgba(79, 209, 197, 0.18);
+        --hl-equip-text:      #9de8de;
+        --hl-mat-bg:          rgba(240, 112, 138, 0.18);
+        --hl-mat-text:        #f8a8ba;
     }
 
     /* ================================================================
@@ -585,19 +699,57 @@
        data-theme="purple-light" triggers this theme.
        ================================================================ */
     :root[data-theme="purple-light"] {
-        /* App surface colours */
+        --bg-0:               #f5f2fc;
+        --bg-1:               #ece4f9;
+        --bg-2:               #ded5f0;
         --body-bg:            #f5f2fc;
         --body-bg-pattern:    none;
         --panel:              #ffffff;
+        --panel-solid:        #ffffff;
         --panel-border:       #ded5f0;
+        --panel-border-strong: #baa8d4;
         --text-0:             #1b1330;
         --text-1:             #524470;
         --text-2:             #8475a3;
         --accent:             #7c3aed;
+        --accent-2:           #6425c9;
         --accent-dim:         rgba(124, 58, 237, 0.18);
         --accent-ring:        rgba(124, 58, 237, 0.55);
+        --accent-glow:        rgba(124, 58, 237, 0.20);
+        --steel:              #2f5fb0;
+        --steel-dim:          rgba(47, 95, 176, 0.12);
+        --steel-glow:         rgba(47, 95, 176, 0.22);
+        --teal:               #0f8a78;
+        --teal-dim:           rgba(15, 138, 120, 0.12);
+        --teal-glow:          rgba(15, 138, 120, 0.22);
+        --amber:              #9c6b12;
+        --amber-dim:          rgba(156, 107, 18, 0.12);
+        --amber-glow:         rgba(156, 107, 18, 0.22);
+        --violet:             #7c3aed;
+        --violet-dim:         rgba(124, 58, 237, 0.12);
+        --violet-glow:        rgba(124, 58, 237, 0.22);
+        --danger:             #b0294a;
+        --danger-dim:         rgba(176, 41, 74, 0.12);
+        --danger-glow:        rgba(176, 41, 74, 0.22);
+        --shadow-lg:          0 20px 60px -20px rgba(27, 19, 48, 0.20), 0 4px 16px rgba(27, 19, 48, 0.08);
+        --shadow-sm:          0 2px 10px rgba(27, 19, 48, 0.08);
         --scrollbar-thumb:    #d8cde8;
         --scrollbar-thumb-hover: #baa8d4;
+        --toast-bg:           #ffffff;
+        --toast-border:       #baa8d4;
+        --select-bg:          #ffffff;
+        --select-text:        #1b1330;
+        --select-border:      #ded5f0;
+        --dev-panel-bg:       rgba(255, 255, 255, 0.95);
+        --dev-panel-border:   rgba(124, 58, 237, 0.28);
+        --dev-text:           #524470;
+        --dev-highlight:      #7c3aed;
+        --hl-fl-bg:           rgba(47, 95, 176, 0.14);
+        --hl-fl-text:         #234a8a;
+        --hl-equip-bg:        rgba(15, 138, 120, 0.14);
+        --hl-equip-text:      #0b5c50;
+        --hl-mat-bg:          rgba(176, 41, 74, 0.14);
+        --hl-mat-text:        #7c1d38;
     }
 
     /* ================================================================
@@ -606,19 +758,57 @@
        data-theme="mono" triggers this theme.
        ================================================================ */
     :root[data-theme="mono"] {
-        /* App surface colours */
+        --bg-0:               #ffffff;
+        --bg-1:               #f5f5f5;
+        --bg-2:               #ebebeb;
         --body-bg:            #ffffff;
         --body-bg-pattern:    none;
         --panel:              #ffffff;
+        --panel-solid:        #ffffff;
         --panel-border:       #e0e0e0;
+        --panel-border-strong: #aaaaaa;
         --text-0:             #111111;
         --text-1:             #555555;
         --text-2:             #999999;
         --accent:             #111111;
+        --accent-2:           #333333;
         --accent-dim:         rgba(0, 0, 0, 0.08);
         --accent-ring:        rgba(0, 0, 0, 0.35);
+        --accent-glow:        rgba(0, 0, 0, 0.12);
+        --steel:              #3d6488;
+        --steel-dim:          rgba(61, 100, 136, 0.10);
+        --steel-glow:         rgba(61, 100, 136, 0.18);
+        --teal:               #3d7a68;
+        --teal-dim:           rgba(61, 122, 104, 0.10);
+        --teal-glow:          rgba(61, 122, 104, 0.18);
+        --amber:              #8a6a2f;
+        --amber-dim:          rgba(138, 106, 47, 0.10);
+        --amber-glow:         rgba(138, 106, 47, 0.18);
+        --violet:             #635c80;
+        --violet-dim:         rgba(99, 92, 128, 0.10);
+        --violet-glow:        rgba(99, 92, 128, 0.18);
+        --danger:             #8a3d3d;
+        --danger-dim:         rgba(138, 61, 61, 0.10);
+        --danger-glow:        rgba(138, 61, 61, 0.18);
+        --shadow-lg:          0 20px 60px -20px rgba(0, 0, 0, 0.16), 0 4px 16px rgba(0, 0, 0, 0.06);
+        --shadow-sm:          0 2px 10px rgba(0, 0, 0, 0.06);
         --scrollbar-thumb:    #d0d0d0;
         --scrollbar-thumb-hover: #aaaaaa;
+        --toast-bg:           #ffffff;
+        --toast-border:       #aaaaaa;
+        --select-bg:          #ffffff;
+        --select-text:        #111111;
+        --select-border:      #e0e0e0;
+        --dev-panel-bg:       rgba(255, 255, 255, 0.95);
+        --dev-panel-border:   rgba(0, 0, 0, 0.2);
+        --dev-text:           #555555;
+        --dev-highlight:      #111111;
+        --hl-fl-bg:           rgba(61, 100, 136, 0.10);
+        --hl-fl-text:         #2a4560;
+        --hl-equip-bg:        rgba(61, 122, 104, 0.10);
+        --hl-equip-text:      #285a4a;
+        --hl-mat-bg:          rgba(138, 61, 61, 0.10);
+        --hl-mat-text:        #602a2a;
     }
 
     /* ================================================================
@@ -627,19 +817,57 @@
        data-theme="mono-dark" triggers this theme.
        ================================================================ */
     :root[data-theme="mono-dark"] {
-        /* App surface colours */
+        --bg-0:               #121212;
+        --bg-1:               #1a1a1a;
+        --bg-2:               #222222;
         --body-bg:            #121212;
         --body-bg-pattern:    none;
         --panel:              #1a1a1a;
+        --panel-solid:        #1a1a1a;
         --panel-border:       #2c2c2c;
+        --panel-border-strong: #444444;
         --text-0:             #f0f0f0;
         --text-1:             #a0a0a0;
         --text-2:             #666666;
         --accent:             #f0f0f0;
+        --accent-2:           #ffffff;
         --accent-dim:         rgba(255, 255, 255, 0.12);
         --accent-ring:        rgba(255, 255, 255, 0.40);
+        --accent-glow:        rgba(255, 255, 255, 0.18);
+        --steel:              #8fa8c2;
+        --steel-dim:          rgba(143, 168, 194, 0.14);
+        --steel-glow:         rgba(143, 168, 194, 0.24);
+        --teal:               #7fb8a8;
+        --teal-dim:           rgba(127, 184, 168, 0.14);
+        --teal-glow:          rgba(127, 184, 168, 0.24);
+        --amber:              #c2a56b;
+        --amber-dim:          rgba(194, 165, 107, 0.14);
+        --amber-glow:         rgba(194, 165, 107, 0.24);
+        --violet:             #a8a0c2;
+        --violet-dim:         rgba(168, 160, 194, 0.14);
+        --violet-glow:        rgba(168, 160, 194, 0.24);
+        --danger:             #c27a7a;
+        --danger-dim:         rgba(194, 122, 122, 0.14);
+        --danger-glow:        rgba(194, 122, 122, 0.24);
+        --shadow-lg:          0 20px 60px -20px rgba(0, 0, 0, 0.55), 0 4px 16px rgba(0, 0, 0, 0.35);
+        --shadow-sm:          0 2px 10px rgba(0, 0, 0, 0.30);
         --scrollbar-thumb:    #2c2c2c;
         --scrollbar-thumb-hover: #444444;
+        --toast-bg:           #1a1a1a;
+        --toast-border:       #444444;
+        --select-bg:          #222222;
+        --select-text:        #f0f0f0;
+        --select-border:      #2c2c2c;
+        --dev-panel-bg:       rgba(18, 18, 18, 0.95);
+        --dev-panel-border:   rgba(255, 255, 255, 0.2);
+        --dev-text:           #a0a0a0;
+        --dev-highlight:      #f0f0f0;
+        --hl-fl-bg:           rgba(143, 168, 194, 0.16);
+        --hl-fl-text:         #c0d2e2;
+        --hl-equip-bg:        rgba(127, 184, 168, 0.16);
+        --hl-equip-text:      #bfe0d4;
+        --hl-mat-bg:          rgba(194, 122, 122, 0.16);
+        --hl-mat-text:        #e0b8b8;
     }
 
     /* ================================================================
@@ -648,19 +876,57 @@
        data-theme="teal" triggers this theme.
        ================================================================ */
     :root[data-theme="teal"] {
-        /* App surface colours */
+        --bg-0:               #091a18;
+        --bg-1:               #0f2420;
+        --bg-2:               #153029;
         --body-bg:            #091a18;
         --body-bg-pattern:    none;
         --panel:              #0f2420;
+        --panel-solid:        #0f2420;
         --panel-border:       #163530;
+        --panel-border-strong: #204840;
         --text-0:             #d4f5ef;
         --text-1:             #6ab8ac;
         --text-2:             #3a7068;
         --accent:             #2dd4bf;
+        --accent-2:           #5eead4;
         --accent-dim:         rgba(45, 212, 191, 0.18);
         --accent-ring:        rgba(45, 212, 191, 0.55);
+        --accent-glow:        rgba(45, 212, 191, 0.35);
+        --steel:              #5aa8d4;
+        --steel-dim:          rgba(90, 168, 212, 0.16);
+        --steel-glow:         rgba(90, 168, 212, 0.30);
+        --teal:               #2dd4bf;
+        --teal-dim:           rgba(45, 212, 191, 0.16);
+        --teal-glow:          rgba(45, 212, 191, 0.30);
+        --amber:              #d9b34f;
+        --amber-dim:          rgba(217, 179, 79, 0.16);
+        --amber-glow:         rgba(217, 179, 79, 0.30);
+        --violet:             #a894e0;
+        --violet-dim:         rgba(168, 148, 224, 0.16);
+        --violet-glow:        rgba(168, 148, 224, 0.30);
+        --danger:             #e07688;
+        --danger-dim:         rgba(224, 118, 136, 0.16);
+        --danger-glow:        rgba(224, 118, 136, 0.30);
+        --shadow-lg:          0 20px 60px -20px rgba(0, 0, 0, 0.55), 0 4px 16px rgba(0, 0, 0, 0.35);
+        --shadow-sm:          0 2px 10px rgba(0, 0, 0, 0.30);
         --scrollbar-thumb:    #163530;
         --scrollbar-thumb-hover: #204840;
+        --toast-bg:           #0f2420;
+        --toast-border:       #204840;
+        --select-bg:          #153029;
+        --select-text:        #d4f5ef;
+        --select-border:      #163530;
+        --dev-panel-bg:       rgba(9, 26, 24, 0.95);
+        --dev-panel-border:   rgba(45, 212, 191, 0.25);
+        --dev-text:           #6ab8ac;
+        --dev-highlight:      #2dd4bf;
+        --hl-fl-bg:           rgba(90, 168, 212, 0.18);
+        --hl-fl-text:         #a8d4f0;
+        --hl-equip-bg:        rgba(45, 212, 191, 0.18);
+        --hl-equip-text:      #8ff0e0;
+        --hl-mat-bg:          rgba(224, 118, 136, 0.18);
+        --hl-mat-text:        #f5aebb;
     }
 
     /* ================================================================
@@ -669,19 +935,57 @@
        data-theme="teal-light" triggers this theme.
        ================================================================ */
     :root[data-theme="teal-light"] {
-        /* App surface colours */
+        --bg-0:               #f0f8f6;
+        --bg-1:               #e2f2ee;
+        --bg-2:               #c8e4dd;
         --body-bg:            #f0f8f6;
         --body-bg-pattern:    none;
         --panel:              #ffffff;
+        --panel-solid:        #ffffff;
         --panel-border:       #c8e4dd;
+        --panel-border-strong: #a1cfc3;
         --text-0:             #0a2622;
         --text-1:             #1f544c;
         --text-2:             #4a7d74;
         --accent:             #0d9488;
+        --accent-2:           #0b7a70;
         --accent-dim:         rgba(13, 148, 136, 0.16);
         --accent-ring:        rgba(13, 148, 136, 0.50);
+        --accent-glow:        rgba(13, 148, 136, 0.20);
+        --steel:              #2f6f9e;
+        --steel-dim:          rgba(47, 111, 158, 0.12);
+        --steel-glow:         rgba(47, 111, 158, 0.22);
+        --teal:               #0d9488;
+        --teal-dim:           rgba(13, 148, 136, 0.12);
+        --teal-glow:          rgba(13, 148, 136, 0.22);
+        --amber:              #96701a;
+        --amber-dim:          rgba(150, 112, 26, 0.12);
+        --amber-glow:         rgba(150, 112, 26, 0.22);
+        --violet:             #6b57a8;
+        --violet-dim:         rgba(107, 87, 168, 0.12);
+        --violet-glow:        rgba(107, 87, 168, 0.22);
+        --danger:             #b23a4e;
+        --danger-dim:         rgba(178, 58, 78, 0.12);
+        --danger-glow:        rgba(178, 58, 78, 0.22);
+        --shadow-lg:          0 20px 60px -20px rgba(10, 38, 34, 0.18), 0 4px 16px rgba(10, 38, 34, 0.07);
+        --shadow-sm:          0 2px 10px rgba(10, 38, 34, 0.07);
         --scrollbar-thumb:    #c8e4dd;
         --scrollbar-thumb-hover: #a1cfc3;
+        --toast-bg:           #ffffff;
+        --toast-border:       #a1cfc3;
+        --select-bg:          #ffffff;
+        --select-text:        #0a2622;
+        --select-border:      #c8e4dd;
+        --dev-panel-bg:       rgba(255, 255, 255, 0.95);
+        --dev-panel-border:   rgba(13, 148, 136, 0.28);
+        --dev-text:           #1f544c;
+        --dev-highlight:      #0d9488;
+        --hl-fl-bg:           rgba(47, 111, 158, 0.13);
+        --hl-fl-text:         #234f74;
+        --hl-equip-bg:        rgba(13, 148, 136, 0.13);
+        --hl-equip-text:      #0a5850;
+        --hl-mat-bg:          rgba(178, 58, 78, 0.13);
+        --hl-mat-text:        #7c1f2e;
     }
 
     /* ================================================================
@@ -810,44 +1114,120 @@
 
     /* ================================================================
        THEME: Wide + Labels
-       Same dark slate palette, alternate variant.
+       Own neutral-charcoal/cyan palette, distinct from Dark Slate.
        data-theme="wide" triggers this theme.
        ================================================================ */
     :root[data-theme="wide"] {
-        /* App surface colours — same as dark-slate */
-        --body-bg:            #131722;
+        --bg-0:               #16181d;
+        --bg-1:               #1e2126;
+        --bg-2:               #262a31;
+        --body-bg:            #16181d;
         --body-bg-pattern:    none;
-        --panel:              #1a1f2e;
-        --panel-border:       #2d3347;
-        --text-0:             #e2e8f4;
-        --text-1:             #9aa3bb;
-        --text-2:             #5c6480;
-        --accent:             #4f8ef7;
-        --accent-dim:         rgba(79, 142, 247, 0.18);
-        --accent-ring:        rgba(79, 142, 247, 0.55);
-        --scrollbar-thumb:    #2d3347;
-        --scrollbar-thumb-hover: #3d3460;
+        --panel:              #1e2126;
+        --panel-solid:        #1e2126;
+        --panel-border:       #33373f;
+        --panel-border-strong: #454b55;
+        --text-0:             #eceef0;
+        --text-1:             #a3a9b3;
+        --text-2:             #666c78;
+        --accent:             #22c3a6;
+        --accent-2:           #5eead4;
+        --accent-dim:         rgba(34, 195, 166, 0.18);
+        --accent-ring:        rgba(34, 195, 166, 0.55);
+        --accent-glow:        rgba(34, 195, 166, 0.35);
+        --steel:              #5a9fd4;
+        --steel-dim:          rgba(90, 159, 212, 0.16);
+        --steel-glow:         rgba(90, 159, 212, 0.30);
+        --teal:               #22c3a6;
+        --teal-dim:           rgba(34, 195, 166, 0.16);
+        --teal-glow:          rgba(34, 195, 166, 0.30);
+        --amber:              #d4a941;
+        --amber-dim:          rgba(212, 169, 65, 0.16);
+        --amber-glow:         rgba(212, 169, 65, 0.30);
+        --violet:             #9d8ce0;
+        --violet-dim:         rgba(157, 140, 224, 0.16);
+        --violet-glow:        rgba(157, 140, 224, 0.30);
+        --danger:             #e0697a;
+        --danger-dim:         rgba(224, 105, 122, 0.16);
+        --danger-glow:        rgba(224, 105, 122, 0.30);
+        --shadow-lg:          0 20px 60px -20px rgba(0, 0, 0, 0.55), 0 4px 16px rgba(0, 0, 0, 0.35);
+        --shadow-sm:          0 2px 10px rgba(0, 0, 0, 0.30);
+        --scrollbar-thumb:    #33373f;
+        --scrollbar-thumb-hover: #454b55;
+        --toast-bg:           #1e2126;
+        --toast-border:       #454b55;
+        --select-bg:          #262a31;
+        --select-text:        #eceef0;
+        --select-border:      #33373f;
+        --dev-panel-bg:       rgba(22, 24, 29, 0.95);
+        --dev-panel-border:   rgba(34, 195, 166, 0.25);
+        --dev-text:           #a3a9b3;
+        --dev-highlight:      #22c3a6;
+        --hl-fl-bg:           rgba(90, 159, 212, 0.18);
+        --hl-fl-text:         #a8d0f0;
+        --hl-equip-bg:        rgba(34, 195, 166, 0.18);
+        --hl-equip-text:      #7fe8d0;
+        --hl-mat-bg:          rgba(224, 105, 122, 0.18);
+        --hl-mat-text:        #f5a3af;
     }
 
     /* ================================================================
        THEME: Wide + Labels — light
-       Light counterpart to Wide — muted mid-gray slate surfaces with blue accent.
+       Light counterpart to Wide — own neutral-charcoal/cyan palette, distinct from Dark Slate.
        data-theme="wide-light" triggers this theme.
        ================================================================ */
     :root[data-theme="wide-light"] {
-        /* App surface colours — same slate family as dark-slate-light */
-        --body-bg:            #c4c9d4;
+        --bg-0:               #e6e7e9;
+        --bg-1:               #dcdee1;
+        --bg-2:               #c7cad0;
+        --body-bg:            #e6e7e9;
         --body-bg-pattern:    none;
-        --panel:              #d8dce4;
-        --panel-border:       #aab0bf;
-        --text-0:             #1c2130;
-        --text-1:             #4a5063;
-        --text-2:             #6b7284;
-        --accent:             #3b74d1;
-        --accent-dim:         rgba(59, 116, 209, 0.16);
-        --accent-ring:        rgba(59, 116, 209, 0.45);
-        --scrollbar-thumb:    rgba(28, 33, 48, 0.20);
-        --scrollbar-thumb-hover: rgba(28, 33, 48, 0.32);
+        --panel:              #f2f3f4;
+        --panel-solid:        #f2f3f4;
+        --panel-border:       #c7cad0;
+        --panel-border-strong: #9a9fa8;
+        --text-0:             #1b1d20;
+        --text-1:             #52565d;
+        --text-2:             #797e87;
+        --accent:             #0e9c85;
+        --accent-2:           #0b7c69;
+        --accent-dim:         rgba(14, 156, 133, 0.16);
+        --accent-ring:        rgba(14, 156, 133, 0.45);
+        --accent-glow:        rgba(14, 156, 133, 0.20);
+        --steel:              #35688f;
+        --steel-dim:          rgba(53, 104, 143, 0.12);
+        --steel-glow:         rgba(53, 104, 143, 0.22);
+        --teal:               #0e9c85;
+        --teal-dim:           rgba(14, 156, 133, 0.12);
+        --teal-glow:          rgba(14, 156, 133, 0.22);
+        --amber:              #937019;
+        --amber-dim:          rgba(147, 112, 25, 0.12);
+        --amber-glow:         rgba(147, 112, 25, 0.22);
+        --violet:             #6552a3;
+        --violet-dim:         rgba(101, 82, 163, 0.12);
+        --violet-glow:        rgba(101, 82, 163, 0.22);
+        --danger:             #a8394c;
+        --danger-dim:         rgba(168, 57, 76, 0.12);
+        --danger-glow:        rgba(168, 57, 76, 0.22);
+        --shadow-lg:          0 20px 60px -20px rgba(27, 29, 32, 0.18), 0 4px 16px rgba(27, 29, 32, 0.07);
+        --shadow-sm:          0 2px 10px rgba(27, 29, 32, 0.07);
+        --scrollbar-thumb:    rgba(27, 29, 32, 0.18);
+        --scrollbar-thumb-hover: rgba(27, 29, 32, 0.30);
+        --toast-bg:           #f2f3f4;
+        --toast-border:       #9a9fa8;
+        --select-bg:          #f2f3f4;
+        --select-text:        #1b1d20;
+        --select-border:      #c7cad0;
+        --dev-panel-bg:       rgba(242, 243, 244, 0.95);
+        --dev-panel-border:   rgba(14, 156, 133, 0.28);
+        --dev-text:           #52565d;
+        --dev-highlight:      #0e9c85;
+        --hl-fl-bg:           rgba(53, 104, 143, 0.13);
+        --hl-fl-text:         #234a63;
+        --hl-equip-bg:        rgba(14, 156, 133, 0.13);
+        --hl-equip-text:      #0a5c4d;
+        --hl-mat-bg:          rgba(168, 57, 76, 0.13);
+        --hl-mat-text:        #7c1f2b;
     }
 
     * {
@@ -12898,14 +13278,12 @@
                 e.stopPropagation();
                 const isOpen = filterPanel.classList.toggle('open');
                 filterMenuBtn.setAttribute('aria-expanded', String(isOpen));
-                if (isOpen) mobilePortalOpen(filterPanel); else mobilePortalClose(filterPanel);
             });
             document.addEventListener('click', (e) => {
                 if (!filterPanel.classList.contains('open')) return;
                 if (e.target.closest('#filterPanel') || e.target.closest('#filterMenuBtn')) return;
                 filterPanel.classList.remove('open');
                 filterMenuBtn.setAttribute('aria-expanded', 'false');
-                mobilePortalClose(filterPanel);
             });
 
             typeChips.addEventListener('click', (e) => {
@@ -13016,14 +13394,12 @@
                 e.stopPropagation();
                 const isOpen = levelJumpPanel.classList.toggle('open');
                 levelJumpMenuBtn.setAttribute('aria-expanded', String(isOpen));
-                if (isOpen) mobilePortalOpen(levelJumpPanel); else mobilePortalClose(levelJumpPanel);
             });
             document.addEventListener('click', (e) => {
                 if (!levelJumpPanel.classList.contains('open')) return;
                 if (e.target.closest('#levelJumpPanel') || e.target.closest('#levelJumpMenuBtn')) return;
                 levelJumpPanel.classList.remove('open');
                 levelJumpMenuBtn.setAttribute('aria-expanded', 'false');
-                mobilePortalClose(levelJumpPanel);
             });
 
             // Level 1 button was removed: it's an absolute reset that clears
