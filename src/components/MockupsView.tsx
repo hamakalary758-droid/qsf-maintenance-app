@@ -6,18 +6,18 @@ export const MockupsView: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12">
-      <div className="bg-slate-900 text-white rounded-xl p-5 border border-slate-800 shadow-sm">
-        <div className="flex items-center space-x-2 text-sky-400 text-xs font-semibold uppercase tracking-wider mb-1">
+      <div className="bg-[var(--panel-solid)] text-[var(--text-0)] rounded-xl p-5 border border-[var(--panel-border)] shadow-sm">
+        <div className="flex items-center space-x-2 text-[var(--accent)] text-xs font-semibold uppercase tracking-wider mb-1">
           <Smartphone className="w-4 h-4" />
           <span>Phase 1 — Mobile Wireframes & Design Mockups</span>
         </div>
-        <h2 className="text-xl font-bold tracking-tight text-white">Interactive UI Wireframe Sandbox</h2>
-        <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+        <h2 className="text-xl font-bold tracking-tight text-[var(--text-0)]">Interactive UI Wireframe Sandbox</h2>
+        <p className="text-xs text-[var(--text-1)] mt-1 leading-relaxed">
           Select any of the 6 core screen mockups below to inspect the phone wireframe design before entering live plant data.
         </p>
 
         {/* Mockup Navigation Pills */}
-        <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t border-slate-800">
+        <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t border-[var(--panel-border)]">
           {[
             { id: 'form', name: '1. Basic Fields', icon: Layout },
             { id: '5w1h', name: '2. 5W+1H Boxes', icon: HelpCircle },
@@ -34,8 +34,8 @@ export const MockupsView: React.FC = () => {
                 onClick={() => setActiveMockup(tab.id as any)}
                 className={`flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
                   isActive
-                    ? 'bg-sky-500 text-white shadow-sm'
-                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'
+                    ? 'bg-[var(--accent)] text-white shadow-sm'
+                    : 'bg-[var(--bg-2)] text-[var(--text-1)] hover:bg-[var(--panel-border-strong)] hover:text-[var(--text-0)]'
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />

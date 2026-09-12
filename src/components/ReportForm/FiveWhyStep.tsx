@@ -267,16 +267,16 @@ WHY5: <Systemic, design, quality, or management root cause>`;
       </div>
 
       {/* Not Applicable Toggle Card */}
-      <div className="bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700/80 rounded-xl p-3 flex items-center justify-between gap-3">
+      <div className="bg-[var(--panel)] border border-[var(--panel-border)] rounded-xl p-3 flex items-center justify-between gap-3">
         <div className="flex items-center space-x-2.5">
           <input
             id="fivewhy-na-toggle"
             type="checkbox"
             checked={isNA}
             onChange={toggleNotApplicable}
-            className="w-4 h-4 text-purple-600 rounded border-slate-300 dark:border-slate-600 focus:ring-purple-500 cursor-pointer"
+            className="w-4 h-4 text-purple-600 rounded border-[var(--panel-border)] focus:ring-purple-500 cursor-pointer"
           />
-          <label htmlFor="fivewhy-na-toggle" className="text-xs font-semibold text-slate-800 dark:text-slate-200 cursor-pointer select-none">
+          <label htmlFor="fivewhy-na-toggle" className="text-xs font-semibold text-[var(--text-0)] cursor-pointer select-none">
             Mark 5-Why Root Cause Analysis as Not Applicable for this failure
           </label>
         </div>
@@ -288,11 +288,11 @@ WHY5: <Systemic, design, quality, or management root cause>`;
       </div>
 
       {isNA ? (
-        <div className="p-4 bg-slate-50 dark:bg-slate-900 border border-dashed border-slate-300 dark:border-slate-700 rounded-xl text-center space-y-1 py-6">
-          <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+        <div className="p-4 bg-[var(--panel)] border border-dashed border-[var(--panel-border)] rounded-xl text-center space-y-1 py-6">
+          <p className="text-xs font-semibold text-[var(--text-1)]">
             5-Why Root Cause Analysis is marked as <strong className="text-purple-600 dark:text-purple-400">Not Applicable</strong>.
           </p>
-          <p className="text-[11px] text-slate-500 dark:text-slate-400">
+          <p className="text-[11px] text-[var(--text-2)]">
             This section will be skipped during final validation. You can uncheck the box above anytime to restore the 5-Why fields.
           </p>
         </div>
@@ -328,13 +328,13 @@ WHY5: <Systemic, design, quality, or management root cause>`;
                 <button
                   type="button"
                   onClick={() => setAiSuggestions(null)}
-                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-md hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-colors"
+                  className="text-[var(--text-2)] hover:text-[var(--text-1)] p-1 rounded-md hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-colors"
                   title="Dismiss suggestions"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
-              <p className="text-[11px] text-slate-600 dark:text-slate-400">
+              <p className="text-[11px] text-[var(--text-1)]">
                 Review proposed answers below. Click <strong>Accept</strong> to copy any line into your report.
               </p>
 
@@ -350,8 +350,8 @@ WHY5: <Systemic, design, quality, or management root cause>`;
                       key={`suggestion-${step.key}`}
                       className={`p-2.5 rounded-lg border text-xs flex items-start justify-between gap-3 transition-colors ${
                         isApplied
-                          ? 'bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800 text-slate-600 dark:text-slate-300'
-                          : 'bg-white dark:bg-slate-900 border-purple-200 dark:border-purple-800/60 text-slate-900 dark:text-slate-100 shadow-xs'
+                          ? 'bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800 text-[var(--text-1)]'
+                          : 'bg-[var(--panel-solid)] border-purple-200 dark:border-purple-800/60 text-[var(--text-0)] shadow-xs'
                       }`}
                     >
                       <div className="space-y-1 flex-1">
@@ -402,19 +402,19 @@ WHY5: <Systemic, design, quality, or management root cause>`;
                   <div
                     className={`p-3.5 rounded-xl border transition-all ${
                       isSkipped
-                        ? 'opacity-60 bg-slate-100/90 dark:bg-slate-850/60 border-dashed border-slate-300 dark:border-slate-700'
+                        ? 'opacity-60 bg-[var(--panel)] border-dashed border-[var(--panel-border)]'
                         : hasGarbage
                         ? 'bg-rose-50/50 dark:bg-rose-950/30 border-rose-300 dark:border-rose-800 shadow-sm'
                         : isRootCause
                         ? 'bg-rose-50/70 dark:bg-rose-950/20 border-rose-300 dark:border-rose-800 shadow-sm'
-                        : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700'
+                        : 'bg-[var(--panel-solid)] border-[var(--panel-border)]'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1.5 gap-2">
                       <span
                         className={`font-extrabold text-xs tracking-wider uppercase flex items-center space-x-1 ${
                           isSkipped
-                            ? 'text-slate-400 dark:text-slate-500 line-through'
+                            ? 'text-[var(--text-2)] line-through'
                             : isRootCause
                             ? 'text-rose-700 dark:text-rose-400'
                             : 'text-purple-700 dark:text-purple-400'
@@ -430,15 +430,15 @@ WHY5: <Systemic, design, quality, or management root cause>`;
                       </span>
 
                       <div className="flex items-center space-x-2">
-                        <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono hidden sm:inline">{step.prompt}</span>
+                        <span className="text-[10px] text-[var(--text-2)] font-mono hidden sm:inline">{step.prompt}</span>
                         {step.skipKey && (
                           <button
                             type="button"
                             onClick={() => toggleSkipWhy(step.skipKey!, step.key as any)}
                             className={`px-2 py-0.5 text-[10px] font-semibold rounded-md border transition-all cursor-pointer ${
                               isSkipped
-                                ? 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-600'
-                                : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                                ? 'bg-[var(--panel-border-strong)] text-[var(--text-1)] border-[var(--panel-border)]'
+                                : 'bg-[var(--bg-2)] hover:bg-[var(--panel-border-strong)] text-[var(--text-2)] border-[var(--panel-border)]'
                             }`}
                             title={isSkipped ? 'Click to re-enable this Why step' : 'Mark this Why step as not needed'}
                           >
@@ -454,12 +454,12 @@ WHY5: <Systemic, design, quality, or management root cause>`;
                       disabled={isSkipped}
                       onChange={(e) => updateWhy(step.key, e.target.value)}
                       placeholder={isSkipped ? 'Marked as not needed / skipped' : `e.g. Why did it happen? ${step.prompt}...`}
-                      className={`w-full p-2.5 text-xs rounded-lg border focus:outline-none focus:ring-2 resize-none disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800/50 disabled:text-slate-400 ${
+                      className={`w-full p-2.5 text-xs rounded-lg border focus:outline-none focus:ring-2 resize-none disabled:cursor-not-allowed disabled:bg-[var(--bg-2)] disabled:text-[var(--text-2)] ${
                         hasGarbage
-                          ? 'bg-white dark:bg-slate-900 border-rose-400 dark:border-rose-700 text-rose-900 dark:text-rose-200 focus:ring-rose-500'
+                          ? 'bg-[var(--panel-solid)] border-rose-400 dark:border-rose-700 text-rose-900 dark:text-rose-200 focus:ring-rose-500'
                           : isRootCause
-                          ? 'bg-white dark:bg-slate-900 border-rose-200 dark:border-rose-800 text-slate-900 dark:text-slate-100 focus:ring-rose-500 font-medium'
-                          : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 focus:bg-white dark:focus:bg-slate-900 focus:ring-sky-500'
+                          ? 'bg-[var(--panel-solid)] border-rose-200 dark:border-rose-800 text-[var(--text-0)] focus:ring-rose-500 font-medium'
+                          : 'bg-[var(--bg-1)] border-[var(--panel-border)] text-[var(--text-0)] focus:bg-[var(--panel-solid)] focus:ring-[var(--accent)]'
                       }`}
                     />
 

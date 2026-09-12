@@ -20,8 +20,8 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onDismis
         const isError = toast.type === 'error';
         const isSuccess = toast.type === 'success';
 
-        let containerStyle = 'bg-slate-900/95 dark:bg-slate-900/95 border-slate-700 text-slate-100 shadow-xl';
-        let icon = <Info className="w-5 h-5 text-sky-400 shrink-0" />;
+        let containerStyle = 'bg-[var(--panel-solid)]/95 border-[var(--panel-border)] text-[var(--text-0)] shadow-xl';
+        let icon = <Info className="w-5 h-5 text-[var(--accent)] shrink-0" />;
 
         if (isError) {
           containerStyle = 'bg-rose-50 dark:bg-rose-950/90 border-rose-200 dark:border-rose-800/80 text-rose-950 dark:text-rose-100 shadow-xl shadow-rose-950/10';
@@ -46,7 +46,7 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onDismis
             <button
               type="button"
               onClick={() => onDismiss(toast.id)}
-              className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-lg transition-colors cursor-pointer shrink-0 -mr-1 -mt-1"
+              className="p-1 text-[var(--text-2)] hover:text-[var(--text-1)] rounded-lg transition-colors cursor-pointer shrink-0 -mr-1 -mt-1"
               title="Dismiss notification"
             >
               <X className="w-4 h-4" />

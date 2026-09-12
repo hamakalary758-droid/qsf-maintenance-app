@@ -137,6 +137,16 @@ export const Navbar: React.FC<NavbarProps> = ({
     }
   });
 
+  // Keep QSF's own chrome in sync with the same theme picker that
+  // already themes the QSK iframe. Applying data-theme here has zero
+  // visible effect until components are migrated to use the CSS
+  // variables from qsk-themes.css — this just keeps the attribute
+  // correct so that migration can happen file-by-file later.
+  useEffect(() => {
+    const themeName = getQskThemeString(qskStyle, theme === 'dark');
+    document.documentElement.setAttribute('data-theme', themeName);
+  }, [qskStyle, theme]);
+
   const sendToQskIframe = (data: { type: string; [key: string]: any }) => {
     const message = { source: 'qsf-settings', ...data };
     const iframes = document.querySelectorAll('iframe');
@@ -386,7 +396,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       return (
         <button
           onClick={() => setIsSyncModalOpen(true)}
-          className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border bg-sky-500/10 text-sky-400 border-sky-500/30 animate-pulse"
+          className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border bg-[var(--accent)]/10 text-[var(--accent)] border-[var(--accent)]/30 animate-pulse"
           title={t('nav.syncingTitle')}
         >
           <RefreshCw className="w-3 h-3 animate-spin" />
@@ -448,7 +458,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   return (
-    <header className="bg-slate-900 border-b border-slate-800 text-white sticky top-0 z-40 shadow-lg">
+    <header className="bg-[var(--panel-solid)] border-b border-[var(--panel-border)] text-[var(--text-0)] sticky top-0 z-40 shadow-lg">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
         
         {/* Brand */}
@@ -464,7 +474,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div
             onClick={() => logoInputRef.current?.click()}
             title={logoDataUrl ? 'Click to change logo' : 'Click to upload company logo'}
-            className="relative group h-7 min-w-[28px] max-w-[84px] bg-sky-500/20 text-sky-400 rounded-lg border border-sky-500/30 flex items-center justify-center shadow-xs shrink-0 cursor-pointer overflow-visible transition-all hover:border-sky-400/60 p-0.5"
+            className="relative group h-7 min-w-[28px] max-w-[84px] bg-[var(--accent)]/20 text-[var(--accent)] rounded-lg border border-[var(--accent)]/30 flex items-center justify-center shadow-xs shrink-0 cursor-pointer overflow-visible transition-all hover:border-[var(--accent)]/60 p-0.5"
           >
             {logoDataUrl ? (
               <>
@@ -487,7 +497,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <Wrench className="w-3.5 h-3.5 transition-transform group-hover:scale-110" />
             )}
           </div>
-          <h1 className="font-semibold text-sm text-white">
+          <h1 className="font-semibold text-sm text-[var(--text-0)]">
             {isQskView ? 'QSK master data explorer' : 'QSF maintenance'}
           </h1>
         </div>
@@ -498,7 +508,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             onClick={() => onSelectTab('history')}
             aria-label={overdueActionsCount > 0 ? `${overdueActionsCount} overdue corrective actions` : 'No overdue actions'}
-            className="relative text-slate-300 hover:text-white transition-colors"
+            className="relative text-[var(--text-1)] hover:text-[var(--text-0)] transition-colors"
           >
             <Bell className="w-[18px] h-[18px]" />
             {overdueActionsCount > 0 && (
@@ -523,7 +533,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={onToggleQskView}
             aria-label={isQskView ? 'Switch back to QSF maintenance' : 'Switch to QSK master data explorer'}
             title={isQskView ? 'Back to QSF maintenance' : 'Open QSK master data explorer'}
-            className="flex items-center space-x-1 text-slate-300 hover:text-white transition-colors"
+            className="flex items-center space-x-1 text-[var(--text-1)] hover:text-[var(--text-0)] transition-colors"
           >
             <span className="text-[10px] font-semibold uppercase tracking-wide hidden sm:inline">
               {isQskView ? 'QSF' : 'QSK'}
@@ -562,51 +572,51 @@ export const Navbar: React.FC<NavbarProps> = ({
               aria-expanded={isSettingsOpen}
               className={`p-2 rounded-lg border transition-colors ${
                 isSettingsOpen
-                  ? 'bg-slate-800 text-sky-400 border-slate-700'
-                  : 'bg-slate-800/60 hover:bg-slate-800 text-slate-300 hover:text-white border-slate-700'
+                  ? 'bg-[var(--bg-2)] text-[var(--accent)] border-[var(--panel-border)]'
+                  : 'bg-[var(--bg-2)] hover:bg-[var(--bg-2)] text-[var(--text-1)] hover:text-[var(--text-0)] border-[var(--panel-border)]'
               }`}
             >
               <Menu className="w-4 h-4" />
             </button>
 
             {isSettingsOpen && (
-              <div className="absolute right-0 rtl:right-auto rtl:left-0 top-full mt-2 w-72 sm:w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl p-3 z-50 text-slate-900 dark:text-slate-100 animate-in fade-in-50 zoom-in-95 duration-100 space-y-2">
+              <div className="absolute right-0 rtl:right-auto rtl:left-0 top-full mt-2 w-72 sm:w-80 bg-[var(--panel-solid)] border border-[var(--panel-border)] rounded-xl shadow-xl p-3 z-50 text-[var(--text-0)] animate-in fade-in-50 zoom-in-95 duration-100 space-y-2">
                 {/* 1. Appearance Accordion */}
-                <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden bg-slate-50/50 dark:bg-slate-800/30">
+                <div className="border border-[var(--panel-border)] rounded-lg overflow-hidden bg-[var(--panel)]">
                   <button
                     type="button"
                     onClick={() => setOpenSections((prev) => ({ ...prev, appearance: !prev.appearance }))}
-                    className="w-full flex items-center justify-between p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors text-left rtl:text-right"
+                    className="w-full flex items-center justify-between p-2.5 hover:bg-[var(--bg-2)] transition-colors text-left rtl:text-right"
                   >
                     <div className="flex items-center space-x-2.5 rtl:space-x-reverse">
-                      <div className="p-1 rounded-md bg-sky-500/10 text-sky-600 dark:text-sky-400">
+                      <div className="p-1 rounded-md bg-[var(--accent)]/10 text-[var(--accent-2)]">
                         <Sun className="w-3.5 h-3.5" />
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-xs font-bold text-slate-900 dark:text-slate-100">Appearance</span>
-                        <span className="text-[10px] text-slate-500 dark:text-slate-400">Dark mode, density</span>
+                        <span className="text-xs font-bold text-[var(--text-0)]">Appearance</span>
+                        <span className="text-[10px] text-[var(--text-2)]">Dark mode, density</span>
                       </div>
                     </div>
                     <ChevronDown
-                      className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
+                      className={`w-3.5 h-3.5 text-[var(--text-2)] transition-transform duration-200 ${
                         openSections.appearance ? 'rotate-180' : ''
                       }`}
                     />
                   </button>
 
                   {openSections.appearance && (
-                    <div className="p-2 pt-0 space-y-1 border-t border-slate-100 dark:border-slate-800/60 mt-1">
+                    <div className="p-2 pt-0 space-y-1 border-t border-[var(--panel-border)] mt-1">
                       {/* Dark Mode Row */}
                       <div
                         onClick={handleToggleTheme}
-                        className="flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-colors"
+                        className="flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-[var(--bg-2)] cursor-pointer transition-colors"
                       >
-                        <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                        <span className="text-xs font-semibold text-[var(--text-0)]">
                           Dark mode
                         </span>
                         <div
                           className={`w-9 h-5 rounded-full transition-colors relative p-0.5 flex items-center ${
-                            theme === 'dark' ? 'bg-sky-500' : 'bg-slate-300 dark:bg-slate-700'
+                            theme === 'dark' ? 'bg-[var(--accent)]' : 'bg-[var(--panel-border-strong)]'
                           }`}
                         >
                           <div
@@ -620,19 +630,19 @@ export const Navbar: React.FC<NavbarProps> = ({
                       {/* Density Row */}
                       <div
                         onClick={handleToggleDensity}
-                        className="flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-colors"
+                        className="flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-[var(--bg-2)] cursor-pointer transition-colors"
                       >
                         <div className="flex flex-col">
-                          <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                          <span className="text-xs font-semibold text-[var(--text-0)]">
                             Density
                           </span>
-                          <span className="text-[10px] text-slate-400 dark:text-slate-500">
+                          <span className="text-[10px] text-[var(--text-2)]">
                             {qskDensity === 'tight' ? 'Tight spacing' : 'Wide spacing'}
                           </span>
                         </div>
                         <div
                           className={`w-9 h-5 rounded-full transition-colors relative p-0.5 flex items-center ${
-                            qskDensity === 'tight' ? 'bg-sky-500' : 'bg-slate-300 dark:bg-slate-700'
+                            qskDensity === 'tight' ? 'bg-[var(--accent)]' : 'bg-[var(--panel-border-strong)]'
                           }`}
                         >
                           <div
@@ -647,40 +657,40 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </div>
 
                 {/* 2. Language and Theme Accordion */}
-                <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden bg-slate-50/50 dark:bg-slate-800/30">
+                <div className="border border-[var(--panel-border)] rounded-lg overflow-hidden bg-[var(--panel)]">
                   <button
                     type="button"
                     onClick={() => setOpenSections((prev) => ({ ...prev, languageTheme: !prev.languageTheme }))}
-                    className="w-full flex items-center justify-between p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors text-left rtl:text-right"
+                    className="w-full flex items-center justify-between p-2.5 hover:bg-[var(--bg-2)] transition-colors text-left rtl:text-right"
                   >
                     <div className="flex items-center space-x-2.5 rtl:space-x-reverse">
                       <div className="p-1 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
                         <Globe className="w-3.5 h-3.5" />
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-xs font-bold text-slate-900 dark:text-slate-100">Language and theme</span>
-                        <span className="text-[10px] text-slate-500 dark:text-slate-400">Language, QSK color</span>
+                        <span className="text-xs font-bold text-[var(--text-0)]">Language and theme</span>
+                        <span className="text-[10px] text-[var(--text-2)]">Language, QSK color</span>
                       </div>
                     </div>
                     <ChevronDown
-                      className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
+                      className={`w-3.5 h-3.5 text-[var(--text-2)] transition-transform duration-200 ${
                         openSections.languageTheme ? 'rotate-180' : ''
                       }`}
                     />
                   </button>
 
                   {openSections.languageTheme && (
-                    <div className="p-2 pt-0 space-y-2 border-t border-slate-100 dark:border-slate-800/60 mt-1">
+                    <div className="p-2 pt-0 space-y-2 border-t border-[var(--panel-border)] mt-1">
                       {/* QSK Color Theme */}
                       <div className="flex items-center justify-between px-1 py-1">
-                        <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                        <span className="text-xs font-semibold text-[var(--text-0)]">
                           QSK color theme
                         </span>
                         <div className="relative">
                           <select
                             value={qskStyle}
                             onChange={(e) => handleQskStyleChange(e.target.value)}
-                            className="text-xs bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 pe-6 focus:outline-none focus:ring-1.5 focus:ring-sky-500 appearance-none font-medium cursor-pointer"
+                            className="text-xs bg-[var(--bg-2)] text-[var(--text-0)] border border-[var(--panel-border)] rounded-lg px-2 py-1 pe-6 focus:outline-none focus:ring-1.5 focus:ring-[var(--accent)] appearance-none font-medium cursor-pointer"
                           >
                             {QSK_STYLES.map((style) => (
                               <option key={style.id} value={style.id}>
@@ -688,16 +698,16 @@ export const Navbar: React.FC<NavbarProps> = ({
                               </option>
                             ))}
                           </select>
-                          <ChevronDown className="w-3 h-3 text-slate-400 absolute right-1.5 rtl:right-auto rtl:left-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                          <ChevronDown className="w-3 h-3 text-[var(--text-2)] absolute right-1.5 rtl:right-auto rtl:left-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                         </div>
                       </div>
 
                       {/* Language Switcher */}
-                      <div className="flex items-center justify-between px-1 py-1 pt-1.5 border-t border-slate-200/60 dark:border-slate-700/60">
-                        <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                      <div className="flex items-center justify-between px-1 py-1 pt-1.5 border-t border-[var(--panel-border)]/60">
+                        <span className="text-xs font-semibold text-[var(--text-0)]">
                           {t('nav.language')}
                         </span>
-                        <div className="flex items-center space-x-1 rtl:space-x-reverse bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700">
+                        <div className="flex items-center space-x-1 rtl:space-x-reverse bg-[var(--bg-2)] p-0.5 rounded-lg border border-[var(--panel-border)]">
                           {(['en', 'ar', 'ckb'] as const).map((lang) => (
                             <button
                               key={lang}
@@ -705,8 +715,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                               onClick={() => handleLanguageChange(lang)}
                               className={`px-2 py-0.5 text-[11px] font-semibold rounded-md transition-all ${
                                 locale === lang
-                                  ? 'bg-sky-500 text-white shadow-xs'
-                                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                                  ? 'bg-[var(--accent)] text-white shadow-xs'
+                                  : 'text-[var(--text-1)] hover:text-[var(--text-0)]'
                               }`}
                             >
                               {lang.toUpperCase()}
@@ -720,103 +730,103 @@ export const Navbar: React.FC<NavbarProps> = ({
 
                 {/* 3. QSK Tools Accordion (Only in QSK view) */}
                 {isQskView && (
-                  <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden bg-slate-50/50 dark:bg-slate-800/30">
+                  <div className="border border-[var(--panel-border)] rounded-lg overflow-hidden bg-[var(--panel)]">
                     <button
                       type="button"
                       onClick={() => setOpenSections((prev) => ({ ...prev, qskTools: !prev.qskTools }))}
-                      className="w-full flex items-center justify-between p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors text-left rtl:text-right"
+                      className="w-full flex items-center justify-between p-2.5 hover:bg-[var(--bg-2)] transition-colors text-left rtl:text-right"
                     >
                       <div className="flex items-center space-x-2.5 rtl:space-x-reverse">
                         <div className="p-1 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
                           <Sliders className="w-3.5 h-3.5" />
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-xs font-bold text-slate-900 dark:text-slate-100">QSK tools</span>
-                          <span className="text-[10px] text-slate-500 dark:text-slate-400">Only shown in QSK view</span>
+                          <span className="text-xs font-bold text-[var(--text-0)]">QSK tools</span>
+                          <span className="text-[10px] text-[var(--text-2)]">Only shown in QSK view</span>
                         </div>
                       </div>
                       <ChevronDown
-                        className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
+                        className={`w-3.5 h-3.5 text-[var(--text-2)] transition-transform duration-200 ${
                           openSections.qskTools ? 'rotate-180' : ''
                         }`}
                       />
                     </button>
 
                     {openSections.qskTools && (
-                      <div className="p-2 pt-0 space-y-2 border-t border-slate-100 dark:border-slate-800/60 mt-1">
+                      <div className="p-2 pt-0 space-y-2 border-t border-[var(--panel-border)] mt-1">
                         <div className="space-y-0.5 pt-1">
                           <button
                             onClick={() => handleQskToolTrigger('TRIGGER_SAP_VALIDATION')}
-                            className="w-full flex items-center space-x-2 rtl:space-x-reverse px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left rtl:text-right"
+                            className="w-full flex items-center space-x-2 rtl:space-x-reverse px-2 py-1.5 rounded-lg text-xs font-medium text-[var(--text-1)] hover:bg-[var(--bg-2)] transition-colors text-left rtl:text-right"
                           >
-                            <Shield className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                            <Shield className="w-3.5 h-3.5 text-[var(--text-2)] shrink-0" />
                             <span>SAP Validation</span>
                           </button>
                           <button
                             onClick={() => handleQskToolTrigger('OPEN_SHORTCUTS')}
-                            className="w-full flex items-center space-x-2 rtl:space-x-reverse px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left rtl:text-right"
+                            className="w-full flex items-center space-x-2 rtl:space-x-reverse px-2 py-1.5 rounded-lg text-xs font-medium text-[var(--text-1)] hover:bg-[var(--bg-2)] transition-colors text-left rtl:text-right"
                           >
-                            <Key className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                            <Key className="w-3.5 h-3.5 text-[var(--text-2)] shrink-0" />
                             <span>Keyboard shortcuts</span>
                           </button>
                           <button
                             onClick={() => handleQskToolTrigger('RUN_DIAGNOSTICS')}
-                            className="w-full flex items-center space-x-2 rtl:space-x-reverse px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left rtl:text-right"
+                            className="w-full flex items-center space-x-2 rtl:space-x-reverse px-2 py-1.5 rounded-lg text-xs font-medium text-[var(--text-1)] hover:bg-[var(--bg-2)] transition-colors text-left rtl:text-right"
                           >
-                            <CheckSquare className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                            <CheckSquare className="w-3.5 h-3.5 text-[var(--text-2)] shrink-0" />
                             <span>Built-in diagnostics</span>
                           </button>
                           <button
                             onClick={() => handleQskToolTrigger('OPEN_COMPARE')}
-                            className="w-full flex items-center space-x-2 rtl:space-x-reverse px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left rtl:text-right"
+                            className="w-full flex items-center space-x-2 rtl:space-x-reverse px-2 py-1.5 rounded-lg text-xs font-medium text-[var(--text-1)] hover:bg-[var(--bg-2)] transition-colors text-left rtl:text-right"
                           >
-                            <RefreshCw className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                            <RefreshCw className="w-3.5 h-3.5 text-[var(--text-2)] shrink-0" />
                             <span>Compare</span>
                           </button>
                           <button
                             onClick={() => handleQskToolTrigger('OPEN_DICTIONARY')}
-                            className="w-full flex items-center space-x-2 rtl:space-x-reverse px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left rtl:text-right"
+                            className="w-full flex items-center space-x-2 rtl:space-x-reverse px-2 py-1.5 rounded-lg text-xs font-medium text-[var(--text-1)] hover:bg-[var(--bg-2)] transition-colors text-left rtl:text-right"
                           >
-                            <BarChart3 className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                            <BarChart3 className="w-3.5 h-3.5 text-[var(--text-2)] shrink-0" />
                             <span>My Dictionary</span>
                           </button>
                           <button
                             onClick={() => handleQskToolTrigger('TRIGGER_RAWDIFF_UPLOAD')}
-                            className="w-full flex items-center space-x-2 rtl:space-x-reverse px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left rtl:text-right"
+                            className="w-full flex items-center space-x-2 rtl:space-x-reverse px-2 py-1.5 rounded-lg text-xs font-medium text-[var(--text-1)] hover:bg-[var(--bg-2)] transition-colors text-left rtl:text-right"
                           >
-                            <UploadCloud className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                            <UploadCloud className="w-3.5 h-3.5 text-[var(--text-2)] shrink-0" />
                             <span>Upload Old Raw Data</span>
                           </button>
                           <button
                             onClick={() => handleQskToolTrigger('TRIGGER_RAWDIFF_EXPORT')}
-                            className="w-full flex items-center space-x-2 rtl:space-x-reverse px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left rtl:text-right"
+                            className="w-full flex items-center space-x-2 rtl:space-x-reverse px-2 py-1.5 rounded-lg text-xs font-medium text-[var(--text-1)] hover:bg-[var(--bg-2)] transition-colors text-left rtl:text-right"
                           >
-                            <FileDown className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                            <FileDown className="w-3.5 h-3.5 text-[var(--text-2)] shrink-0" />
                             <span>Export Difference Report</span>
                           </button>
                         </div>
 
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400 px-2 pt-0.5">
+                        <div className="text-[10px] text-[var(--text-2)] px-2 pt-0.5">
                           Old raw file: {rawDiffStatus}
                         </div>
 
-                        <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-700">
-                          <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-1 py-1">
+                        <div className="mt-2 pt-2 border-t border-[var(--panel-border)]">
+                          <div className="text-[10px] font-bold text-[var(--text-2)] uppercase tracking-wider px-1 py-1">
                             Developer
                           </div>
                           <div className="space-y-0.5">
                             <button
                               onClick={() => handleQskToolTrigger('TOGGLE_REGRESSION_TEST')}
-                              className="w-full flex items-center space-x-2 rtl:space-x-reverse px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left rtl:text-right"
+                              className="w-full flex items-center space-x-2 rtl:space-x-reverse px-2 py-1.5 rounded-lg text-xs font-medium text-[var(--text-1)] hover:bg-[var(--bg-2)] transition-colors text-left rtl:text-right"
                             >
-                              <CheckSquare className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                              <CheckSquare className="w-3.5 h-3.5 text-[var(--text-2)] shrink-0" />
                               <span>Test</span>
                             </button>
                             <button
                               onClick={() => handleQskToolTrigger('TOGGLE_DEV_MODE')}
-                              className="w-full flex items-center space-x-2 rtl:space-x-reverse px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left rtl:text-right"
+                              className="w-full flex items-center space-x-2 rtl:space-x-reverse px-2 py-1.5 rounded-lg text-xs font-medium text-[var(--text-1)] hover:bg-[var(--bg-2)] transition-colors text-left rtl:text-right"
                             >
-                              <Wrench className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                              <Wrench className="w-3.5 h-3.5 text-[var(--text-2)] shrink-0" />
                               <span>Developer Mode</span>
                             </button>
                           </div>
@@ -827,36 +837,36 @@ export const Navbar: React.FC<NavbarProps> = ({
                 )}
 
                 {/* 4. AI Assistant Accordion */}
-                <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden bg-slate-50/50 dark:bg-slate-800/30">
+                <div className="border border-[var(--panel-border)] rounded-lg overflow-hidden bg-[var(--panel)]">
                   <button
                     type="button"
                     onClick={() => setOpenSections((prev) => ({ ...prev, aiAssistant: !prev.aiAssistant }))}
-                    className="w-full flex items-center justify-between p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors text-left rtl:text-right"
+                    className="w-full flex items-center justify-between p-2.5 hover:bg-[var(--bg-2)] transition-colors text-left rtl:text-right"
                   >
                     <div className="flex items-center space-x-2.5 rtl:space-x-reverse">
                       <div className="p-1 rounded-md bg-purple-500/10 text-purple-600 dark:text-purple-400">
                         <Sparkle className="w-3.5 h-3.5" />
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-xs font-bold text-slate-900 dark:text-slate-100">AI assistant</span>
-                        <span className="text-[10px] text-slate-500 dark:text-slate-400">Gemini API key</span>
+                        <span className="text-xs font-bold text-[var(--text-0)]">AI assistant</span>
+                        <span className="text-[10px] text-[var(--text-2)]">Gemini API key</span>
                       </div>
                     </div>
                     <ChevronDown
-                      className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
+                      className={`w-3.5 h-3.5 text-[var(--text-2)] transition-transform duration-200 ${
                         openSections.aiAssistant ? 'rotate-180' : ''
                       }`}
                     />
                   </button>
 
                   {openSections.aiAssistant && (
-                    <div className="p-2 pt-0 space-y-1.5 border-t border-slate-100 dark:border-slate-800/60 mt-1">
-                      <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-1 py-1 flex items-center justify-between">
+                    <div className="p-2 pt-0 space-y-1.5 border-t border-[var(--panel-border)] mt-1">
+                      <div className="text-[10px] font-bold text-[var(--text-2)] uppercase tracking-wider px-1 py-1 flex items-center justify-between">
                         <span>{t('nav.geminiApiKey')}</span>
                         <span className="text-[9px] text-purple-600 dark:text-purple-400 font-semibold lowercase">5-Why AI</span>
                       </div>
                       <div className="relative flex items-center">
-                        <div className="absolute left-2.5 rtl:left-auto rtl:right-2.5 text-slate-400 pointer-events-none">
+                        <div className="absolute left-2.5 rtl:left-auto rtl:right-2.5 text-[var(--text-2)] pointer-events-none">
                           <Key className="w-3.5 h-3.5" />
                         </div>
                         <input
@@ -864,18 +874,18 @@ export const Navbar: React.FC<NavbarProps> = ({
                           value={geminiApiKey}
                           onChange={(e) => handleApiKeyChange(e.target.value)}
                           placeholder={t('nav.geminiApiKeyPlaceholder')}
-                          className="w-full ps-8 pe-8 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-1.5 focus:ring-purple-500 focus:border-purple-500 font-mono"
+                          className="w-full ps-8 pe-8 py-1.5 text-xs bg-[var(--bg-1)] border border-[var(--panel-border)] rounded-lg text-[var(--text-0)] placeholder:text-[var(--text-2)] focus:outline-none focus:ring-1.5 focus:ring-purple-500 focus:border-purple-500 font-mono"
                         />
                         <button
                           type="button"
                           onClick={() => setShowApiKey((prev) => !prev)}
-                          className="absolute right-2 rtl:right-auto rtl:left-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors p-0.5"
+                          className="absolute right-2 rtl:right-auto rtl:left-2 text-[var(--text-2)] hover:text-[var(--text-1)] transition-colors p-0.5"
                           title={showApiKey ? 'Hide API key' : 'Show API key'}
                         >
                           {showApiKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                         </button>
                       </div>
-                      <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-tight px-1 pb-1">
+                      <p className="text-[10px] text-[var(--text-2)] leading-tight px-1 pb-1">
                         Used only in your browser to call Gemini's API directly for 5-Why suggestions. Not saved — you'll need to re-enter it each time you reopen the app.
                       </p>
                     </div>
@@ -883,33 +893,33 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </div>
 
                 {/* 5. More Accordion */}
-                <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden bg-slate-50/50 dark:bg-slate-800/30">
+                <div className="border border-[var(--panel-border)] rounded-lg overflow-hidden bg-[var(--panel)]">
                   <button
                     type="button"
                     onClick={() => setOpenSections((prev) => ({ ...prev, more: !prev.more }))}
-                    className="w-full flex items-center justify-between p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors text-left rtl:text-right"
+                    className="w-full flex items-center justify-between p-2.5 hover:bg-[var(--bg-2)] transition-colors text-left rtl:text-right"
                   >
                     <div className="flex items-center space-x-2.5 rtl:space-x-reverse">
                       <div className="p-1 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400">
                         <Sparkles className="w-3.5 h-3.5" />
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-xs font-bold text-slate-900 dark:text-slate-100">More</span>
-                        <span className="text-[10px] text-slate-500 dark:text-slate-400">Test data, app info</span>
+                        <span className="text-xs font-bold text-[var(--text-0)]">More</span>
+                        <span className="text-[10px] text-[var(--text-2)]">Test data, app info</span>
                       </div>
                     </div>
                     <ChevronDown
-                      className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
+                      className={`w-3.5 h-3.5 text-[var(--text-2)] transition-transform duration-200 ${
                         openSections.more ? 'rotate-180' : ''
                       }`}
                     />
                   </button>
 
                   {openSections.more && (
-                    <div className="p-2 pt-0 space-y-2 border-t border-slate-100 dark:border-slate-800/60 mt-1">
+                    <div className="p-2 pt-0 space-y-2 border-t border-[var(--panel-border)] mt-1">
                       {/* Test Data */}
                       <div className="pt-1">
-                        <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-1 py-1">
+                        <div className="text-[10px] font-bold text-[var(--text-2)] uppercase tracking-wider px-1 py-1">
                           Test data
                         </div>
                         <button
@@ -925,8 +935,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                       </div>
 
                       {/* App Details */}
-                      <div className="pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
-                        <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-1 py-1">
+                      <div className="pt-1 border-t border-[var(--panel-border)]/60">
+                        <div className="text-[10px] font-bold text-[var(--text-2)] uppercase tracking-wider px-1 py-1">
                           {t('nav.appDetails')}
                         </div>
                         <div className="space-y-0.5">
@@ -937,11 +947,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                             }}
                             className={`w-full flex items-center space-x-2 rtl:space-x-reverse px-2 py-1.5 rounded-lg text-xs font-medium transition-colors text-left rtl:text-right ${
                               activeTab === 'setup-guide'
-                                ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 font-semibold'
-                                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                                ? 'bg-[var(--accent-dim)] text-[var(--accent-2)] font-semibold'
+                                : 'text-[var(--text-1)] hover:bg-[var(--bg-2)]'
                             }`}
                           >
-                            <Shield className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                            <Shield className="w-3.5 h-3.5 text-[var(--text-2)] shrink-0" />
                             <span>{t('nav.safetyNet')}</span>
                           </button>
 
@@ -952,11 +962,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                             }}
                             className={`w-full flex items-center space-x-2 rtl:space-x-reverse px-2 py-1.5 rounded-lg text-xs font-medium transition-colors text-left rtl:text-right ${
                               activeTab === 'phase-checklist'
-                                ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 font-semibold'
-                                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                                ? 'bg-[var(--accent-dim)] text-[var(--accent-2)] font-semibold'
+                                : 'text-[var(--text-1)] hover:bg-[var(--bg-2)]'
                             }`}
                           >
-                            <CheckSquare className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                            <CheckSquare className="w-3.5 h-3.5 text-[var(--text-2)] shrink-0" />
                             <span>{t('nav.blueprint')}</span>
                           </button>
                         </div>
@@ -987,8 +997,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                   onClick={() => onSelectTab(tab.id)}
                   className={`flex items-center space-x-1.5 px-3 py-2 text-xs font-semibold rounded-lg whitespace-nowrap transition-all ${
                     isActive
-                      ? 'bg-sky-500 text-white shadow-sm'
-                      : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+                      ? 'bg-[var(--accent)] text-white shadow-sm'
+                      : 'text-[var(--text-2)] hover:bg-[var(--bg-2)] hover:text-[var(--text-0)]'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -1003,36 +1013,36 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* Sync Status & Retry Modal */}
       {isSyncModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-w-md w-full p-5 text-slate-900 dark:text-slate-100 animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-4">
+          <div className="bg-[var(--panel-solid)] border border-[var(--panel-border)] rounded-2xl shadow-2xl max-w-md w-full p-5 text-[var(--text-0)] animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-3 border-b border-[var(--panel-border)] mb-4">
               <div className="flex items-center space-x-2">
-                <div className="p-2 bg-sky-500/15 text-sky-600 dark:text-sky-400 rounded-xl">
+                <div className="p-2 bg-[var(--accent)]/15 text-[var(--accent-2)] rounded-xl">
                   <RefreshCw className={`w-4 h-4 ${syncInfo.state === 'syncing' ? 'animate-spin' : ''}`} />
                 </div>
                 <div>
                   <h3 className="font-bold text-sm">{t('nav.storageStatusTitle')}</h3>
-                  <span className="text-[11px] text-slate-500 dark:text-slate-400">{t('nav.storageEngineSubtitle')}</span>
+                  <span className="text-[11px] text-[var(--text-2)]">{t('nav.storageEngineSubtitle')}</span>
                 </div>
               </div>
               <button
                 onClick={() => setIsSyncModalOpen(false)}
-                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg"
+                className="p-1 text-[var(--text-2)] hover:text-[var(--text-1)] rounded-lg"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="space-y-3 text-xs mb-5">
-              <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/70 dark:border-slate-700/60">
-                <span className="text-slate-600 dark:text-slate-400">{t('nav.networkState')}</span>
+              <div className="flex items-center justify-between p-3 bg-[var(--bg-1)] rounded-xl border border-[var(--panel-border)]/70">
+                <span className="text-[var(--text-1)]">{t('nav.networkState')}</span>
                 <span className={`font-bold ${syncInfo.isOnline ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
                   {syncInfo.isOnline ? 'Connected (Online)' : 'No Connection (Offline)'}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/70 dark:border-slate-700/60">
-                <span className="text-slate-600 dark:text-slate-400">{t('nav.syncStatus')}</span>
-                <span className="font-bold capitalize text-slate-800 dark:text-slate-200">
+              <div className="flex items-center justify-between p-3 bg-[var(--bg-1)] rounded-xl border border-[var(--panel-border)]/70">
+                <span className="text-[var(--text-1)]">{t('nav.syncStatus')}</span>
+                <span className="font-bold capitalize text-[var(--text-0)]">
                   {syncInfo.state.replace('_', ' ')}
                 </span>
               </div>
@@ -1105,14 +1115,14 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className="flex items-center justify-end space-x-2">
               <button
                 onClick={() => setIsSyncModalOpen(false)}
-                className="px-3.5 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
+                className="px-3.5 py-2 text-xs font-semibold text-[var(--text-1)] hover:bg-[var(--bg-2)] rounded-xl transition-colors"
               >
                 Close
               </button>
               <button
                 onClick={handleManualRetry}
                 disabled={syncInfo.state === 'syncing'}
-                className="px-4 py-2 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-md flex items-center space-x-1.5 transition-transform active:scale-95"
+                className="px-4 py-2 bg-[var(--accent-2)] hover:bg-[var(--accent)] disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-md flex items-center space-x-1.5 transition-transform active:scale-95"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${syncInfo.state === 'syncing' ? 'animate-spin' : ''}`} />
                 <span>{t('nav.retrySyncNow')}</span>

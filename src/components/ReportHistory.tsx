@@ -100,26 +100,26 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
       {/* Archive Confirmation Modal */}
       {reportToArchive && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 animate-fadeIn">
+          <div className="bg-[var(--panel-solid)] border border-[var(--panel-border)] rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 animate-fadeIn">
             <div className="flex items-start space-x-3">
               <div className="p-2.5 bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 rounded-xl shrink-0">
                 <Archive className="w-5 h-5" />
               </div>
               <div className="flex-1">
-                <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100">
+                <h3 className="font-bold text-sm text-[var(--text-0)]">
                   Archive Maintenance Report?
                 </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  Report <strong className="text-slate-800 dark:text-slate-200">{reportToArchive.reportNumber || reportToArchive.equipmentName}</strong> will be moved to the archive and hidden from active views.
+                <p className="text-xs text-[var(--text-2)] mt-1">
+                  Report <strong className="text-[var(--text-0)]">{reportToArchive.reportNumber || reportToArchive.equipmentName}</strong> will be moved to the archive and hidden from active views.
                 </p>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                <p className="text-[11px] text-[var(--text-2)] mt-1">
                   All photos, markups, and root cause analyses are preserved safely. You can restore it anytime.
                 </p>
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+              <label className="text-[11px] font-semibold text-[var(--text-1)]">
                 Archive Reason (Optional)
               </label>
               <input
@@ -127,18 +127,18 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
                 value={archiveReason}
                 onChange={(e) => setArchiveReason(e.target.value)}
                 placeholder="e.g. Superseded by final overhaul, test draft, duplicate"
-                className="w-full text-xs p-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full text-xs p-2 rounded-lg border border-[var(--panel-border)] bg-[var(--bg-1)] text-[var(--text-0)] focus:outline-none focus:ring-2 focus:ring-amber-500"
               />
             </div>
 
-            <div className="flex items-center justify-end space-x-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex items-center justify-end space-x-2 pt-2 border-t border-[var(--panel-border)]">
               <button
                 type="button"
                 onClick={() => {
                   setReportToArchive(null);
                   setArchiveReason('');
                 }}
-                className="px-3.5 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+                className="px-3.5 py-2 text-xs font-semibold text-[var(--text-1)] hover:bg-[var(--bg-2)] rounded-lg transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -156,12 +156,12 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
       )}
 
       {/* Top Bar */}
-      <div className="bg-slate-900 text-white rounded-xl p-5 border border-slate-800 shadow-md">
+      <div className="bg-[var(--panel-solid)] text-[var(--text-0)] rounded-xl p-5 border border-[var(--panel-border)] shadow-md">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
           <div>
-            <span className="text-[10px] text-sky-400 font-bold uppercase tracking-wider">Step 18: Historical Archive</span>
-            <h2 className="text-xl font-bold text-white">Plant Shutdown Maintenance Reports</h2>
-            <p className="text-xs text-slate-300 mt-0.5">
+            <span className="text-[10px] text-[var(--accent)] font-bold uppercase tracking-wider">Step 18: Historical Archive</span>
+            <h2 className="text-xl font-bold text-[var(--text-0)]">Plant Shutdown Maintenance Reports</h2>
+            <p className="text-xs text-[var(--text-1)] mt-0.5">
               Access, inspect, edit, duplicate, or re-export past plant shutdown reports.
             </p>
           </div>
@@ -171,10 +171,10 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
             <button
               onClick={() => exportReportsToCSV(filteredReports)}
               disabled={filteredReports.length === 0}
-              className="p-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-300 hover:text-white border border-slate-700 rounded-lg transition-colors cursor-pointer flex items-center space-x-1.5 text-xs font-semibold"
+              className="p-2 bg-[var(--bg-2)] hover:bg-[var(--panel-border-strong)] disabled:opacity-50 text-[var(--text-1)] hover:text-[var(--text-0)] border border-[var(--panel-border)] rounded-lg transition-colors cursor-pointer flex items-center space-x-1.5 text-xs font-semibold"
               title={`Export ${filteredReports.length} filtered report(s) to CSV`}
             >
-              <Download className="w-4 h-4 text-sky-400" />
+              <Download className="w-4 h-4 text-[var(--accent)]" />
               <span className="hidden sm:inline">CSV Export</span>
             </button>
 
@@ -196,7 +196,7 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
                   }
                   e.target.value = '';
                 }}
-                className="bg-slate-800 hover:bg-slate-750 border border-slate-700 rounded-lg px-2.5 py-2 text-xs text-slate-200 focus:outline-none focus:border-sky-500 font-medium cursor-pointer"
+                className="bg-[var(--bg-2)] hover:bg-[var(--panel-border-strong)] border border-[var(--panel-border)] rounded-lg px-2.5 py-2 text-xs text-[var(--text-1)] focus:outline-none focus:border-[var(--accent)] font-medium cursor-pointer"
                 title="Start a new report from a template or blank draft"
               >
                 <option value="" disabled hidden>Quick Start...</option>
@@ -211,7 +211,7 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
 
             <button
               onClick={onNewReport}
-              className="px-4 py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs rounded-lg shadow-md transition-transform active:scale-95 flex items-center space-x-1.5 shrink-0 cursor-pointer"
+              className="px-4 py-2 bg-[var(--accent)] hover:bg-[var(--accent-2)] text-white font-bold text-xs rounded-lg shadow-md transition-transform active:scale-95 flex items-center space-x-1.5 shrink-0 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>New Report</span>
@@ -220,19 +220,19 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
         </div>
 
         {/* View Tabs: Active vs Archived */}
-        <div className="flex items-center space-x-2 pt-2 border-t border-slate-800 text-xs">
+        <div className="flex items-center space-x-2 pt-2 border-t border-[var(--panel-border)] text-xs">
           <button
             type="button"
             onClick={() => setViewTab('active')}
             className={`px-3 py-1.5 rounded-lg font-bold transition-colors cursor-pointer flex items-center space-x-1.5 ${
               viewTab === 'active'
-                ? 'bg-sky-500 text-slate-950 shadow-sm'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                ? 'bg-[var(--accent)] text-white shadow-sm'
+                : 'text-[var(--text-2)] hover:text-[var(--text-1)] hover:bg-[var(--bg-2)]'
             }`}
           >
             <span>Active Reports</span>
             <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${
-              viewTab === 'active' ? 'bg-slate-900 text-sky-300' : 'bg-slate-800 text-slate-400'
+              viewTab === 'active' ? 'bg-[var(--panel-solid)] text-[var(--accent)]' : 'bg-[var(--bg-2)] text-[var(--text-2)]'
             }`}>
               {activeReports.length}
             </span>
@@ -244,13 +244,13 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
             className={`px-3 py-1.5 rounded-lg font-bold transition-colors cursor-pointer flex items-center space-x-1.5 ${
               viewTab === 'archived'
                 ? 'bg-amber-500 text-slate-950 shadow-sm'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                : 'text-[var(--text-2)] hover:text-[var(--text-1)] hover:bg-[var(--bg-2)]'
             }`}
           >
             <Archive className="w-3.5 h-3.5" />
             <span>Archived</span>
             <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${
-              viewTab === 'archived' ? 'bg-slate-900 text-amber-300' : 'bg-slate-800 text-slate-400'
+              viewTab === 'archived' ? 'bg-[var(--panel-solid)] text-amber-300' : 'bg-[var(--bg-2)] text-[var(--text-2)]'
             }`}>
               {archivedReports.length}
             </span>
@@ -258,15 +258,15 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
         </div>
 
         {/* Search & Filter Inputs */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 pt-3 border-t border-slate-800">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 pt-3 border-t border-[var(--panel-border)]">
           <div className="relative sm:col-span-2 lg:col-span-2">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+            <Search className="w-4 h-4 text-[var(--text-2)] absolute left-3 top-2.5" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search equipment, tag, technician, location, notes, or report #..."
-              className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-sky-500"
+              className="w-full bg-[var(--bg-2)] border border-[var(--panel-border)] rounded-lg pl-9 pr-3 py-2 text-xs text-[var(--text-0)] placeholder-[var(--text-2)] focus:outline-none focus:border-[var(--accent)]"
             />
           </div>
 
@@ -274,7 +274,7 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
             <select
               value={selectedFailureType}
               onChange={(e) => setSelectedFailureType(e.target.value)}
-              className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500"
+              className="w-full bg-[var(--bg-2)] border border-[var(--panel-border)] rounded-lg px-3 py-2 text-xs text-[var(--text-0)] focus:outline-none focus:border-[var(--accent)]"
             >
               <option value="ALL">All Failure Classifications</option>
               {FAILURE_TYPES.map((type) => (
@@ -290,7 +290,7 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
               type="date"
               value={dateFrom}
               onChange={(e) => setDateFrom(e.target.value)}
-              className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500"
+              className="w-full bg-[var(--bg-2)] border border-[var(--panel-border)] rounded-lg px-3 py-2 text-xs text-[var(--text-0)] focus:outline-none focus:border-[var(--accent)]"
               title="From date (inclusive)"
               placeholder="From Date"
             />
@@ -301,7 +301,7 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
               type="date"
               value={dateTo}
               onChange={(e) => setDateTo(e.target.value)}
-              className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500"
+              className="w-full bg-[var(--bg-2)] border border-[var(--panel-border)] rounded-lg px-3 py-2 text-xs text-[var(--text-0)] focus:outline-none focus:border-[var(--accent)]"
               title="To date (inclusive)"
               placeholder="To Date"
             />
@@ -311,16 +311,16 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
 
       {/* Batch Export by Shutdown Section */}
       {distinctShutdowns.length > 0 && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="bg-[var(--panel-solid)] border border-[var(--panel-border)] rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center space-x-2.5">
-            <div className="p-2 bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 rounded-xl border border-sky-200 dark:border-sky-800">
+            <div className="p-2 bg-[var(--accent-dim)] text-[var(--accent)] rounded-xl border border-[var(--accent)]/30">
               <FileBox className="w-4 h-4 shrink-0" />
             </div>
             <div>
-              <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100">
+              <h3 className="text-xs font-bold text-[var(--text-0)]">
                 Export Batch by Shutdown Event
               </h3>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+              <p className="text-[11px] text-[var(--text-2)]">
                 Bundle all {shutdownReports.length} report(s) from this shutdown into a single consolidated file
               </p>
             </div>
@@ -330,7 +330,7 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
             <select
               value={activeShutdown}
               onChange={(e) => setSelectedShutdown(e.target.value)}
-              className="bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-900 dark:text-white font-medium focus:outline-none focus:border-sky-500 max-w-[200px] truncate"
+              className="bg-[var(--bg-2)] border border-[var(--panel-border)] rounded-lg px-3 py-1.5 text-xs text-[var(--text-0)] font-medium focus:outline-none focus:border-[var(--accent)] max-w-[200px] truncate"
             >
               {distinctShutdowns.map((name) => (
                 <option key={name} value={name}>
@@ -380,15 +380,15 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
 
       {/* Reports List */}
       {isLoading ? (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-10 text-center space-y-3">
-          <div className="w-8 h-8 border-4 border-sky-600 border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Loading reports from database...</p>
+        <div className="bg-[var(--panel-solid)] border border-[var(--panel-border)] rounded-2xl p-10 text-center space-y-3">
+          <div className="w-8 h-8 border-4 border-[var(--accent)] border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-xs text-[var(--text-2)] font-medium">Loading reports from database...</p>
         </div>
       ) : filteredReports.length === 0 ? (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-10 text-center space-y-3">
-          <Wrench className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto" />
-          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">No Matching Reports Found</h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+        <div className="bg-[var(--panel-solid)] border border-[var(--panel-border)] rounded-2xl p-10 text-center space-y-3">
+          <Wrench className="w-10 h-10 text-[var(--text-2)] mx-auto" />
+          <h3 className="text-sm font-bold text-[var(--text-0)]">No Matching Reports Found</h3>
+          <p className="text-xs text-[var(--text-2)] max-w-sm mx-auto">
             No reports match your current search criteria. Clear filters or create a new shutdown maintenance report.
           </p>
           <button
@@ -398,7 +398,7 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
               setDateFrom('');
               setDateTo('');
             }}
-            className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-xs rounded-lg"
+            className="px-3 py-1.5 bg-[var(--bg-2)] hover:bg-[var(--panel-border-strong)] text-[var(--text-1)] font-semibold text-xs rounded-lg"
           >
             Clear Search Filter
           </button>
@@ -408,14 +408,14 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
           {filteredReports.map((r) => (
             <div
               key={r.id}
-              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+              className="bg-[var(--panel-solid)] border border-[var(--panel-border)] rounded-2xl p-4 shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
             >
               {/* Left Column: Report Meta */}
               <div className="space-y-1.5 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className={`font-mono font-bold text-xs px-2 py-0.5 rounded border ${
                     r.reportNumber
-                      ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700'
+                      ? 'bg-[var(--bg-2)] text-[var(--text-0)] border-[var(--panel-border)]'
                       : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800'
                   }`}>
                     {r.reportNumber || 'Pending Assignment'}
@@ -429,13 +429,13 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
                       <span>Archived {r.archivedAt ? `(${new Date(r.archivedAt).toLocaleDateString()})` : ''}</span>
                     </span>
                   )}
-                  <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">
-                    <Calendar className="w-3 h-3 inline mr-0.5 text-slate-400 dark:text-slate-500" />
+                  <span className="text-[10px] text-[var(--text-2)] font-mono">
+                    <Calendar className="w-3 h-3 inline mr-0.5 text-[var(--text-2)]" />
                     {r.date}
                   </span>
                 </div>
 
-                <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100 group-hover:text-sky-600 transition-colors">
+                <h3 className="font-bold text-sm text-[var(--text-0)] group-hover:text-[var(--accent)] transition-colors">
                   {r.title || r.equipmentName}
                 </h3>
 
@@ -445,16 +445,16 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
                   </p>
                 )}
 
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[var(--text-2)]">
                   <span className="flex items-center">
-                    <Wrench className="w-3.5 h-3.5 mr-1 text-slate-400 dark:text-slate-500" />
+                    <Wrench className="w-3.5 h-3.5 mr-1 text-[var(--text-2)]" />
                     {r.equipmentName} ({r.equipmentCode})
                   </span>
                   <span className="flex items-center">
-                    <MapPin className="w-3.5 h-3.5 mr-1 text-slate-400 dark:text-slate-500" />
+                    <MapPin className="w-3.5 h-3.5 mr-1 text-[var(--text-2)]" />
                     {r.location}
                   </span>
-                  <span className="text-slate-400 dark:text-slate-500">Tech: <strong className="text-slate-700 dark:text-slate-300">{r.technicianName}</strong></span>
+                  <span className="text-[var(--text-2)]">Tech: <strong className="text-[var(--text-1)]">{r.technicianName}</strong></span>
                 </div>
 
                 {r.fiveWhy?.why5 && (
@@ -465,11 +465,11 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
               </div>
 
               {/* Right Column: Actions & Exports */}
-              <div className="flex sm:flex-col items-end justify-between sm:justify-center w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800 gap-2">
+              <div className="flex sm:flex-col items-end justify-between sm:justify-center w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-[var(--panel-border)] gap-2">
                 <div className="flex items-center space-x-1.5">
                   <button
                     onClick={() => onSelectReport(r)}
-                    className="py-1.5 px-3 bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs rounded-lg flex items-center space-x-1 shadow-sm transition-colors cursor-pointer"
+                    className="py-1.5 px-3 bg-[var(--accent-2)] hover:bg-[var(--accent)] text-white font-bold text-xs rounded-lg flex items-center space-x-1 shadow-sm transition-colors cursor-pointer"
                   >
                     <Eye className="w-3.5 h-3.5" />
                     <span>View / Edit</span>
@@ -477,7 +477,7 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
 
                   <button
                     onClick={() => onDuplicateReport(r)}
-                    className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-950/30 rounded-lg transition-colors cursor-pointer"
+                    className="p-1.5 text-[var(--text-2)] hover:text-[var(--accent)] hover:bg-[var(--accent-dim)] rounded-lg transition-colors cursor-pointer"
                     title="Duplicate report (prefills equipment, location, and shutdown into new draft)"
                   >
                     <Copy className="w-4 h-4" />
@@ -497,7 +497,7 @@ export const ReportHistory: React.FC<ReportHistoryProps> = ({
                   ) : (
                     <button
                       onClick={() => setReportToArchive(r)}
-                      className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30 rounded-lg transition-colors cursor-pointer"
+                      className="p-1.5 text-[var(--text-2)] hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30 rounded-lg transition-colors cursor-pointer"
                       title="Archive report (soft-delete)"
                     >
                       <Archive className="w-4 h-4" />

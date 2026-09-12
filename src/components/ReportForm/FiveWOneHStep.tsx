@@ -95,23 +95,23 @@ export const FiveWOneHStep: React.FC<FiveWOneHStepProps> = ({ reportData, onChan
           return (
             <div
               key={f.key}
-              className={`bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-3 shadow-sm border-l-4 ${f.color} flex flex-col justify-between`}
+              className={`bg-[var(--panel-solid)] border border-[var(--panel-border)] rounded-xl p-3 shadow-sm border-l-4 ${f.color} flex flex-col justify-between`}
             >
               <div>
                 <div className="flex items-center space-x-1.5 mb-1">
-                  <IconComp className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400" />
-                  <span className="font-bold text-xs text-slate-800 dark:text-slate-200">
+                  <IconComp className="w-3.5 h-3.5 text-[var(--text-1)]" />
+                  <span className="font-bold text-xs text-[var(--text-0)]">
                     {f.title} <span className="text-rose-500 font-bold ml-0.5">*</span>
                   </span>
                 </div>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 mb-2">{f.subtitle}</p>
+                <p className="text-[10px] text-[var(--text-2)] mb-2">{f.subtitle}</p>
 
                 <textarea
                   rows={2}
                   value={fiveWOneH[f.key]}
                   onChange={(e) => updateField(f.key, e.target.value)}
                   placeholder={f.placeholder}
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-sky-500 focus:border-transparent resize-none"
+                  className="w-full bg-[var(--bg-1)] border border-[var(--panel-border)] rounded-lg p-2 text-xs text-[var(--text-0)] focus:outline-none focus:bg-[var(--panel-solid)] focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent resize-none"
                 />
               </div>
             </div>

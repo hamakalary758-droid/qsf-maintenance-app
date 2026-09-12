@@ -472,7 +472,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-[var(--bg-0)] text-[var(--text-0)] flex flex-col font-sans">
       {/* Navbar Header */}
       <Navbar
         activeTab={activeTab}
@@ -544,13 +544,13 @@ export default function App() {
           <div className="space-y-4 pb-24 sm:pb-0">
             
             {/* Form Wizard Step Bar */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-3 shadow-sm">
+            <div className="bg-[var(--panel-solid)] border border-[var(--panel-border)] rounded-2xl p-3 shadow-sm">
               <div className="flex items-center justify-between mb-3 px-1">
                 <div className="flex items-center space-x-2">
-                  <span className="font-extrabold text-xs text-sky-600 dark:text-sky-400 uppercase tracking-wider">
+                  <span className="font-extrabold text-xs text-[var(--accent)] uppercase tracking-wider">
                     {formStepTitles[currentStepIndex]}
                   </span>
-                  <span className="text-xs text-slate-400 dark:text-slate-500">({currentStepIndex + 1} of {formStepTitles.length})</span>
+                  <span className="text-xs text-[var(--text-2)]">({currentStepIndex + 1} of {formStepTitles.length})</span>
                 </div>
                 <button
                   type="button"
@@ -564,7 +564,7 @@ export default function App() {
               </div>
 
               {/* Progress Steps Pills */}
-              <div className="grid grid-cols-6 gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+              <div className="grid grid-cols-6 gap-1 bg-[var(--bg-2)] p-1 rounded-xl">
                 {formStepTitles.map((title, idx) => {
                   const isActive = currentStepIndex === idx;
                   const isDone = currentStepIndex > idx;
@@ -574,10 +574,10 @@ export default function App() {
                       onClick={() => setCurrentStepIndex(idx)}
                       className={`py-1.5 px-1 text-[10px] font-bold rounded-lg text-center truncate transition-all ${
                         isActive
-                          ? 'bg-sky-600 text-white shadow-sm'
+                          ? 'bg-[var(--accent)] text-white shadow-sm'
                           : isDone
-                          ? 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'
-                          : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'
+                          ? 'bg-[var(--panel-border-strong)] text-[var(--text-1)] hover:bg-[var(--text-2)]'
+                          : 'text-[var(--text-2)] hover:text-[var(--text-1)]'
                       }`}
                     >
                       <span className="hidden sm:inline">{title}</span>
@@ -589,7 +589,7 @@ export default function App() {
             </div>
 
             {/* Active Step Form Component */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 sm:p-6 shadow-sm">
+            <div className="bg-[var(--panel-solid)] border border-[var(--panel-border)] rounded-2xl p-4 sm:p-6 shadow-sm">
               {currentStepIndex === 0 && (
                 <BasicInfoStep reportData={reportData} onChange={handleUpdateReportData} />
               )}
@@ -616,24 +616,24 @@ export default function App() {
             </div>
 
             {/* Wizard Navigation Footer Buttons */}
-            <div className="flex items-center justify-between bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 sm:border sm:rounded-2xl shadow-sm fixed bottom-0 left-0 right-0 z-40 p-3.5 pb-[calc(0.875rem+env(safe-area-inset-bottom))] sm:static sm:z-auto sm:pb-3.5">
+            <div className="flex items-center justify-between bg-[var(--panel-solid)] border-t border-[var(--panel-border)] sm:border sm:rounded-2xl shadow-sm fixed bottom-0 left-0 right-0 z-40 p-3.5 pb-[calc(0.875rem+env(safe-area-inset-bottom))] sm:static sm:z-auto sm:pb-3.5">
               <button
                 onClick={() => setCurrentStepIndex((prev) => Math.max(0, prev - 1))}
                 disabled={currentStepIndex === 0}
-                className="py-2 px-4 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs rounded-xl disabled:opacity-40 transition-colors flex items-center space-x-1"
+                className="py-2 px-4 bg-[var(--bg-2)] hover:bg-[var(--panel-border-strong)] text-[var(--text-1)] font-bold text-xs rounded-xl disabled:opacity-40 transition-colors flex items-center space-x-1"
               >
                 <ChevronLeft className="w-4 h-4" />
                 <span>Previous Step</span>
               </button>
 
-              <div className="text-[11px] text-slate-400 dark:text-slate-500 font-medium hidden sm:block">
+              <div className="text-[11px] text-[var(--text-2)] font-medium hidden sm:block">
                 Auto-Saved to Local Storage Cache
               </div>
 
               {currentStepIndex < formStepTitles.length - 1 ? (
                 <button
                   onClick={() => setCurrentStepIndex((prev) => Math.min(formStepTitles.length - 1, prev + 1))}
-                  className="py-2 px-5 bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs rounded-xl shadow-md transition-all active:scale-95 flex items-center space-x-1"
+                  className="py-2 px-5 bg-[var(--accent-2)] hover:bg-[var(--accent)] text-white font-bold text-xs rounded-xl shadow-md transition-all active:scale-95 flex items-center space-x-1"
                 >
                   <span>Next Step</span>
                   <ChevronRight className="w-4 h-4" />
@@ -708,7 +708,7 @@ export default function App() {
           onClick={() => setShowDiscardModal(false)}
         >
           <div
-            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4"
+            className="bg-[var(--panel-solid)] border border-[var(--panel-border)] rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start space-x-3.5">
@@ -716,20 +716,20 @@ export default function App() {
                 <Trash2 className="w-5 h-5" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                <h3 className="text-base font-bold text-[var(--text-0)]">
                   Discard Report Draft?
                 </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                <p className="text-xs text-[var(--text-2)] leading-relaxed">
                   Are you sure you want to discard this draft and start a new report? All unsaved form inputs, photos, and analysis will be cleared. This action cannot be undone.
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center justify-end space-x-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex items-center justify-end space-x-2 pt-3 border-t border-[var(--panel-border)]">
               <button
                 type="button"
                 onClick={() => setShowDiscardModal(false)}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
+                className="px-4 py-2 text-xs font-semibold text-[var(--text-1)] hover:bg-[var(--bg-2)] rounded-xl transition-colors cursor-pointer"
               >
                 Cancel
               </button>
